@@ -1,7 +1,20 @@
+import Image from "next/image";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
 import { formatearDuracion, formatearPrecio } from "@/lib/utils/format";
 import type { Servicio } from "@/types/api";
+
+const IMAGENES = [
+  "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1622286342621-4bd786c2447c?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=900&q=80",
+];
+
+function imagenPara(id: string): string {
+  let hash = 0;
+  for (let i = 0; i < id.length; i += 1) hash = (hash + id.charCodeAt(i)) % IMAGENES.length;
+  return IMAGENES[hash];
+}
 
 interface ServicioCardProps {
   servicio: Servicio;
@@ -19,40 +32,54 @@ export function ServicioCard({
   onReservar,
 }: ServicioCardProps) {
   return (
-    <Card className="border-t border-border bg-surface shadow-none">
-      <div className="flex items-start justify-between gap-2 px-4 py-4">
-        <h3 className="text-base font-semibold uppercase tracking-widest text-foreground">
-          {servicio.nombre}
-        </h3>
+    <article className="flex flex-col rounded-none border border-neutral-800 bg-neutral-900/30 p-6">
+      <div className="relative mb-5 h-40 w-full overflow-hidden">
+        <Image
+          src={imagenPara(servicio.id)}
+          alt={servicio.nombre}
+          fill
+          sizes="(max-width: 768px) 100vw, 40vw"
+          className="object-cover grayscale"
+        />
+      </div>
+
+      <div className="flex items-start justify-between gap-3">
+        <h3 className="text-lg font-medium text-white">{servicio.nombre}</h3>
         {!servicio.activo && (
-          <span className="inline-flex items-center gap-1 px-2 py-1 bg-accent/15 text-foreground text-xs uppercase rounded-none">
+          <span className="inline-flex items-center rounded-none border border-neutral-700 px-2 py-0.5 text-[10px] uppercase tracking-widest text-neutral-400">
             Inactivo
           </span>
         )}
       </div>
 
-      <p className="mt-2 text-sm text-muted">
+      <p className="mt-2 text-sm text-neutral-400">
         {servicio.descripcion || "Sin descripción."}
       </p>
 
-      <div className="mt-4 flex items-center justify-between text-sm text-foreground">
-        <span className="text-muted">
+      <div className="mt-6 flex items-end justify-between border-t border-neutral-800 pt-4">
+        <span className="font-mono text-sm text-neutral-400">
           {formatearDuracion(servicio.duracionMin)}
         </span>
-        <span className="font-semibold text-foreground">
+        <span className="font-mono text-lg text-white">
           {formatearPrecio(servicio.precio)}
         </span>
       </div>
 
-      <div className="mt-4">
+      <div className="mt-6">
         {esAdmin ? (
           <div className="flex gap-2">
-            <Button className="flex-1 rounded-none bg-surface text-foreground hover:bg-foreground/10">
+            <Button
+              variante="secondary"
+              onClick={() => onEditar?.(servicio)}
+              className="flex-1 rounded-none border-neutral-700"
+            >
               Editar
             </Button>
             {servicio.activo && (
               <Button
-                className="flex-1 rounded-none bg-red-600 text-white hover:bg-red-500"
+                variante="danger"
+                onClick={() => onDesactivar?.(servicio)}
+                className="flex-1 rounded-none"
               >
                 Desactivar
               </Button>
@@ -60,12 +87,13 @@ export function ServicioCard({
           </div>
         ) : (
           <Button
-            className="w-full rounded-none bg-foreground text-background hover:bg-foreground/90"
+            onClick={() => onReservar?.(servicio)}
+            className="w-full rounded-none bg-white px-4 py-3 text-xs uppercase tracking-widest text-black transition-colors hover:bg-neutral-300"
           >
-            Reservar
+            Reservar este servicio
           </Button>
         )}
       </div>
-    </Card>
+    </article>
   );
 }

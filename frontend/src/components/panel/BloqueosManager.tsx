@@ -122,10 +122,10 @@ export function BloqueosManager() {
     <section aria-label="Gestión de bloqueos">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h2 className="text-xl font-black uppercase tracking-widest text-foreground ">
+          <h2 className="text-xl font-black uppercase tracking-widest text-neutral-100">
             Bloqueos de agenda
           </h2>
-          <p className="text-sm text-muted ">
+          <p className="text-sm text-neutral-400">
             Marcá ausencias o descansos para que esas franjas dejen de estar disponibles.
           </p>
         </div>
@@ -162,16 +162,16 @@ export function BloqueosManager() {
             {proximos.map((bloqueo) => (
               <li
                 key={bloqueo.id}
-                className="flex flex-wrap items-center justify-between gap-3 border-t border-border py-3 "
+                className="flex flex-wrap items-center justify-between gap-3 border-t border-neutral-900 py-3"
               >
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-foreground ">
+                  <p className="text-sm font-semibold text-neutral-100">
                     {formatearFechaHora(bloqueo.inicio)}
-                    <span className="text-muted "> → </span>
+                    <span className="text-neutral-500"> → </span>
                     {formatearFechaHora(bloqueo.fin)}
                   </p>
                   {bloqueo.motivo && (
-                    <p className="truncate text-xs text-muted ">
+                    <p className="truncate text-xs text-neutral-500">
                       {bloqueo.motivo}
                     </p>
                   )}

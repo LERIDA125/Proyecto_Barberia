@@ -13,30 +13,30 @@ interface ReservaExitosaProps {
 export function ReservaExitosa({ turno, onNuevaReserva }: ReservaExitosaProps) {
   return (
     <div className="mx-auto py-12 text-center">
-      <h1 className="text-4xl font-black uppercase tracking-widest text-foreground mb-2">Turno confirmado</h1>
-      <p className="text-sm text-muted mb-8">Te esperamos. Podés verlo o gestionarlo desde Mis turnos.</p>
+      <h1 className="text-4xl font-black uppercase tracking-widest text-neutral-100 mb-2">Turno confirmado</h1>
+      <p className="text-sm text-neutral-400 mb-8">Te esperamos. Podés verlo o gestionarlo desde Mis turnos.</p>
 
-      <dl className="mx-auto max-w-md border-t border-border pb-4">
+      <dl className="mx-auto max-w-md border-t border-neutral-800 pb-4">
         <div className="flex items-baseline justify-between gap-4 py-3">
-          <dt className="text-sm text-muted uppercase tracking-widest">Servicio</dt>
-          <dd className="text-right text-sm font-medium text-foreground">
+          <dt className="text-sm text-neutral-400 uppercase tracking-widest">Servicio</dt>
+          <dd className="text-right text-sm font-medium text-neutral-100">
             {turno.servicio?.nombre ?? "—"}
             {turno.servicio && (
-              <span className="block text-xs font-normal text-muted">
+              <span className="block text-xs font-normal text-neutral-400">
                 {formatearDuracion(turno.servicio.duracionMin)} · {formatearPrecio(turno.servicio.precio)}
               </span>
             )}
           </dd>
         </div>
         <div className="flex items-baseline justify-between gap-4 py-3">
-          <dt className="text-sm text-muted uppercase tracking-widest">Barbero</dt>
-          <dd className="text-right text-sm font-medium text-foreground">
+          <dt className="text-sm text-neutral-400 uppercase tracking-widest">Barbero</dt>
+          <dd className="text-right text-sm font-medium text-neutral-100">
             {turno.barbero?.nombre ?? "—"}
           </dd>
         </div>
         <div className="flex items-baseline justify-between gap-4 py-3">
-          <dt className="text-sm text-muted uppercase tracking-widest">Cuándo</dt>
-          <dd className="text-right text-sm font-medium text-foreground">
+          <dt className="text-sm text-neutral-400 uppercase tracking-widest">Cuándo</dt>
+          <dd className="text-right text-sm font-medium text-neutral-100">
             {formatearFechaHora(turno.fechaInicio)}
           </dd>
         </div>
@@ -45,7 +45,7 @@ export function ReservaExitosa({ turno, onNuevaReserva }: ReservaExitosaProps) {
       <div className="mt-6 flex flex-wrap justify-center gap-3">
         <Link
           href="/mis-turnos"
-          className="rounded-none bg-foreground text-background hover:bg-foreground/90 px-6 py-3 text-sm uppercase tracking-widest">
+          className="rounded-none bg-white text-black hover:bg-neutral-200 px-6 py-3 text-sm font-bold uppercase tracking-widest">
           Ver mis turnos
         </Link>
         <Button variante="secondary" onClick={onNuevaReserva}>

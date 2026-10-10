@@ -12,7 +12,7 @@ const ESTILOS: Record<ButtonVariant, string> = {
   primary:
     "rounded-none bg-foreground text-background hover:bg-foreground/90 focus-visible:outline-accent focus-visible:outline-offset-2 ",
   secondary:
-    "rounded-none border border-border bg-surface text-foreground hover:bg-foreground/5 focus-visible:outline-accent ",
+    "rounded-none border border-neutral-700 bg-neutral-800 text-white hover:bg-neutral-700 focus-visible:outline-white ",
   ghost:
     "rounded-none text-foreground hover:bg-foreground/5 focus-visible:outline-accent ",
   danger:

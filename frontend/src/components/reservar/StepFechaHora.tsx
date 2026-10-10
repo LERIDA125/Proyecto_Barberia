@@ -33,10 +33,10 @@ export function StepFechaHora({
 }: StepFechaHoraProps) {
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-semibold uppercase tracking-widest text-foreground">
+      <h2 className="text-lg font-semibold uppercase tracking-widest text-neutral-100">
         Elegí día y horario
       </h2>
-      <p className="text-sm text-muted">
+      <p className="text-sm text-neutral-400">
         {servicio && barbero
           ? `${formatearDuracion(servicio.duracionMin)} con ${barbero.nombre}. Franjas libres según su agenda.`
           : "Seleccioná una fecha para ver las franjas libres."}

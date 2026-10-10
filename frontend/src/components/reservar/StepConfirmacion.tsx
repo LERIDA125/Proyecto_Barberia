@@ -20,8 +20,8 @@ interface StepConfirmacionProps {
 function Fila({ etiqueta, valor }: { etiqueta: string; valor: string }) {
   return (
     <div className="flex items-baseline justify-between gap-4 py-2">
-      <dt className="text-sm text-muted uppercase tracking-widest">{etiqueta}</dt>
-      <dd className="text-sm font-medium text-foreground ">{valor}</dd>
+      <dt className="text-sm text-neutral-400 uppercase tracking-widest">{etiqueta}</dt>
+      <dd className="text-sm font-medium text-neutral-100">{valor}</dd>
     </div>
   );
 }
@@ -35,14 +35,14 @@ export function StepConfirmacion({
 }: StepConfirmacionProps) {
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-semibold uppercase tracking-widest text-foreground">
+      <h2 className="text-lg font-semibold uppercase tracking-widest text-neutral-100">
         Revisá y confirmá
       </h2>
-      <p className="text-sm text-muted ">
+      <p className="text-sm text-neutral-400">
         Verificá los datos antes de reservar. Podés volver atrás para cambiar algo.
       </p>
 
-      <div className="border-t border-border bg-surface">
+      <div className="border border-neutral-800 bg-neutral-900 p-4">
         <div className="pb-2">
           <Fila etiqueta="Servicio" valor={servicio?.nombre ?? "—"} />
           {servicio && (

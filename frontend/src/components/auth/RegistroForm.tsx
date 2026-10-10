@@ -4,7 +4,6 @@ import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
 import { StatusMessage } from "@/components/ui/StatusMessage";
 import { ApiError } from "@/lib/api/client";
 import { registrarConPasskey } from "@/lib/api/auth";
@@ -47,7 +46,7 @@ export function RegistroForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-6 px-6 py-8 max-w-md w-full">
+    <form onSubmit={onSubmit} className="flex w-full flex-col gap-8">
       {!soportado && (
         <StatusMessage
           tipo="error"
@@ -55,41 +54,76 @@ export function RegistroForm() {
         />
       )}
 
-      <Input
-        label="Nombre"
-        name="nombre"
-        value={form.nombre}
-        autoComplete="name"
-        onChange={(e) => setForm({ ...form, nombre: e.target.value })}
-        className="rounded-none bg-surface border-none px-4 py-4 text-base text-foreground outline-none transition focus:ring-2 focus:ring-accent/30 "
-      />
-      <Input
-        label="Email"
-        name="email"
-        type="email"
-        value={form.email}
-        autoComplete="email"
-        onChange={(e) => setForm({ ...form, email: e.target.value })}
-        className="rounded-none bg-surface border-none px-4 py-4 text-base text-foreground outline-none transition focus:ring-2 focus:ring-accent/30 "
-      />
-      <Input
-        label="Teléfono (opcional)"
-        name="telefono"
-        value={form.telefono}
-        autoComplete="tel"
-        onChange={(e) => setForm({ ...form, telefono: e.target.value })}
-        className="rounded-none bg-surface border-none px-4 py-4 text-base text-foreground outline-none transition focus:ring-2 focus:ring-accent/30 "
-      />
+      <div className="flex flex-col gap-2">
+        <label
+          htmlFor="nombre"
+          className="text-xs uppercase tracking-widest text-neutral-500"
+        >
+          Nombre
+        </label>
+        <input
+          id="nombre"
+          name="nombre"
+          value={form.nombre}
+          autoComplete="name"
+          onChange={(e) => setForm({ ...form, nombre: e.target.value })}
+          className="w-full rounded-none border-0 border-b border-neutral-700 bg-transparent px-0 py-3 text-base text-white transition-colors placeholder:text-neutral-600 hover:border-white focus:border-white focus:outline-none focus:ring-0"
+        />
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <label
+          htmlFor="email"
+          className="text-xs uppercase tracking-widest text-neutral-500"
+        >
+          Email
+        </label>
+        <input
+          id="email"
+          name="email"
+          type="email"
+          value={form.email}
+          autoComplete="email"
+          placeholder="tu@email.com"
+          onChange={(e) => setForm({ ...form, email: e.target.value })}
+          className="w-full rounded-none border-0 border-b border-neutral-700 bg-transparent px-0 py-3 text-base text-white transition-colors placeholder:text-neutral-600 hover:border-white focus:border-white focus:outline-none focus:ring-0"
+        />
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <label
+          htmlFor="telefono"
+          className="text-xs uppercase tracking-widest text-neutral-500"
+        >
+          Teléfono (opcional)
+        </label>
+        <input
+          id="telefono"
+          name="telefono"
+          value={form.telefono}
+          autoComplete="tel"
+          onChange={(e) => setForm({ ...form, telefono: e.target.value })}
+          className="w-full rounded-none border-0 border-b border-neutral-700 bg-transparent px-0 py-3 text-base text-white transition-colors placeholder:text-neutral-600 hover:border-white focus:border-white focus:outline-none focus:ring-0"
+        />
+      </div>
 
       {error && <StatusMessage tipo="error" mensaje={error} />}
 
-      <Button type="submit" cargando={cargando} disabled={!soportado} className="w-full rounded-none bg-foreground text-background hover:bg-foreground/90">
+      <Button
+        type="submit"
+        cargando={cargando}
+        disabled={!soportado}
+        className="w-full rounded-none bg-white px-6 py-4 text-sm font-bold uppercase tracking-widest text-black transition-colors hover:bg-neutral-300"
+      >
         Crear cuenta con passkey
       </Button>
 
-      <p className="text-center text-sm text-muted ">
+      <p className="text-center text-sm text-neutral-500">
         ¿Ya tenés cuenta?{" "}
-        <Link href="/login" className="font-medium uppercase tracking-widest text-foreground underline">
+        <Link
+          href="/login"
+          className="font-medium uppercase tracking-widest text-neutral-500 transition-colors hover:text-white"
+        >
           Ingresá
         </Link>
       </p>

@@ -4,7 +4,6 @@ import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
 import { StatusMessage } from "@/components/ui/StatusMessage";
 import { ApiError } from "@/lib/api/client";
 import { loginConPasskey } from "@/lib/api/auth";
@@ -43,7 +42,7 @@ export function LoginForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-6 px-6 py-8 max-w-md w-full">
+    <form onSubmit={onSubmit} className="flex w-full flex-col gap-8">
       {!soportado && (
         <StatusMessage
           tipo="error"
@@ -51,26 +50,42 @@ export function LoginForm() {
         />
       )}
 
-      <Input
-        label="Email"
-        name="email"
-        type="email"
-        autoComplete="username webauthn"
-        placeholder="tu@email.com"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        className="rounded-none bg-surface border-none px-4 py-4 text-base text-foreground outline-none transition focus:ring-2 focus:ring-accent/30 "
-      />
+      <div className="flex flex-col gap-2">
+        <label
+          htmlFor="email"
+          className="text-xs uppercase tracking-widest text-neutral-500"
+        >
+          Email
+        </label>
+        <input
+          id="email"
+          name="email"
+          type="email"
+          autoComplete="username webauthn"
+          placeholder="tu@email.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-full rounded-none border-0 border-b border-neutral-700 bg-transparent px-0 py-3 text-base text-white transition-colors placeholder:text-neutral-600 hover:border-white focus:border-white focus:outline-none focus:ring-0"
+        />
+      </div>
 
       {error && <StatusMessage tipo="error" mensaje={error} />}
 
-      <Button type="submit" cargando={cargando} disabled={!soportado} className="w-full rounded-none bg-foreground text-background hover:bg-foreground/90">
+      <Button
+        type="submit"
+        cargando={cargando}
+        disabled={!soportado}
+        className="w-full rounded-none bg-white px-6 py-4 text-sm font-bold uppercase tracking-widest text-black transition-colors hover:bg-neutral-300"
+      >
         Entrar con passkey
       </Button>
 
-      <p className="text-center text-sm text-muted ">
+      <p className="text-center text-sm text-neutral-500">
         ¿No tenés cuenta?{" "}
-        <Link href="/registro" className="font-medium uppercase tracking-widest text-foreground underline">
+        <Link
+          href="/registro"
+          className="font-medium uppercase tracking-widest text-neutral-500 transition-colors hover:text-white"
+        >
           Creá una con passkey
         </Link>
       </p>

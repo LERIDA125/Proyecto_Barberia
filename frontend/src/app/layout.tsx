@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Navbar } from "@/components/layout/Navbar";
+import { Footer } from "@/components/layout/Footer";
 import { ChatWidget } from "@/components/chat/ChatWidget"; // <-- 1. Importación agregada
 import "./globals.css";
 
@@ -28,6 +29,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="flex min-h-full flex-col bg-background text-foreground antialiased">
         <Navbar />
         <main className="flex flex-1 flex-col">{children}</main>
+        <Footer />
 
         {/* <-- 2. Widget inyectado flotando sobre toda la app */}
         <ChatWidget />

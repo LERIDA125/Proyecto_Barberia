@@ -5,9 +5,9 @@ type Tono = "neutral" | "success" | "warning" | "danger" | "info";
 
 const MAPA: Record<EstadoTurno, { tono: Tono; etiqueta: string }> = {
   pendiente: { tono: "warning", etiqueta: "Pendiente" },
-  confirmado: { tono: "info", etiqueta: "Confirmado" },
+  confirmado: { tono: "success", etiqueta: "Confirmado" },
   cancelado: { tono: "danger", etiqueta: "Cancelado" },
-  completado: { tono: "success", etiqueta: "Completado" },
+  completado: { tono: "info", etiqueta: "Completado" },
   ausente: { tono: "neutral", etiqueta: "Ausente" },
 };
 

@@ -16,8 +16,8 @@ export function Stepper({ pasos, actual }: StepperProps) {
                 aria-hidden
                 className={`flex h-7 w-7 shrink-0 items-center justify-center text-xs font-semibold transition-colors ${
                   completado || esActual
-                    ? "bg-foreground text-background"
-                    : "border border-border bg-surface text-muted "}
+                    ? "bg-white text-black"
+                    : "border border-neutral-800 bg-neutral-900 text-neutral-400"}
                 }`}
               >
                 {completado ? "✓" : indice + 1}
@@ -25,10 +25,10 @@ export function Stepper({ pasos, actual }: StepperProps) {
               <span
                 className={`text-sm ${
                   completado
-                    ? "text-muted line-through decoration-border "
+                    ? "text-neutral-500 line-through decoration-neutral-800"
                     : esActual
-                      ? "font-semibold text-foreground "
-                      : "text-muted "
+                      ? "font-semibold text-neutral-100"
+                      : "text-neutral-400"
                 } hidden sm:inline`}
               >
                 {etiqueta}
@@ -37,7 +37,7 @@ export function Stepper({ pasos, actual }: StepperProps) {
                 <span
                   aria-hidden
                   className={`mx-2 h-px w-6 sm:w-12 ${
-                    indice < actual ? "bg-foreground" : "bg-surface "}
+                    indice < actual ? "bg-neutral-100" : "bg-neutral-800"}
                   }`}
                 />
               )}

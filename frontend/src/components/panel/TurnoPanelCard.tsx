@@ -53,40 +53,38 @@ export function TurnoPanelCard({
     puedeSincronizar && (turno.estado === "pendiente" || turno.estado === "confirmado");
 
   return (
-    <article className="flex flex-col border border-border bg-surface p-5 transition-shadow hover:shadow-sm ">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className="text-2xl font-black leading-none tracking-tight text-foreground ">
-            {formatearHora(turno.fechaInicio)}
-          </p>
-          <p className="mt-1 text-xs uppercase tracking-widest text-muted ">
-            hasta {formatearHora(turno.fechaFin)}
-          </p>
-        </div>
-        <EstadoBadge estado={turno.estado} />
+    <article className="grid grid-cols-1 items-center gap-4 border-b border-neutral-900 py-5 md:grid-cols-[7rem_minmax(0,1fr)_auto]">
+      <div className="flex flex-col">
+        <p className="font-mono text-xl font-bold leading-none tabular-nums text-neutral-100">
+          {formatearHora(turno.fechaInicio)}
+        </p>
+        <p className="mt-1 font-mono text-xs tabular-nums text-neutral-500">
+          hasta {formatearHora(turno.fechaFin)}
+        </p>
       </div>
 
-      <div className="mt-4 space-y-1">
-        <p className="text-base font-semibold text-foreground ">
+      <div className="min-w-0 space-y-0.5">
+        <p className="truncate text-base font-semibold text-neutral-100">
           {turno.cliente?.nombre ?? "Cliente sin nombre"}
         </p>
-        <p className="text-sm text-muted ">
+        <p className="truncate text-sm text-neutral-400">
           {turno.servicio?.nombre ?? "Servicio"}
           {turno.servicio
             ? ` · ${formatearDuracion(turno.servicio.duracionMin)} · ${formatearPrecio(turno.servicio.precio)}`
             : ""}
         </p>
         {turno.notas && (
-          <p className="truncate text-xs text-muted " title={turno.notas}>
+          <p className="truncate text-xs text-neutral-500" title={turno.notas}>
             {turno.notas}
           </p>
         )}
       </div>
 
-      <div className="mt-auto flex flex-wrap gap-2 pt-5">
+      <div className="flex flex-wrap items-center justify-end gap-2">
+        <EstadoBadge estado={turno.estado} />
         {acciones.length === 0 && !mostrarSync ? (
-          <p className="text-xs uppercase tracking-widest text-muted ">
-            Sin acciones disponibles
+          <p className="text-xs uppercase tracking-widest text-neutral-500">
+            Sin acciones
           </p>
         ) : (
           <>

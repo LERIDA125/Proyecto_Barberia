@@ -32,7 +32,7 @@ export function SelectorFranjas({
 }: SelectorFranjasProps) {
   return (
     <div className="space-y-4">
-      <p className="text-sm font-medium text-foreground uppercase tracking-widest">Fecha</p>
+      <p className="text-sm font-medium uppercase tracking-widest text-neutral-100">Fecha</p>
       <div className="mt-2 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {dias.map((dia) => {
           const activo = dia.clave === fecha;
@@ -42,10 +42,10 @@ export function SelectorFranjas({
               type="button"
               aria-pressed={activo}
               onClick={() => onSeleccionarFecha(dia.clave)}
-              className={`flex w-16 shrink-0 flex-col items-center gap-1 rounded-none border border-border py-2 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+              className={`flex w-16 shrink-0 flex-col items-center gap-1 rounded-none border bg-transparent py-2 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${
                 activo
-                  ? "border-accent bg-accent/15 text-foreground"
-                  : "hover:border-accent text-sm uppercase"}
+                  ? "border-white bg-white text-black"
+                  : "border-neutral-800 text-neutral-300 hover:border-neutral-300"}
               `}>
               <span className="text-xs font-medium">{formatearDiaCorto(dia.fecha)}</span>
               <span className="text-lg font-semibold">{dia.fecha.getDate()}</span>
@@ -54,12 +54,12 @@ export function SelectorFranjas({
         })}
       </div>
 
-      <p className="mt-5 text-sm font-medium text-foreground uppercase tracking-widest">Horario</p>
+      <p className="mt-5 text-sm font-medium uppercase tracking-widest text-neutral-100">Horario</p>
       <div className="mt-2">
         {cargando ? (
           <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5">
             {Array.from({ length: 10 }).map((_, i) => (
-              <Skeleton key={i} className="h-10 rounded-none bg-surface" />
+              <Skeleton key={i} className="h-10 rounded-none border border-neutral-800 bg-neutral-900" />
             ))}
           </div>
         ) : error ? (
@@ -82,10 +82,10 @@ export function SelectorFranjas({
                   type="button"
                   aria-pressed={activo}
                   onClick={() => onSeleccionarFranja(franja)}
-                  className={`rounded-none border border-border px-2 py-2 font-mono text-sm transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+                  className={`rounded-none border bg-transparent px-2 py-2 font-mono text-sm transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${
                     activo
-                      ? "border-accent bg-accent/15 text-foreground"
-                      : "hover:border-accent text-sm uppercase"}
+                      ? "border-white bg-white text-black"
+                      : "border-neutral-800 text-neutral-300 hover:border-neutral-300"}
                   `}>
                   {formatearHora(franja.inicio)}
                 </button>

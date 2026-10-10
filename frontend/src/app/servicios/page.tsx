@@ -6,7 +6,6 @@ import { useServicios } from "@/lib/hooks/useServicios";
 import { useSesion } from "@/lib/hooks/useSesion";
 import { ServicioCard } from "@/components/servicios/ServicioCard";
 import { ServicioFormModal } from "@/components/servicios/ServicioFormModal";
-import { EmptyState } from "@/components/ui/EmptyState";
 import { StatusMessage } from "@/components/ui/StatusMessage";
 import { ServicioCardSkeleton } from "@/components/ui/Skeleton";
 import { ConfirmDialog } from "@/components/ui/Modal";
@@ -53,51 +52,65 @@ export default function ServiciosPage() {
   }
 
   return (
-    <div className="px-6 py-12 bg-surface">
-      <div className="flex flex-wrap items-end justify-between gap-6">
-        <div>
-          <h1 className="text-3xl font-black uppercase tracking-widest text-foreground">
-            Catálogo de servicios
+    <div className="min-h-screen bg-neutral-950">
+      <div className="mx-auto max-w-5xl px-6 py-12">
+        <header className="border-b border-neutral-800 pb-10">
+          <h1 className="text-5xl font-bold uppercase tracking-tighter text-white md:text-7xl">
+            Nuestros servicios
           </h1>
-          <p className="mt-1 text-sm text-muted">Conocé qué ofrece la barbería antes de reservar.</p>
-        </div>
-        {esAdmin && (
-          <Button onClick={abrirCrear} className="rounded-none bg-foreground text-background hover:bg-foreground/90">
-            Nuevo servicio
-          </Button>
+          <p className="mt-4 max-w-2xl text-sm text-neutral-400">
+            Conocé qué ofrece la barbería antes de reservar.
+          </p>
+          {esAdmin && (
+            <div className="mt-6">
+              <Button
+                onClick={abrirCrear}
+                className="rounded-none bg-white px-4 py-3 text-xs uppercase tracking-widest text-black hover:bg-neutral-300"
+              >
+                Nuevo servicio
+              </Button>
+            </div>
+          )}
+        </header>
+
+        {errorAccion && (
+          <div className="mt-8">
+            <StatusMessage tipo="error" mensaje={errorAccion} />
+          </div>
         )}
-      </div>
 
-      {errorAccion && (
-        <div className="mt-6">
-          <span className="bg-accent/15 text-foreground px-4 py-2 rounded-none text-sm uppercase tracking-widest">Error</span>
-          <p className="mt-2 text-sm text-foreground">{errorAccion}</p>
-        </div>
-      )}
-
-      <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {loading ? (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {Array.from({ length: 6 }).map((_, i) => (
+          <div className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-2">
+            {Array.from({ length: 4 }).map((_, i) => (
               <ServicioCardSkeleton key={i} />
             ))}
           </div>
         ) : error ? (
-          <div className="flex flex-col items-start gap-3">
-            <span className="bg-red-900/30 text-red-300 px-4 py-2 rounded-none text-sm uppercase tracking-widest">Error</span>
-            <p className="text-sm text-foreground">{error}</p>
-            <Button variante="secondary" onClick={() => void recargar()}>Reintentar</Button>
+          <div className="mt-12 flex flex-col items-start gap-3">
+            <StatusMessage tipo="error" mensaje={error} />
+            <Button variante="secondary" onClick={() => void recargar()}>
+              Reintentar
+            </Button>
           </div>
         ) : servicios.length === 0 ? (
-          <div className="py-12 text-center">
-            <h2 className="text-2xl font-bold text-foreground uppercase tracking-widest">Todavía no hay servicios</h2>
-            <p className="mt-2 text-muted">Cuando se carguen servicios, van a aparecer en este catálogo.</p>
+          <div className="py-20 text-center">
+            <h2 className="text-2xl font-bold uppercase tracking-widest text-white">
+              Todavía no hay servicios
+            </h2>
+            <p className="mt-2 text-neutral-400">
+              Cuando se carguen servicios, van a aparecer en este catálogo.
+            </p>
             {esAdmin ? (
-              <Button onClick={abrirCrear} className="mt-6 rounded-none bg-foreground text-background hover:bg-foreground/90">Crear el primero</Button>
+              <Button
+                onClick={abrirCrear}
+                className="mt-6 rounded-none bg-white px-4 py-3 text-xs uppercase tracking-widest text-black hover:bg-neutral-300"
+              >
+                Crear el primero
+              </Button>
             ) : null}
           </div>
         ) : (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-2">
             {servicios.map((servicio) => (
               <ServicioCard
                 key={servicio.id}
@@ -110,7 +123,6 @@ export default function ServiciosPage() {
             ))}
           </div>
         )}
-      </div>
 
       {modalAbierto && (
         <ServicioFormModal
@@ -137,6 +149,7 @@ export default function ServiciosPage() {
         onConfirmar={() => void confirmarDesactivar()}
         onCancelar={() => setADesactivar(null)}
       />
+      </div>
     </div>
   );
 }

@@ -6,15 +6,15 @@ export function StatusMessage({
   mensaje: string;
 }) {
   const estilos = {
-    error: "bg-red-900/30 text-red-300 px-3 py-2 rounded-none border border-red-900/40 text-sm uppercase tracking-widest",
-    success: "bg-green-900/30 text-green-300 px-3 py-2 rounded-none border border-green-900/40 text-sm uppercase tracking-widest",
-    info: "bg-accent/15 text-foreground px-3 py-2 rounded-none border border-accent/30 text-sm uppercase tracking-widest",
+    error: "border-l-4 border-l-red-900",
+    success: "border-l-4 border-l-emerald-900",
+    info: "border-l-4 border-l-neutral-500",
   } as const;
 
   return (
     <p
       role={tipo === "error" ? "alert" : "status"}
-      className={estilos[tipo]}
+      className={`rounded-none border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm uppercase tracking-widest text-white ${estilos[tipo]}`}
     >
       {mensaje}
     </p>

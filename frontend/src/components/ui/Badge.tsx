@@ -3,13 +3,11 @@ import type { ReactNode } from "react";
 type Tone = "neutral" | "success" | "warning" | "danger" | "info";
 
 const TONOS: Record<Tone, string> = {
-  neutral:
-    "bg-surface text-foreground ",
-  success:
-    "bg-green-900/30 text-green-300 ",
-  warning: "bg-accent/15 text-foreground ",
-  danger: "bg-red-900/30 text-red-300 ",
-  info: "bg-accent/15 text-foreground ",
+  neutral: "border-neutral-800 bg-black text-neutral-400",
+  success: "border-green-900 bg-black text-green-400",
+  warning: "border-amber-900 bg-black text-amber-400",
+  danger: "border-red-900 bg-black text-red-400",
+  info: "border-sky-900 bg-black text-sky-400",
 };
 
 export function Badge({
@@ -21,7 +19,7 @@ export function Badge({
 }) {
   return (
     <span
-      className={`inline-flex items-center rounded-none px-2.5 py-0.5 text-xs font-medium ${TONOS[tone]}`}
+      className={`inline-flex items-center rounded-none border px-2 py-0.5 text-[10px] font-medium uppercase tracking-widest ${TONOS[tone]}`}
     >
       {children}
     </span>

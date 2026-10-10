@@ -38,12 +38,12 @@ export function Navbar() {
   ];
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-neutral-900 bg-neutral-950">
       <nav className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-6 px-6">
         <div className="flex items-center gap-8">
           <Link
             href="/"
-            className="text-2xl font-black tracking-widest text-foreground "
+            className="text-2xl font-black uppercase tracking-widest text-white"
           >
             Barbería
           </Link>
@@ -54,10 +54,10 @@ export function Navbar() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className={`px-4 py-2 text-sm font-medium uppercase tracking-widest transition ${
+                    className={`px-4 py-2 text-sm font-medium uppercase tracking-widest transition-colors ${
                       activo
-                        ? "bg-accent/15 text-foreground"
-                        : "text-foreground hover:text-foreground "
+                        ? "text-white"
+                        : "text-neutral-400 hover:text-white"
                     }`}
                   >
                     {link.label}
@@ -72,15 +72,16 @@ export function Navbar() {
           {loading ? null : usuario ? (
             <>
               <NotificationBell />
-              <span className="hidden text-sm text-muted sm:inline ">
+              <span className="hidden text-sm text-neutral-400 sm:inline">
                 {usuario.nombre}
-                <span className="ml-2 bg-surface text-foreground capitalize text-xs px-2 py-0.5">
+                <span className="ml-2 rounded-none border border-neutral-800 px-2 py-0.5 text-xs capitalize text-neutral-500">
                   {usuario.rol}
                 </span>
               </span>
               <Button
+                variante="secondary"
                 onClick={() => void cerrarSesion()}
-                className="px-3 py-1 rounded-none"
+                className="rounded-none border-neutral-800 px-3 py-1 text-neutral-300 hover:bg-neutral-900 hover:text-white"
               >
                 Cerrar sesión
               </Button>
@@ -89,13 +90,13 @@ export function Navbar() {
             <>
               <Link
                 href="/login"
-                className="px-4 py-2 text-sm font-medium uppercase tracking-widest text-foreground hover:bg-accent/15 "
+                className="px-4 py-2 text-sm font-medium uppercase tracking-widest text-neutral-400 transition-colors hover:text-white"
               >
                 Ingresar
               </Link>
               <Link
                 href="/registro"
-                className="px-4 py-2 text-sm font-medium uppercase tracking-widest bg-foreground text-background hover:bg-foreground/90"
+                className="rounded-none bg-white px-4 py-2 text-sm font-medium uppercase tracking-widest text-black transition-colors hover:bg-neutral-300"
               >
                 Crear cuenta
               </Link>
