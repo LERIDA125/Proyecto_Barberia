@@ -35,17 +35,17 @@ export default function ClientesPanelPage() {
   if (!usuario) {
     return (
       <div className="mx-auto max-w-md px-6 py-12 text-center">
-        <div className="mx-auto mb-6 max-w-xl bg-gray-100 p-8 dark:bg-slate-900">
-          <h1 className="mb-2 text-3xl font-black uppercase tracking-widest text-slate-900 dark:text-slate-100">
+        <div className="mx-auto mb-6 max-w-xl bg-surface p-8 ">
+          <h1 className="mb-2 text-3xl font-black uppercase tracking-widest text-foreground ">
             Iniciá sesión para ver las fichas
           </h1>
-          <p className="text-sm text-slate-600 dark:text-slate-400">
+          <p className="text-sm text-muted ">
             El historial de clientes está disponible para barberos y administradores.
           </p>
           <div className="mt-4">
             <Link
               href="/login"
-              className="bg-black px-6 py-3 text-sm uppercase tracking-widest text-white hover:bg-gray-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
+              className="bg-foreground px-6 py-3 text-sm uppercase tracking-widest text-background hover:bg-foreground/90 "
             >
               Ingresar
             </Link>
@@ -65,7 +65,7 @@ export default function ClientesPanelPage() {
         <div className="mt-4">
           <Link
             href="/"
-            className="text-sm uppercase tracking-widest text-slate-900 underline dark:text-slate-100"
+            className="text-sm uppercase tracking-widest text-foreground underline "
           >
             Volver al inicio
           </Link>
@@ -75,19 +75,19 @@ export default function ClientesPanelPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl bg-white px-6 py-10 dark:bg-slate-950">
+    <div className="mx-auto max-w-7xl bg-surface px-6 py-10 ">
       <div className="flex flex-wrap items-end justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-black uppercase tracking-widest text-slate-900 dark:text-slate-100">
+          <h1 className="text-3xl font-black uppercase tracking-widest text-foreground ">
             Fichas de clientes
           </h1>
-          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+          <p className="mt-1 text-sm text-muted ">
             Buscá un cliente por nombre o email para ver su historial de visitas.
           </p>
         </div>
         <Link
           href="/panel"
-          className="text-sm uppercase tracking-widest text-slate-900 underline dark:text-slate-100"
+          className="text-sm uppercase tracking-widest text-foreground underline "
         >
           Volver al panel
         </Link>
@@ -107,7 +107,7 @@ export default function ClientesPanelPage() {
 
           <div className="mt-4">
             {!activo ? (
-              <p className="text-sm text-slate-500 dark:text-slate-400">
+              <p className="text-sm text-muted ">
                 Escribí al menos 2 caracteres para empezar a buscar.
               </p>
             ) : cargando ? (
@@ -119,11 +119,11 @@ export default function ClientesPanelPage() {
             ) : error ? (
               <StatusMessage tipo="error" mensaje={error} />
             ) : clientes.length === 0 ? (
-              <p className="text-sm text-slate-500 dark:text-slate-400">
+              <p className="text-sm text-muted ">
                 Sin coincidencias para “{query.trim()}”.
               </p>
             ) : (
-              <ul className="divide-y divide-gray-100 border border-gray-100 dark:divide-slate-800 dark:border-slate-800">
+              <ul className="divide-y divide-border border border-border ">
                 {clientes.map((cliente) => {
                   const activa = seleccionado?.id === cliente.id;
                   return (
@@ -134,14 +134,14 @@ export default function ClientesPanelPage() {
                         aria-current={activa ? "true" : undefined}
                         className={`w-full px-4 py-3 text-left transition-colors ${
                           activa
-                            ? "bg-blue-100 dark:bg-slate-800"
-                            : "hover:bg-gray-50 dark:hover:bg-slate-900"
+                            ? "bg-accent/15 "
+                            : "hover:bg-foreground/5 "
                         }`}
                       >
-                        <span className="block text-sm font-semibold text-slate-900 dark:text-slate-100">
+                        <span className="block text-sm font-semibold text-foreground ">
                           {cliente.nombre}
                         </span>
-                        <span className="block text-xs text-slate-500 dark:text-slate-400">
+                        <span className="block text-xs text-muted ">
                           {cliente.email}
                         </span>
                       </button>

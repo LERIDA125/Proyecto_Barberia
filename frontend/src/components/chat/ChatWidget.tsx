@@ -111,7 +111,7 @@ function IconoHerramienta() {
 
 function EtiquetaHerramienta({ nombre }: { nombre: string }) {
   return (
-    <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-medium text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
+    <span className="inline-flex items-center gap-1 rounded-full border border-border bg-surface px-2 py-0.5 text-[11px] font-medium text-muted ">
       <IconoHerramienta />
       {etiquetaHerramienta(nombre)}
     </span>
@@ -123,9 +123,9 @@ function IndicadorPensando() {
     <div className="flex items-center gap-2" role="status">
       <span
         aria-hidden
-        className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-slate-300 border-t-slate-500 dark:border-slate-600 dark:border-t-slate-300"
+        className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-border border-t-foreground"
       />
-      <span className="text-xs text-slate-400 dark:text-slate-500">
+      <span className="text-xs text-muted ">
         El asistente está consultando la agenda…
       </span>
     </div>
@@ -137,19 +137,19 @@ function CuerpoSinSesion() {
     <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
       <span
         aria-hidden
-        className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-300"
+        className="flex h-11 w-11 items-center justify-center rounded-full bg-surface text-muted "
       >
         <IconoChat />
       </span>
-      <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+      <p className="text-sm font-semibold text-foreground ">
         Inicia sesión para chatear con nuestro asistente
       </p>
-      <p className="text-xs text-slate-500 dark:text-slate-400">
+      <p className="text-xs text-muted ">
         Podrás consultar disponibilidad y reservar tu turno en lenguaje natural.
       </p>
       <Link
         href="/login"
-        className="mt-1 rounded-none bg-black px-5 py-2.5 text-xs uppercase tracking-widest text-white transition-colors hover:bg-slate-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
+        className="mt-1 rounded-none bg-foreground px-5 py-2.5 text-xs uppercase tracking-widest text-background transition-colors hover:bg-foreground/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent "
       >
         Ingresar
       </Link>
@@ -160,7 +160,7 @@ function CuerpoSinSesion() {
 function CuerpoCargandoSesion() {
   return (
     <div className="flex flex-1 items-center justify-center px-6">
-      <span className="text-xs uppercase tracking-widest text-slate-400 dark:text-slate-500">
+      <span className="text-xs uppercase tracking-widest text-muted ">
         Verificando sesión…
       </span>
     </div>
@@ -255,7 +255,7 @@ export function ChatWidget() {
           abierto ? "Cerrar asistente virtual" : "Abrir asistente virtual"
         }
         aria-expanded={abierto}
-        className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-black text-white shadow-xl transition-transform hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black active:scale-95 dark:bg-white dark:text-slate-900"
+        className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-foreground text-background shadow-xl transition-transform hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent active:scale-95 "
       >
         {abierto ? <IconoCerrar /> : <IconoChat />}
       </button>
@@ -263,12 +263,12 @@ export function ChatWidget() {
       {abierto && (
         <section
           aria-label="Chat con el asistente virtual"
-          className="fixed bottom-24 right-6 z-50 flex h-[26rem] w-[calc(100vw-3rem)] max-w-sm flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900"
+          className="fixed bottom-24 right-6 z-50 flex h-[26rem] w-[calc(100vw-3rem)] max-w-sm flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-2xl "
         >
-          <header className="flex items-center gap-3 border-b border-slate-200 bg-black px-4 py-3 text-white dark:border-slate-700 dark:bg-slate-800">
+          <header className="flex items-center gap-3 border-b border-border bg-surface px-4 py-3 text-foreground ">
             <span
               aria-hidden
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/15 text-sm font-semibold"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-foreground/15 text-sm font-semibold"
             >
               IA
             </span>
@@ -276,11 +276,11 @@ export function ChatWidget() {
               <p className="truncate text-sm font-semibold">
                 Asistente de la barbería
               </p>
-              <p className="flex items-center gap-1.5 text-xs text-slate-300 dark:text-slate-400">
+              <p className="flex items-center gap-1.5 text-xs text-muted ">
                 <span
                   aria-hidden
                   className={`h-2 w-2 rounded-full ${
-                    usuario ? "bg-emerald-400" : "bg-slate-400 dark:bg-slate-500"
+                    usuario ? "bg-emerald-400" : "bg-muted "
                   }`}
                 />
                 {usuario ? "En línea" : "Sin sesión"}
@@ -290,7 +290,7 @@ export function ChatWidget() {
               type="button"
               onClick={() => setAbierto(false)}
               aria-label="Cerrar chat"
-              className="rounded-full p-1.5 text-slate-300 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              className="rounded-full p-1.5 text-muted transition-colors hover:bg-foreground/10 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             >
               <IconoCerrar />
             </button>
@@ -319,8 +319,8 @@ export function ChatWidget() {
                     <p
                       className={`max-w-[80%] whitespace-pre-wrap break-words px-4 py-2.5 text-sm leading-relaxed shadow-sm ${
                         m.rol === "usuario"
-                          ? "rounded-2xl rounded-br-md bg-black text-white dark:bg-white dark:text-slate-900"
-                          : "rounded-2xl rounded-bl-md bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-100"
+                          ? "rounded-2xl rounded-br-md bg-foreground text-background"
+                          : "rounded-2xl rounded-bl-md bg-surface text-foreground "
                       }`}
                     >
                       {m.texto}
@@ -341,7 +341,7 @@ export function ChatWidget() {
 
               <form
                 onSubmit={enviar}
-                className="flex items-end gap-2 border-t border-slate-200 bg-slate-50 px-3 py-3 dark:border-slate-700 dark:bg-slate-900"
+                className="flex items-end gap-2 border-t border-border bg-surface px-3 py-3 "
               >
                 <label htmlFor="chat-input" className="sr-only">
                   Escribí tu mensaje
@@ -355,13 +355,13 @@ export function ChatWidget() {
                   onKeyDown={manejarTeclas}
                   placeholder="Escribí tu mensaje…"
                   disabled={cargando}
-                  className="max-h-28 min-h-10 flex-1 resize-none rounded-2xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-black focus:outline-none focus:ring-2 focus:ring-black/20 disabled:opacity-60 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-white dark:focus:ring-white/20"
+                  className="max-h-28 min-h-10 flex-1 resize-none rounded-2xl border border-border bg-surface px-4 py-2.5 text-sm text-foreground placeholder:text-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 disabled:opacity-60 "
                 />
                 <button
                   type="submit"
                   disabled={cargando || !texto.trim()}
                   aria-label="Enviar mensaje"
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-black text-white transition-colors hover:bg-slate-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black disabled:cursor-not-allowed disabled:opacity-40 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-foreground text-background transition-colors hover:bg-foreground/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-40 "
                 >
                   <IconoEnviar />
                 </button>

@@ -69,7 +69,7 @@ export function ReprogramarDialog({ turno, onCerrar, onReprogramado }: Reprogram
 
   return (
     <Modal abierto titulo="Reprogramar turno" onCerrar={onCerrar}>
-      <p className="text-sm text-slate-600 dark:text-slate-300">
+      <p className="text-sm text-muted ">
         Estás cambiando <strong>{actual.servicio?.nombre ?? "el servicio"}</strong> del{" "}
         <strong>{formatearFechaHora(actual.fechaInicio)}</strong>.
       </p>

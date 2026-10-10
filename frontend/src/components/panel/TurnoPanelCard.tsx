@@ -53,13 +53,13 @@ export function TurnoPanelCard({
     puedeSincronizar && (turno.estado === "pendiente" || turno.estado === "confirmado");
 
   return (
-    <article className="flex flex-col border border-gray-100 bg-white p-5 transition-shadow hover:shadow-sm dark:border-slate-800 dark:bg-slate-950">
+    <article className="flex flex-col border border-border bg-surface p-5 transition-shadow hover:shadow-sm ">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-2xl font-black leading-none tracking-tight text-slate-900 dark:text-slate-100">
+          <p className="text-2xl font-black leading-none tracking-tight text-foreground ">
             {formatearHora(turno.fechaInicio)}
           </p>
-          <p className="mt-1 text-xs uppercase tracking-widest text-slate-400 dark:text-slate-500">
+          <p className="mt-1 text-xs uppercase tracking-widest text-muted ">
             hasta {formatearHora(turno.fechaFin)}
           </p>
         </div>
@@ -67,17 +67,17 @@ export function TurnoPanelCard({
       </div>
 
       <div className="mt-4 space-y-1">
-        <p className="text-base font-semibold text-slate-900 dark:text-slate-100">
+        <p className="text-base font-semibold text-foreground ">
           {turno.cliente?.nombre ?? "Cliente sin nombre"}
         </p>
-        <p className="text-sm text-slate-600 dark:text-slate-400">
+        <p className="text-sm text-muted ">
           {turno.servicio?.nombre ?? "Servicio"}
           {turno.servicio
             ? ` · ${formatearDuracion(turno.servicio.duracionMin)} · ${formatearPrecio(turno.servicio.precio)}`
             : ""}
         </p>
         {turno.notas && (
-          <p className="truncate text-xs text-slate-500 dark:text-slate-500" title={turno.notas}>
+          <p className="truncate text-xs text-muted " title={turno.notas}>
             {turno.notas}
           </p>
         )}
@@ -85,7 +85,7 @@ export function TurnoPanelCard({
 
       <div className="mt-auto flex flex-wrap gap-2 pt-5">
         {acciones.length === 0 && !mostrarSync ? (
-          <p className="text-xs uppercase tracking-widest text-slate-400 dark:text-slate-500">
+          <p className="text-xs uppercase tracking-widest text-muted ">
             Sin acciones disponibles
           </p>
         ) : (

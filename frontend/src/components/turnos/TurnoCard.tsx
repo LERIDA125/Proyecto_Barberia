@@ -16,33 +16,33 @@ export function TurnoCard({ turno, onCancelar, onReprogramar }: TurnoCardProps) 
   const mes = new Intl.DateTimeFormat("es-AR", { month: "long" }).format(fecha);
 
   return (
-    <div className="border-t border-gray-100 pb-4">
+    <div className="border-t border-border pb-4">
       <div className="flex flex-col sm:flex-row sm:items-center sm:gap-6">
-        <div className="sm:w-32 sm:shrink-0 sm:flex-col sm:gap-0 sm:border-r sm:border-gray-100 sm:pr-6 sm:text-center">
-          <span className="block text-3xl font-bold leading-none text-slate-900">{fecha.getDate()}</span>
-          <span className="block text-sm text-slate-500">
+        <div className="sm:w-32 sm:shrink-0 sm:flex-col sm:gap-0 sm:border-r sm:border-border sm:pr-6 sm:text-center">
+          <span className="block text-3xl font-bold leading-none text-foreground">{fecha.getDate()}</span>
+          <span className="block text-sm text-muted">
             {diaSemana.slice(0, 1).toUpperCase() + diaSemana.slice(1)} · {mes}
           </span>
         </div>
 
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-base font-semibold uppercase tracking-widest text-slate-900">
+            <h3 className="text-base font-semibold uppercase tracking-widest text-foreground">
               {turno.servicio?.nombre ?? "Turno"}
             </h3>
-            <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-slate-900 text-xs uppercase rounded-none">
+            <span className="inline-flex items-center gap-1 px-2 py-1 bg-accent/15 text-foreground text-xs uppercase rounded-none">
               {turno.estado}
             </span>
           </div>
 
-          <p className="mt-1 text-sm text-slate-600">
+          <p className="mt-1 text-sm text-muted">
             {turno.barbero?.nombre ?? "Barbero"} ·{ " "}
             {turno.servicio
               ? `${formatearDuracion(turno.servicio.duracionMin)} · ${formatearPrecio(turno.servicio.precio)}`
               : "Sin servicio"}
           </p>
           {turno.notas && (
-            <p className="mt-1 truncate text-xs text-slate-500">{turno.notas}</p>
+            <p className="mt-1 truncate text-xs text-muted">{turno.notas}</p>
           )}
         </div>
       </div>

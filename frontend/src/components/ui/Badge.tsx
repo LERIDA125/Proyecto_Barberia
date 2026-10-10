@@ -4,12 +4,12 @@ type Tone = "neutral" | "success" | "warning" | "danger" | "info";
 
 const TONOS: Record<Tone, string> = {
   neutral:
-    "bg-gray-100 text-slate-800 dark:bg-gray-800 dark:text-slate-100",
+    "bg-surface text-foreground ",
   success:
-    "bg-green-100 text-green-800 dark:bg-green-800/40 dark:text-green-300",
-  warning: "bg-blue-100 text-slate-900 dark:bg-blue-800/40 dark:text-slate-100",
-  danger: "bg-red-100 text-red-800 dark:bg-red-800/40 dark:text-red-300",
-  info: "bg-blue-100 text-slate-900 dark:bg-blue-800/40 dark:text-slate-100",
+    "bg-green-900/30 text-green-300 ",
+  warning: "bg-accent/15 text-foreground ",
+  danger: "bg-red-900/30 text-red-300 ",
+  info: "bg-accent/15 text-foreground ",
 };
 
 export function Badge({

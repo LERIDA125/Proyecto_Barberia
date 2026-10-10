@@ -53,16 +53,16 @@ export default function ServiciosPage() {
   }
 
   return (
-    <div className="px-6 py-12 bg-white">
+    <div className="px-6 py-12 bg-surface">
       <div className="flex flex-wrap items-end justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-black uppercase tracking-widest text-slate-900">
+          <h1 className="text-3xl font-black uppercase tracking-widest text-foreground">
             Catálogo de servicios
           </h1>
-          <p className="mt-1 text-sm text-slate-600">Conocé qué ofrece la barbería antes de reservar.</p>
+          <p className="mt-1 text-sm text-muted">Conocé qué ofrece la barbería antes de reservar.</p>
         </div>
         {esAdmin && (
-          <Button onClick={abrirCrear} className="rounded-none bg-black text-white hover:bg-gray-800">
+          <Button onClick={abrirCrear} className="rounded-none bg-foreground text-background hover:bg-foreground/90">
             Nuevo servicio
           </Button>
         )}
@@ -70,8 +70,8 @@ export default function ServiciosPage() {
 
       {errorAccion && (
         <div className="mt-6">
-          <span className="bg-blue-100 text-slate-900 px-4 py-2 rounded-none text-sm uppercase tracking-widest">Error</span>
-          <p className="mt-2 text-sm text-slate-700">{errorAccion}</p>
+          <span className="bg-accent/15 text-foreground px-4 py-2 rounded-none text-sm uppercase tracking-widest">Error</span>
+          <p className="mt-2 text-sm text-foreground">{errorAccion}</p>
         </div>
       )}
 
@@ -84,16 +84,16 @@ export default function ServiciosPage() {
           </div>
         ) : error ? (
           <div className="flex flex-col items-start gap-3">
-            <span className="bg-red-100 text-red-800 px-4 py-2 rounded-none text-sm uppercase tracking-widest">Error</span>
-            <p className="text-sm text-slate-700">{error}</p>
+            <span className="bg-red-900/30 text-red-300 px-4 py-2 rounded-none text-sm uppercase tracking-widest">Error</span>
+            <p className="text-sm text-foreground">{error}</p>
             <Button variante="secondary" onClick={() => void recargar()}>Reintentar</Button>
           </div>
         ) : servicios.length === 0 ? (
           <div className="py-12 text-center">
-            <h2 className="text-2xl font-bold text-slate-900 uppercase tracking-widest">Todavía no hay servicios</h2>
-            <p className="mt-2 text-slate-600">Cuando se carguen servicios, van a aparecer en este catálogo.</p>
+            <h2 className="text-2xl font-bold text-foreground uppercase tracking-widest">Todavía no hay servicios</h2>
+            <p className="mt-2 text-muted">Cuando se carguen servicios, van a aparecer en este catálogo.</p>
             {esAdmin ? (
-              <Button onClick={abrirCrear} className="mt-6 rounded-none bg-black text-white hover:bg-gray-800">Crear el primero</Button>
+              <Button onClick={abrirCrear} className="mt-6 rounded-none bg-foreground text-background hover:bg-foreground/90">Crear el primero</Button>
             ) : null}
           </div>
         ) : (

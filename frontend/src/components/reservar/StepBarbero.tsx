@@ -25,10 +25,10 @@ export function StepBarbero({
 }: StepBarberoProps) {
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-semibold uppercase tracking-widest text-slate-900">
+      <h2 className="text-lg font-semibold uppercase tracking-widest text-foreground">
         ¿Con quién querés atenderte?
       </h2>
-      <p className="text-sm text-slate-600">Cada barbero tiene su especialidad y su agenda propia.</p>
+      <p className="text-sm text-muted">Cada barbero tiene su especialidad y su agenda propia.</p>
 
       <div className="grid gap-3">
         {cargando ? (
@@ -36,7 +36,7 @@ export function StepBarbero({
             {Array.from({ length: 3 }).map((_, i) => (
               <div
                 key={i}
-                className="rounded-none bg-gray-100 p-4 border border-gray-100"
+                className="rounded-none bg-surface p-4 border border-border"
               >
                 <Skeleton className="h-5 w-1/2" />
                 <Skeleton className="mt-2 h-4 w-full" />

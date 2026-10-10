@@ -26,10 +26,10 @@ export function StepServicio({
 }: StepServicioProps) {
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-semibold uppercase tracking-widest text-slate-900">
+      <h2 className="text-lg font-semibold uppercase tracking-widest text-foreground">
         ¿Qué servicio necesitás?
       </h2>
-      <p className="text-sm text-slate-600">Elegí uno del catálogo. La duración define el horario disponible.</p>
+      <p className="text-sm text-muted">Elegí uno del catálogo. La duración define el horario disponible.</p>
 
       <div className="grid gap-3 sm:grid-cols-2">
         {cargando ? (
@@ -37,7 +37,7 @@ export function StepServicio({
             {Array.from({ length: 4 }).map((_, i) => (
               <div
                 key={i}
-                className="rounded-none bg-gray-100 p-4 border border-gray-100"
+                className="rounded-none bg-surface p-4 border border-border"
               >
                 <Skeleton className="h-5 w-2/3" />
                 <Skeleton className="mt-2 h-4 w-full" />

@@ -40,7 +40,7 @@ export function CancelarTurnoDialog({ turno, onCerrar, onCancelada }: CancelarTu
 
   return (
     <Modal abierto titulo="Cancelar turno" onCerrar={onCerrar}>
-      <p className="text-sm text-slate-600 dark:text-slate-300">
+      <p className="text-sm text-muted ">
         Se cancelará <strong>{actual.servicio?.nombre ?? "el turno"}</strong> del{" "}
         <strong>{formatearFechaHora(actual.fechaInicio)}</strong>.
       </p>

@@ -59,7 +59,7 @@ export function NotificationBell() {
         aria-haspopup="true"
         aria-expanded={abierto}
         aria-label={noLeidas > 0 ? `Notificaciones (${noLeidas} sin leer)` : "Notificaciones"}
-        className="relative flex h-10 w-10 items-center justify-center rounded-none text-slate-700 transition hover:bg-blue-100 dark:text-slate-200 dark:hover:bg-slate-800"
+        className="relative flex h-10 w-10 items-center justify-center rounded-none text-foreground transition hover:bg-accent/15 "
       >
         <svg
           viewBox="0 0 24 24"
@@ -82,16 +82,16 @@ export function NotificationBell() {
       </button>
 
       {abierto && (
-        <div className="absolute right-0 z-50 mt-2 w-80 max-w-[calc(100vw-2rem)] border border-gray-200 bg-white shadow-lg dark:border-slate-800 dark:bg-slate-950">
-          <div className="flex items-center justify-between gap-2 border-b border-gray-100 px-4 py-3 dark:border-slate-800">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-slate-900 dark:text-slate-100">
+        <div className="absolute right-0 z-50 mt-2 w-80 max-w-[calc(100vw-2rem)] border border-border bg-surface shadow-lg ">
+          <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-3 ">
+            <h2 className="text-xs font-bold uppercase tracking-widest text-foreground ">
               Notificaciones
             </h2>
             <button
               type="button"
               onClick={() => void manejarMarcarTodas()}
               disabled={noLeidas === 0}
-              className="text-[11px] uppercase tracking-widest text-slate-600 underline transition hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-40 dark:text-slate-400 dark:hover:text-slate-100"
+              className="text-[11px] uppercase tracking-widest text-muted underline transition hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40 "
             >
               Marcar todas
             </button>
@@ -119,7 +119,7 @@ export function NotificationBell() {
               </div>
             ) : notificaciones.length === 0 ? (
               <div className="flex flex-col items-center gap-3 px-6 py-10 text-center">
-                <span className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 dark:bg-slate-900">
+                <span className="flex h-12 w-12 items-center justify-center rounded-full bg-surface ">
                   <svg
                     viewBox="0 0 24 24"
                     fill="none"
@@ -127,22 +127,22 @@ export function NotificationBell() {
                     strokeWidth="1.6"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="h-6 w-6 text-slate-400 dark:text-slate-500"
+                    className="h-6 w-6 text-muted "
                     aria-hidden
                   >
                     <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
                     <path d="M13.73 21a2 2 0 0 1-3.46 0" />
                   </svg>
                 </span>
-                <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                <p className="text-sm font-medium text-foreground ">
                   Todo tranquilo por acá
                 </p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
+                <p className="text-xs text-muted ">
                   No tenés notificaciones por ahora.
                 </p>
               </div>
             ) : (
-              <ul className="divide-y divide-gray-100 dark:divide-slate-800">
+              <ul className="divide-y divide-border ">
                 {notificaciones.map((notificacion) => (
                   <li key={notificacion.id}>
                     <button
@@ -150,22 +150,22 @@ export function NotificationBell() {
                       onClick={() => void manejarMarcarUna(notificacion.id)}
                       className={`flex w-full flex-col gap-1 px-4 py-3 text-left transition ${
                         notificacion.leida
-                          ? "bg-white hover:bg-gray-50 dark:bg-slate-950 dark:hover:bg-slate-900"
-                          : "bg-blue-50 hover:bg-blue-100 dark:bg-slate-900 dark:hover:bg-slate-800"
+                          ? "bg-surface hover:bg-foreground/5 "
+                          : "bg-accent/10 hover:bg-accent/15 "
                       }`}
                     >
                       <span className="flex items-center gap-2">
                         {!notificacion.leida && (
-                          <span className="h-2 w-2 shrink-0 rounded-full bg-blue-600" aria-hidden />
+                          <span className="h-2 w-2 shrink-0 rounded-full bg-accent" aria-hidden />
                         )}
-                        <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                        <span className="text-sm font-semibold text-foreground ">
                           {notificacion.titulo}
                         </span>
                       </span>
-                      <span className="text-xs text-slate-600 dark:text-slate-400">
+                      <span className="text-xs text-muted ">
                         {notificacion.mensaje}
                       </span>
-                      <span className="text-[11px] uppercase tracking-widest text-slate-400 dark:text-slate-500">
+                      <span className="text-[11px] uppercase tracking-widest text-muted ">
                         {formatearTiempoRelativo(notificacion.createdAt, ahora)}
                       </span>
                     </button>

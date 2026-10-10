@@ -66,17 +66,17 @@ export default function PanelPage() {
   if (!usuario) {
     return (
       <div className="mx-auto max-w-md px-6 py-12 text-center">
-        <div className="mx-auto mb-6 max-w-xl bg-gray-100 p-8 dark:bg-slate-900">
-          <h1 className="mb-2 text-4xl font-black uppercase tracking-widest text-slate-900 dark:text-slate-100">
+        <div className="mx-auto mb-6 max-w-xl bg-surface p-8 ">
+          <h1 className="mb-2 text-4xl font-black uppercase tracking-widest text-foreground ">
             Iniciá sesión para ver el panel
           </h1>
-          <p className="text-sm text-slate-600 dark:text-slate-400">
+          <p className="text-sm text-muted ">
             El panel de control está disponible para barberos y administradores.
           </p>
           <div className="mt-4">
             <Link
               href="/login"
-              className="bg-black px-6 py-3 text-sm uppercase tracking-widest text-white hover:bg-gray-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
+              className="bg-foreground px-6 py-3 text-sm uppercase tracking-widest text-background hover:bg-foreground/90 "
             >
               Ingresar
             </Link>
@@ -91,7 +91,7 @@ export default function PanelPage() {
       <div className="mx-auto max-w-md px-6 py-12 text-center">
         <StatusMessage tipo="error" mensaje="No autorizado: este panel es exclusivo para barberos." />
         <div className="mt-4">
-          <Link href="/" className="text-sm uppercase tracking-widest text-slate-900 underline dark:text-slate-100">
+          <Link href="/" className="text-sm uppercase tracking-widest text-foreground underline ">
             Volver al inicio
           </Link>
         </div>
@@ -100,13 +100,13 @@ export default function PanelPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl bg-white px-6 py-10 dark:bg-slate-950">
+    <div className="mx-auto max-w-7xl bg-surface px-6 py-10 ">
       <div className="flex flex-wrap items-end justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-black uppercase tracking-widest text-slate-900 dark:text-slate-100">
+          <h1 className="text-3xl font-black uppercase tracking-widest text-foreground ">
             Panel del barbero
           </h1>
-          <p className="text-sm capitalize text-slate-600 dark:text-slate-400">
+          <p className="text-sm capitalize text-muted ">
             {formatearFechaCorta(new Date().toISOString())}
           </p>
         </div>
@@ -118,19 +118,19 @@ export default function PanelPage() {
       <div className="mt-6 flex flex-wrap gap-3">
         {(
           [
-            ["Turnos", turnos.length, "text-slate-900 dark:text-slate-100"],
-            ["Pendientes", resumen.pendiente, "text-slate-900 dark:text-slate-100"],
-            ["Confirmados", resumen.confirmado, "text-slate-900 dark:text-slate-100"],
-            ["Completados", resumen.completado, "text-green-700 dark:text-green-400"],
-            ["Ausentes", resumen.ausente, "text-slate-500 dark:text-slate-400"],
+            ["Turnos", turnos.length, "text-foreground "],
+            ["Pendientes", resumen.pendiente, "text-foreground "],
+            ["Confirmados", resumen.confirmado, "text-foreground "],
+            ["Completados", resumen.completado, "text-green-300 "],
+            ["Ausentes", resumen.ausente, "text-muted "],
           ] as const
         ).map(([etiqueta, valor, color]) => (
           <div
             key={etiqueta}
-            className="flex items-center gap-2 border border-gray-100 bg-gray-50 px-4 py-2 dark:border-slate-800 dark:bg-slate-900"
+            className="flex items-center gap-2 border border-border bg-surface px-4 py-2 "
           >
             <span className={`text-lg font-bold ${color}`}>{valor}</span>
-            <span className="text-xs uppercase tracking-widest text-slate-500 dark:text-slate-400">
+            <span className="text-xs uppercase tracking-widest text-muted ">
               {etiqueta}
             </span>
           </div>
@@ -177,7 +177,7 @@ export default function PanelPage() {
         )}
       </div>
 
-      <div className="mt-12 border-t border-gray-100 pt-8 dark:border-slate-800">
+      <div className="mt-12 border-t border-border pt-8 ">
         <BloqueosManager />
       </div>
     </div>

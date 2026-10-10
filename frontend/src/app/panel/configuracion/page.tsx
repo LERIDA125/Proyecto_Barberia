@@ -60,17 +60,17 @@ export default function ConfiguracionPage() {
   if (!usuario) {
     return (
       <div className="mx-auto max-w-md px-6 py-12 text-center">
-        <div className="mx-auto mb-6 max-w-xl bg-gray-100 p-8 dark:bg-slate-900">
-          <h1 className="mb-2 text-3xl font-black uppercase tracking-widest text-slate-900 dark:text-slate-100">
+        <div className="mx-auto mb-6 max-w-xl bg-surface p-8 ">
+          <h1 className="mb-2 text-3xl font-black uppercase tracking-widest text-foreground ">
             Iniciá sesión para ver la configuración
           </h1>
-          <p className="text-sm text-slate-600 dark:text-slate-400">
+          <p className="text-sm text-muted ">
             La configuración de la integración está disponible para administradores.
           </p>
           <div className="mt-4">
             <Link
               href="/login"
-              className="bg-black px-6 py-3 text-sm uppercase tracking-widest text-white hover:bg-gray-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
+              className="bg-foreground px-6 py-3 text-sm uppercase tracking-widest text-background hover:bg-foreground/90 "
             >
               Ingresar
             </Link>
@@ -90,7 +90,7 @@ export default function ConfiguracionPage() {
         <div className="mt-4">
           <Link
             href="/"
-            className="text-sm uppercase tracking-widest text-slate-900 underline dark:text-slate-100"
+            className="text-sm uppercase tracking-widest text-foreground underline "
           >
             Volver al inicio
           </Link>
@@ -100,19 +100,19 @@ export default function ConfiguracionPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl bg-white px-6 py-10 dark:bg-slate-950">
+    <div className="mx-auto max-w-3xl bg-surface px-6 py-10 ">
       <div className="flex flex-wrap items-end justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-black uppercase tracking-widest text-slate-900 dark:text-slate-100">
+          <h1 className="text-3xl font-black uppercase tracking-widest text-foreground ">
             Configuración
           </h1>
-          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+          <p className="mt-1 text-sm text-muted ">
             Estado de la integración con Google Calendar (servidor MCP).
           </p>
         </div>
         <Link
           href="/panel"
-          className="text-sm uppercase tracking-widest text-slate-900 underline dark:text-slate-100"
+          className="text-sm uppercase tracking-widest text-foreground underline "
         >
           Volver al panel
         </Link>

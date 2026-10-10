@@ -19,7 +19,7 @@ function presentar(estado: CalendarEstado): Presentacion {
       emoji: "🔴",
       etiqueta: "Desconectado",
       detalle: "La integración no está configurada. Definí MCP_CALENDAR_URL en el backend.",
-      clases: "bg-red-100 text-red-800 dark:bg-red-800/40 dark:text-red-300",
+      clases: "bg-red-900/30 text-red-300 ",
     };
   }
   if (estado.conectado) {
@@ -27,14 +27,14 @@ function presentar(estado: CalendarEstado): Presentacion {
       emoji: "🟢",
       etiqueta: "Conectado",
       detalle: "El servidor MCP responde y el calendario es accesible.",
-      clases: "bg-green-100 text-green-800 dark:bg-green-800/40 dark:text-green-300",
+      clases: "bg-green-900/30 text-green-300 ",
     };
   }
   return {
     emoji: "⚠️",
     etiqueta: "Fallando",
     detalle: "La integración está configurada, pero el servidor MCP no responde.",
-    clases: "bg-blue-100 text-slate-900 dark:bg-blue-800/40 dark:text-slate-100",
+    clases: "bg-accent/15 text-foreground ",
   };
 }
 
@@ -68,10 +68,10 @@ export function CalendarStatusCard({
     <Card>
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs uppercase tracking-widest text-slate-500 dark:text-slate-400">
+          <p className="text-xs uppercase tracking-widest text-muted ">
             Estado de la conexión
           </p>
-          <p className="mt-1 text-2xl font-black uppercase tracking-widest text-slate-900 dark:text-slate-100">
+          <p className="mt-1 text-2xl font-black uppercase tracking-widest text-foreground ">
             Google Calendar
           </p>
         </div>
@@ -83,22 +83,22 @@ export function CalendarStatusCard({
         </span>
       </div>
 
-      <p className="mt-3 text-sm text-slate-600 dark:text-slate-400">{vista.detalle}</p>
+      <p className="mt-3 text-sm text-muted ">{vista.detalle}</p>
 
-      <dl className="mt-6 space-y-3 border-t border-gray-100 pt-4 dark:border-slate-800">
+      <dl className="mt-6 space-y-3 border-t border-border pt-4 ">
         <div className="flex items-center justify-between gap-4">
-          <dt className="text-xs uppercase tracking-widest text-slate-500 dark:text-slate-400">
+          <dt className="text-xs uppercase tracking-widest text-muted ">
             Calendario
           </dt>
-          <dd className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">
+          <dd className="truncate text-sm font-medium text-foreground ">
             {estado.calendarId || "—"}
           </dd>
         </div>
         <div className="flex items-center justify-between gap-4">
-          <dt className="text-xs uppercase tracking-widest text-slate-500 dark:text-slate-400">
+          <dt className="text-xs uppercase tracking-widest text-muted ">
             Última sincronización
           </dt>
-          <dd className="text-sm font-medium text-slate-900 dark:text-slate-100">
+          <dd className="text-sm font-medium text-foreground ">
             {estado.ultimaSync ? formatearFechaHora(estado.ultimaSync) : "Sin sincronizaciones"}
           </dd>
         </div>

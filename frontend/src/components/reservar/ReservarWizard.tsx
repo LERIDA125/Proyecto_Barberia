@@ -150,10 +150,10 @@ export function ReservarWizard({ servicioInicialId }: ReservarWizardProps) {
 
   if (sesionCargando) {
     return (
-      <div className="px-6 py-12 bg-white">
+      <div className="px-6 py-12 bg-surface">
         <div className="max-w-2xl mx-auto text-center">
           <Skeleton className="h-16 w-24 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-slate-900">Cargando...</h2>
+          <h2 className="text-2xl font-bold text-foreground">Cargando...</h2>
         </div>
       </div>
     );
@@ -161,24 +161,24 @@ export function ReservarWizard({ servicioInicialId }: ReservarWizardProps) {
 
   if (!usuario) {
     return (
-      <div className="px-6 py-12 bg-white max-w-md mx-auto">
-        <div className="rounded-none bg-gray-100 p-8 max-w-xl w-full">
-          <h1 className="text-4xl font-black uppercase tracking-widest text-slate-900 mb-2">Iniciá sesión para reservar</h1>
-          <p className="text-sm text-slate-600 mb-6">Necesitás una cuenta para elegir un horario y confirmar tu turno.</p>
+      <div className="px-6 py-12 bg-surface max-w-md mx-auto">
+        <div className="rounded-none bg-surface p-8 max-w-xl w-full">
+          <h1 className="text-4xl font-black uppercase tracking-widest text-foreground mb-2">Iniciá sesión para reservar</h1>
+          <p className="text-sm text-muted mb-6">Necesitás una cuenta para elegir un horario y confirmar tu turno.</p>
           <div className="flex flex-col gap-3">
             <Link
               href="/login"
-              className="rounded-none bg-black text-white hover:bg-gray-800 px-6 py-3 text-sm uppercase tracking-widest">
+              className="rounded-none bg-foreground text-background hover:bg-foreground/90 px-6 py-3 text-sm uppercase tracking-widest">
               Ingresar
             </Link>
             <Link
               href="/registro"
-              className="rounded-none border border-slate-300 px-6 py-3 text-sm uppercase tracking-widest text-slate-800 hover:bg-gray-100 dark:border-slate-700 dark:text-slate-100 dark:hover:bg-gray-200">
+              className="rounded-none border border-border px-6 py-3 text-sm uppercase tracking-widest text-foreground hover:bg-foreground/5 ">
               Crear cuenta con passkey
             </Link>
             <Link
               href="/servicios"
-              className="mt-2 text-sm text-slate-500 underline dark:text-slate-400">
+              className="mt-2 text-sm text-muted underline ">
               Ver catálogo de servicios
             </Link>
           </div>
@@ -188,14 +188,14 @@ export function ReservarWizard({ servicioInicialId }: ReservarWizardProps) {
   }
 
   return (
-    <div className="px-6 py-10 bg-white max-w-7xl mx-auto">
-      <h1 className="text-3xl font-black uppercase tracking-widest text-slate-900 mb-2">Reservar turno</h1>
-      <p className="text-sm text-slate-600 mb-8">Completá los pasos y confirmá tu turno en la barbería.</p>
+    <div className="px-6 py-10 bg-surface max-w-7xl mx-auto">
+      <h1 className="text-3xl font-black uppercase tracking-widest text-foreground mb-2">Reservar turno</h1>
+      <p className="text-sm text-muted mb-8">Completá los pasos y confirmá tu turno en la barbería.</p>
 
       <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
         <aside className="hidden lg:block">
-          <div className="p-4 bg-gray-100 rounded-none mb-8">
-            <h2 className="text-sm font-semibold text-slate-900 uppercase tracking-widest">Tu reserva</h2>
+          <div className="p-4 bg-surface rounded-none mb-8">
+            <h2 className="text-sm font-semibold text-foreground uppercase tracking-widest">Tu reserva</h2>
             <dl className="mt-4 space-y-3">
               <ResumenFila etiqueta="Servicio" valor={servicio?.nombre} />
               <ResumenFila etiqueta="Profesional" valor={barbero?.nombre ?? undefined} />
@@ -209,7 +209,7 @@ export function ReservarWizard({ servicioInicialId }: ReservarWizardProps) {
         </aside>
 
         <div>
-          <div className="border-t border-gray-100 pt-6">
+          <div className="border-t border-border pt-6">
             <Stepper pasos={PASOS} actual={paso} />
 
             <div className="mt-6">
@@ -298,12 +298,12 @@ export function ReservarWizard({ servicioInicialId }: ReservarWizardProps) {
 function ResumenFila({ etiqueta, valor }: { etiqueta: string; valor?: string }) {
   return (
     <div>
-      <dt className="text-xs text-slate-500 dark:text-slate-400">{etiqueta}</dt>
+      <dt className="text-xs text-muted ">{etiqueta}</dt>
       <dd
         className={`text-sm ${
           valor
-            ? "font-medium text-slate-900 dark:text-slate-100"
-            : "text-slate-400 dark:text-slate-600"
+            ? "font-medium text-foreground "
+            : "text-muted "
         }`}
       >
         {valor ?? "Sin elegir"}

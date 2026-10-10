@@ -59,18 +59,18 @@ export function LoginForm() {
         placeholder="tu@email.com"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        className="rounded-none bg-gray-100 border-none px-4 py-4 text-base text-slate-900 outline-none transition focus:ring-2 focus:ring-blue-100 dark:text-slate-100 dark:focus:ring-blue-200"
+        className="rounded-none bg-surface border-none px-4 py-4 text-base text-foreground outline-none transition focus:ring-2 focus:ring-accent/30 "
       />
 
       {error && <StatusMessage tipo="error" mensaje={error} />}
 
-      <Button type="submit" cargando={cargando} disabled={!soportado} className="w-full rounded-none bg-black text-white hover:bg-gray-800">
+      <Button type="submit" cargando={cargando} disabled={!soportado} className="w-full rounded-none bg-foreground text-background hover:bg-foreground/90">
         Entrar con passkey
       </Button>
 
-      <p className="text-center text-sm text-slate-500 dark:text-slate-400">
+      <p className="text-center text-sm text-muted ">
         ¿No tenés cuenta?{" "}
-        <Link href="/registro" className="font-medium uppercase tracking-widest text-slate-900 dark:text-slate-100 underline">
+        <Link href="/registro" className="font-medium uppercase tracking-widest text-foreground underline">
           Creá una con passkey
         </Link>
       </p>

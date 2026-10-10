@@ -10,11 +10,11 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const ESTILOS: Record<ButtonVariant, string> = {
   primary:
-    "rounded-none bg-black text-white hover:bg-gray-800 focus-visible:outline-black focus-visible:outline-offset-2 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200",
+    "rounded-none bg-foreground text-background hover:bg-foreground/90 focus-visible:outline-accent focus-visible:outline-offset-2 ",
   secondary:
-    "rounded-none border border-slate-300 bg-white text-slate-800 hover:bg-slate-100 focus-visible:outline-slate-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800",
+    "rounded-none border border-border bg-surface text-foreground hover:bg-foreground/5 focus-visible:outline-accent ",
   ghost:
-    "rounded-none text-slate-700 hover:bg-slate-100 focus-visible:outline-slate-400 dark:text-slate-200 dark:hover:bg-slate-800",
+    "rounded-none text-foreground hover:bg-foreground/5 focus-visible:outline-accent ",
   danger:
     "rounded-none bg-red-600 text-white hover:bg-red-500 focus-visible:outline-red-600",
 };

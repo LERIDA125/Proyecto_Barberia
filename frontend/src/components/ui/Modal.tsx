@@ -18,23 +18,23 @@ export function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4"
       role="dialog"
       aria-modal="true"
       aria-label={titulo}
       onClick={onCerrar}
     >
       <div
-        className="w-full max-w-lg rounded-none border border-gray-100 bg-white p-6 shadow-none dark:border-slate-800 dark:bg-slate-950"
+        className="w-full max-w-lg rounded-none border border-border bg-surface p-6 shadow-none "
         onClick={(event) => event.stopPropagation()}
       >
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{titulo}</h2>
+          <h2 className="text-lg font-semibold text-foreground ">{titulo}</h2>
           <button
             type="button"
             onClick={onCerrar}
             aria-label="Cerrar"
-            className="p-1 text-slate-500 transition hover:bg-gray-100 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+            className="p-1 text-muted transition hover:bg-foreground/5 hover:text-foreground "
           >
             ✕
           </button>
@@ -64,7 +64,7 @@ export function ConfirmDialog({
 }) {
   return (
     <Modal abierto={abierto} titulo={titulo} onCerrar={onCancelar}>
-      <p className="text-sm text-slate-600 dark:text-slate-300">{mensaje}</p>
+      <p className="text-sm text-muted ">{mensaje}</p>
       <div className="mt-6 flex justify-end gap-2">
         <Button variante="secondary" onClick={onCancelar} disabled={cargando}>
           Cancelar

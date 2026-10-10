@@ -38,12 +38,12 @@ export function Navbar() {
   ];
 
   return (
-    <header className="sticky top-0 z-40 border-b bg-white/80 backdrop-blur dark:border-gray-900 dark:bg-slate-950">
+    <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur">
       <nav className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-6 px-6">
         <div className="flex items-center gap-8">
           <Link
             href="/"
-            className="text-2xl font-black tracking-widest text-slate-900 dark:text-slate-100"
+            className="text-2xl font-black tracking-widest text-foreground "
           >
             Barbería
           </Link>
@@ -56,8 +56,8 @@ export function Navbar() {
                     href={link.href}
                     className={`px-4 py-2 text-sm font-medium uppercase tracking-widest transition ${
                       activo
-                        ? "bg-blue-100 text-slate-900"
-                        : "text-slate-900 hover:text-slate-900 dark:text-slate-100 dark:hover:text-slate-100"
+                        ? "bg-accent/15 text-foreground"
+                        : "text-foreground hover:text-foreground "
                     }`}
                   >
                     {link.label}
@@ -72,9 +72,9 @@ export function Navbar() {
           {loading ? null : usuario ? (
             <>
               <NotificationBell />
-              <span className="hidden text-sm text-slate-600 sm:inline dark:text-slate-300">
+              <span className="hidden text-sm text-muted sm:inline ">
                 {usuario.nombre}
-                <span className="ml-2 bg-gray-100 text-slate-700 capitalize text-xs px-2 py-0.5">
+                <span className="ml-2 bg-surface text-foreground capitalize text-xs px-2 py-0.5">
                   {usuario.rol}
                 </span>
               </span>
@@ -89,13 +89,13 @@ export function Navbar() {
             <>
               <Link
                 href="/login"
-                className="px-4 py-2 text-sm font-medium uppercase tracking-widest text-slate-900 hover:bg-blue-100 dark:text-slate-100 dark:hover:text-slate-100"
+                className="px-4 py-2 text-sm font-medium uppercase tracking-widest text-foreground hover:bg-accent/15 "
               >
                 Ingresar
               </Link>
               <Link
                 href="/registro"
-                className="px-4 py-2 text-sm font-medium uppercase tracking-widest bg-slate-900 text-white hover:bg-gray-800 dark:bg-slate-800 dark:hover:bg-slate-700"
+                className="px-4 py-2 text-sm font-medium uppercase tracking-widest bg-foreground text-background hover:bg-foreground/90"
               >
                 Crear cuenta
               </Link>

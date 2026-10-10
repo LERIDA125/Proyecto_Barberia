@@ -16,11 +16,11 @@ export function FichaCliente({ cliente }: FichaClienteProps) {
 
   return (
     <section aria-live="polite">
-      <header className="border-b border-gray-100 pb-4 dark:border-slate-800">
-        <h2 className="text-xl font-black uppercase tracking-widest text-slate-900 dark:text-slate-100">
+      <header className="border-b border-border pb-4 ">
+        <h2 className="text-xl font-black uppercase tracking-widest text-foreground ">
           {cliente.nombre}
         </h2>
-        <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+        <p className="mt-1 text-sm text-muted ">
           {cliente.email}
           {cliente.telefono ? ` · ${cliente.telefono}` : ""}
         </p>

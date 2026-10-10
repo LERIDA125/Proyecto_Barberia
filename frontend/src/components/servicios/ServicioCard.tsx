@@ -19,27 +19,27 @@ export function ServicioCard({
   onReservar,
 }: ServicioCardProps) {
   return (
-    <Card className="border-t bg-white shadow-none">
+    <Card className="border-t border-border bg-surface shadow-none">
       <div className="flex items-start justify-between gap-2 px-4 py-4">
-        <h3 className="text-base font-semibold uppercase tracking-widest text-slate-900">
+        <h3 className="text-base font-semibold uppercase tracking-widest text-foreground">
           {servicio.nombre}
         </h3>
         {!servicio.activo && (
-          <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-slate-900 text-xs uppercase rounded-none">
+          <span className="inline-flex items-center gap-1 px-2 py-1 bg-accent/15 text-foreground text-xs uppercase rounded-none">
             Inactivo
           </span>
         )}
       </div>
 
-      <p className="mt-2 text-sm text-slate-600">
+      <p className="mt-2 text-sm text-muted">
         {servicio.descripcion || "Sin descripción."}
       </p>
 
-      <div className="mt-4 flex items-center justify-between text-sm text-slate-700">
-        <span className="text-slate-500">
+      <div className="mt-4 flex items-center justify-between text-sm text-foreground">
+        <span className="text-muted">
           {formatearDuracion(servicio.duracionMin)}
         </span>
-        <span className="font-semibold text-slate-900">
+        <span className="font-semibold text-foreground">
           {formatearPrecio(servicio.precio)}
         </span>
       </div>
@@ -47,7 +47,7 @@ export function ServicioCard({
       <div className="mt-4">
         {esAdmin ? (
           <div className="flex gap-2">
-            <Button className="flex-1 rounded-none bg-gray-100 text-slate-800 hover:bg-gray-200">
+            <Button className="flex-1 rounded-none bg-surface text-foreground hover:bg-foreground/10">
               Editar
             </Button>
             {servicio.activo && (
@@ -60,7 +60,7 @@ export function ServicioCard({
           </div>
         ) : (
           <Button
-            className="w-full rounded-none bg-black text-white hover:bg-gray-800"
+            className="w-full rounded-none bg-foreground text-background hover:bg-foreground/90"
           >
             Reservar
           </Button>

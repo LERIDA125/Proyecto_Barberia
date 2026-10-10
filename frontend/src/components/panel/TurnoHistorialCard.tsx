@@ -45,39 +45,39 @@ export function TurnoHistorialCard({ turno, onGuardar }: TurnoHistorialCardProps
   }
 
   return (
-    <article className="border border-gray-100 bg-white p-5 dark:border-slate-800 dark:bg-slate-950">
+    <article className="border border-border bg-surface p-5 ">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <div>
-          <p className="text-xs uppercase tracking-widest text-slate-400 dark:text-slate-500">
+          <p className="text-xs uppercase tracking-widest text-muted ">
             {formatearFechaHora(turno.fechaInicio)}
           </p>
-          <p className="mt-1 text-base font-semibold text-slate-900 dark:text-slate-100">
+          <p className="mt-1 text-base font-semibold text-foreground ">
             {turno.servicio?.nombre ?? "Servicio"}
           </p>
         </div>
-        <p className="text-xs uppercase tracking-widest text-slate-500 dark:text-slate-400">
+        <p className="text-xs uppercase tracking-widest text-muted ">
           {formatearHora(turno.fechaInicio)}–{formatearHora(turno.fechaFin)}
         </p>
       </div>
 
       <dl className="mt-3 flex flex-wrap gap-x-8 gap-y-1 text-sm">
         <div className="flex gap-2">
-          <dt className="text-slate-500 dark:text-slate-500">Barbero:</dt>
-          <dd className="font-medium text-slate-800 dark:text-slate-200">
+          <dt className="text-muted ">Barbero:</dt>
+          <dd className="font-medium text-foreground ">
             {turno.barbero?.nombre ?? "Sin asignar"}
           </dd>
         </div>
         {turno.servicio && (
           <div className="flex gap-2">
-            <dt className="text-slate-500 dark:text-slate-500">Precio:</dt>
-            <dd className="font-medium text-slate-800 dark:text-slate-200">
+            <dt className="text-muted ">Precio:</dt>
+            <dd className="font-medium text-foreground ">
               {formatearPrecio(turno.servicio.precio)}
             </dd>
           </div>
         )}
       </dl>
 
-      <div className="mt-4 border-t border-gray-100 pt-4 dark:border-slate-800">
+      <div className="mt-4 border-t border-border pt-4 ">
         {editando ? (
           <div className="flex flex-col gap-3">
             <Textarea
@@ -88,7 +88,7 @@ export function TurnoHistorialCard({ turno, onGuardar }: TurnoHistorialCardProps
               placeholder="Detalles del corte, productos usados, preferencias del cliente…"
               onChange={(evento) => setValor(evento.target.value)}
             />
-            {error && <p className="text-xs text-red-600 dark:text-red-400">{error}</p>}
+            {error && <p className="text-xs text-red-400 ">{error}</p>}
             <div className="flex gap-2">
               <Button onClick={() => void guardar()} cargando={guardando} className="px-3 py-1.5">
                 Guardar
@@ -105,7 +105,7 @@ export function TurnoHistorialCard({ turno, onGuardar }: TurnoHistorialCardProps
           </div>
         ) : tieneNotas ? (
           <div className="flex flex-col gap-2">
-            <p className="whitespace-pre-wrap text-sm text-slate-700 dark:text-slate-300">
+            <p className="whitespace-pre-wrap text-sm text-foreground ">
               {turno.notas}
             </p>
             <div>
@@ -116,7 +116,7 @@ export function TurnoHistorialCard({ turno, onGuardar }: TurnoHistorialCardProps
           </div>
         ) : (
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className="text-sm italic text-slate-400 dark:text-slate-500">
+            <p className="text-sm italic text-muted ">
               Sin notas registradas.
             </p>
             <Button variante="secondary" onClick={iniciarEdicion} className="px-3 py-1.5">
