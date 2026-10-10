@@ -136,7 +136,7 @@ export default function MisTurnosPage() {
       </div>
 
       <CancelarTurnoDialog
-        key={aCancelar?.id ?? "cerrado"}
+        key={`cancelar-${aCancelar?.id ?? "cerrado"}`}
         turno={aCancelar}
         onCerrar={() => setACancelar(null)}
         onCancelada={() => {
@@ -145,7 +145,7 @@ export default function MisTurnosPage() {
         }}
       />
       <ReprogramarDialog
-        key={aReprogramar?.id ?? "cerrado"}
+        key={`reprogramar-${aReprogramar?.id ?? "cerrado"}`}
         turno={aReprogramar}
         onCerrar={() => setAReprogramar(null)}
         onReprogramado={() => {

@@ -20,7 +20,7 @@ export function Navbar() {
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-40 border-b bg-white/80 backdrop-blur bg-white dark:border-gray-900 dark:bg-slate-950">
+    <header className="sticky top-0 z-40 border-b bg-white/80 backdrop-blur dark:border-gray-900 dark:bg-slate-950">
       <nav className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-6 px-6">
         <div className="flex items-center gap-8">
           <Link
