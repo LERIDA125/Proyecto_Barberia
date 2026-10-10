@@ -1,0 +1,21 @@
+# Entorno y secretos
+.env
+
+# Node
+node_modules/
+*.log
+
+# Python (demo de la catedra)
+.venv/
+__pycache__/
+*.pyc
+
+# Artefactos de la demo RAG (python y node)
+chroma_db/
+conversaciones/
+backend/data/vector_db.json
+backend/data/conversaciones/
+
+# Varios
+.DS_Store
+dist/

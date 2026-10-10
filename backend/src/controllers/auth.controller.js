@@ -1,0 +1,60 @@
+const authService = require('../services/auth.service');
+const { setSessionCookie, clearSessionCookie } = require('../utils/session');
+
+async function registroOpciones(req, res, next) {
+  try {
+    const opciones = await authService.opcionesRegistro(req.body);
+    res.json(opciones);
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function registroVerificar(req, res, next) {
+  try {
+    const usuario = await authService.verificarRegistro(req.body);
+    setSessionCookie(res, usuario.id);
+    res.status(201).json({ usuario, ok: true });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function loginOpciones(req, res, next) {
+  try {
+    const opciones = await authService.opcionesLogin(req.body);
+    res.json(opciones);
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function loginVerificar(req, res, next) {
+  try {
+    const usuario = await authService.verificarLogin(req.body);
+    setSessionCookie(res, usuario.id);
+    res.json({ usuario });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function sesion(req, res, next) {
+  try {
+    const usuario = await authService.usuarioActual(req.usuario.id);
+    res.json(usuario);
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function logout(req, res, next) {
+  try {
+    clearSessionCookie(res);
+    res.json({ ok: true });
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { registroOpciones, registroVerificar, loginOpciones, loginVerificar, sesion, logout };
