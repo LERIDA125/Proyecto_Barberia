@@ -3,7 +3,7 @@
 > **Caso de Uso:** CU-06 — Asistente Conversacional con LangChain
 > **Feature:** Chatbot de reservas en lenguaje natural
 > **Rol autor:** Arquitecto / Tech Lead
-> **Estado:** Backend RAG implementado (AI Engineer): ingesta + chat + endpoints. Pendientes: UI `ChatWidget`, tools de reserva y tests (CA-06.9). Ver sección 8.
+> **Estado:** Backend RAG (Fase 1) + **tools de reserva y tool loop (Fase 2, backend)** implementados, con endpoints autenticados. Pendientes: UI `ChatWidget` (credenciales + render de tools) y tests (CA-06.9). Ver sección 8.
 > **Metodología:** Spec-Driven Development — ver `IA_WORKFLOW.md` y `SDD.md`
 
 ---
@@ -86,12 +86,12 @@ flowchart LR
 
 ## 5. Criterios de Aceptación
 
-- [ ] **CA-06.1** El cliente puede preguntar por disponibilidad y el agente responde con franjas reales obtenidas del backend.
-- [ ] **CA-06.2** El agente puede crear un turno tras confirmación explícita, usando la misma validación que la API (sin solapamientos).
-- [ ] **CA-06.3** El agente puede listar y cancelar los turnos del usuario autenticado.
-- [ ] **CA-06.4** Las tools usan el `usuarioId` de la sesión y nunca un identificador provisto en el texto.
-- [ ] **CA-06.5** Ante un error de negocio (franja ocupada), el agente lo comunica en lenguaje natural.
-- [ ] **CA-06.6** Si el proveedor LLM falla, el chat muestra un mensaje de disculpa sin romper la UI.
+- [x] **CA-06.1** El cliente puede preguntar por disponibilidad y el agente responde con franjas reales obtenidas del backend. *(Backend: tool `consultar_disponibilidad`.)*
+- [x] **CA-06.2** El agente puede crear un turno tras confirmación explícita, usando la misma validación que la API (sin solapamientos). *(Backend: tool `reservar_turno` → `turnos.service.crear`.)*
+- [x] **CA-06.3** El agente puede listar y cancelar los turnos del usuario autenticado. *(Backend: tools `consultar_mis_turnos`/`cancelar_turno`; cancelación con confirmación previa.)*
+- [x] **CA-06.4** Las tools usan el `usuarioId` de la sesión y nunca un identificador provisto en el texto. *(Backend: `clienteId = usuario.id`, no expuesto en el esquema.)*
+- [x] **CA-06.5** Ante un error de negocio (franja ocupada), el agente lo comunica en lenguaje natural. *(Backend: `AppError` → `{ error }` al modelo.)*
+- [x] **CA-06.6** Si el proveedor LLM falla, el chat muestra un mensaje de disculpa sin romper la UI. *(Backend: `MENSAJE_DISULPA`.)*
 - [ ] **CA-06.7** El historial de la conversación se conserva durante la sesión y puede reiniciarse.
 - [ ] **CA-06.8** El agente responde en español y no inventa servicios ni disponibilidad.
 - [ ] **CA-06.9** Existe test del caso feliz y de un caso de error por endpoint (con LLM/tools mockeados).
@@ -138,3 +138,29 @@ flowchart LR
 - **Versionado de paquetes:** rama estable LangChain.js `0.3.x` (peers coherentes con `dotenv@18`); la rama `1.x` queda como migración futura.
 
 **Pendientes Fase 2 (spec 3-4):** tools `consultarDisponibilidad/crearTurno/misTurnos/cancelarTurno` delegando en los services existentes, contexto de `usuarioId` de sesión, confirmación antes de escrituras y `ChatWidget` en el frontend.
+
+---
+
+## 9. Fase 2 implementada (AI Engineer / Backend)
+
+**Alcance:** tool calling real sobre los mismos services del backend, con `usuarioId` de sesión y resiliencia.
+
+**Componentes:**
+
+| Módulo | Rol |
+|---|---|
+| `src/agent/tools.js` | Definición de `TOOLS` (formato OpenAI/Groq) y `ejecutarTool(nombre, args, usuario)`: ejecutores `consultar_disponibilidad`, `reservar_turno`, `consultar_mis_turnos` y `cancelar_turno`, traducción de `AppError` a `{ error }`. |
+| `src/agent/prompts.js` | `PROMPT_AGENTE`: system prompt con `{context}` (RAG) + `{catalogo}` (IDs de barberos/servicios) y reglas de uso de tools. |
+| `src/services/asistente.service.js` | `getLlm().bindTools(TOOLS)` + tool loop (`AIMessage.tool_calls` → ejecutar → `ToolMessage` → re-invocar, máx. 5 iteraciones). Devuelve `{ respuesta, conversacionId, toolInvocadas[], turnoCreado? }`. |
+| `src/services/barberos.service.js` | `disponibilidad()` acepta `servicioId` **opcional** (slot genérico de 30 min si falta); retrocompatible. |
+| `src/controllers/asistente.controller.js` | Pasa `req.usuario` a `responder()`. |
+| `src/routes/chat.routes.js` / `asistente.routes.js` | `POST /api/chat`, `POST /api/asistente/mensaje` y `GET/DELETE /historial` ahora con `requiereAuth`. |
+
+**Decisiones y seguridad:**
+- **`usuarioId` de sesión:** `reservar_turno`, `consultar_mis_turnos` y `cancelar_turno` usan `usuario.id`; los esquemas no exponen el cliente (CA-06.4). `cancelar_turno` solo pasa `turnoId`/`motivo` y `turnos.service.cancelar` verifica la propiedad del turno.
+- **Confirmación antes de escrituras:** el system prompt exige confirmación explícita antes de `reservar_turno` y `cancelar_turno`.
+- **Catálogo en contexto:** los IDs (UUID) de barberos y servicios se inyectan en el system prompt para que el modelo pueda llamar las tools sin exponer más endpoints.
+- **Resiliencia:** errores de negocio (franja ocupada, bloqueo, turno ya pasado, no autorizado) se devuelven al modelo como `{ error }` para que los explique y ofrezca alternativas (CA-06.5); fallos del proveedor caen en `MENSAJE_DISULPA` (CA-06.6).
+- **Formato de tools:** JSON schema estándar OpenAI/Groq vía `bindTools` de `@langchain/groq` / `@langchain/ollama`, sin SDK adicional.
+
+**Pendientes:** tests con LLM/tools mockeados (CA-06.9). `ChatWidget` ya usa `apiFetch` (cookies), condiciona por sesión e indica las tools invocadas.

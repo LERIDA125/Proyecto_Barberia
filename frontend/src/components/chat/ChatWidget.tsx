@@ -2,7 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent, KeyboardEvent } from "react";
-import { ApiError } from "@/lib/api/client";
+import Link from "next/link";
+import { apiFetch, ApiError } from "@/lib/api/client";
+import { useSesion } from "@/lib/hooks/useSesion";
+import type { RespuestaChat } from "@/types/api";
 
 type Rol = "usuario" | "asistente";
 
@@ -10,23 +13,32 @@ interface Mensaje {
   id: number;
   rol: Rol;
   texto: string;
-}
-
-interface RespuestaChat {
-  respuesta: string;
-  conversacionId?: string;
-  toolInvocadas?: string[];
+  herramientas?: string[];
 }
 
 const BIENVENIDA: Mensaje = {
   id: 0,
   rol: "asistente",
   texto:
-    "¡Hola! Soy el asistente de la barbería. Podés consultarme por servicios, precios y horarios.",
+    "¡Hola! Soy el asistente de la barbería. Podés consultarme por servicios, precios y horarios, y reservar tu turno.",
 };
 
 const MENSAJE_ERROR =
   "No se pudo conectar con el asistente. Intentá nuevamente en unos segundos.";
+
+const MENSAJE_SESION_EXPIRADA =
+  "Tu sesión expiró. Iniciá sesión nuevamente para seguir chateando.";
+
+const ETIQUETA_HERRAMIENTA: Record<string, string> = {
+  consultar_disponibilidad: "Consultó la agenda",
+  reservar_turno: "Creó el turno",
+  consultar_mis_turnos: "Consultó tus turnos",
+  cancelar_turno: "Canceló el turno",
+};
+
+function etiquetaHerramienta(nombre: string) {
+  return ETIQUETA_HERRAMIENTA[nombre] ?? "Usó una herramienta";
+}
 
 function IconoChat() {
   return (
@@ -79,31 +91,85 @@ function IconoEnviar() {
   );
 }
 
-function IndicadorEscritura() {
+function IconoHerramienta() {
   return (
-    <div className="flex items-end gap-2">
-      <div className="flex items-center gap-1 rounded-2xl rounded-bl-md bg-slate-100 px-4 py-3 dark:bg-slate-800">
-        {[0, 1, 2].map((i) => (
-          <span
-            key={i}
-            aria-hidden
-            className="h-2 w-2 animate-bounce rounded-full bg-slate-400 dark:bg-slate-500"
-            style={{
-              animationDelay: `${i * 0.15}s`,
-              animationDuration: "0.9s",
-            }}
-          />
-        ))}
-        <span className="sr-only">El asistente está escribiendo…</span>
-      </div>
-      <span className="mb-1 text-xs text-slate-400 dark:text-slate-500">
-        escribiendo…
+    <svg
+      aria-hidden
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.8}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-3 w-3"
+    >
+      <path d="M12 3v2m0 14v2M5.6 5.6 7 7m10 10 1.4 1.4M3 12h2m14 0h2M5.6 18.4 7 17m10-10 1.4-1.4" />
+      <circle cx="12" cy="12" r="3.2" />
+    </svg>
+  );
+}
+
+function EtiquetaHerramienta({ nombre }: { nombre: string }) {
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-medium text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
+      <IconoHerramienta />
+      {etiquetaHerramienta(nombre)}
+    </span>
+  );
+}
+
+function IndicadorPensando() {
+  return (
+    <div className="flex items-center gap-2" role="status">
+      <span
+        aria-hidden
+        className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-slate-300 border-t-slate-500 dark:border-slate-600 dark:border-t-slate-300"
+      />
+      <span className="text-xs text-slate-400 dark:text-slate-500">
+        El asistente está consultando la agenda…
+      </span>
+    </div>
+  );
+}
+
+function CuerpoSinSesion() {
+  return (
+    <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
+      <span
+        aria-hidden
+        className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-300"
+      >
+        <IconoChat />
+      </span>
+      <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+        Inicia sesión para chatear con nuestro asistente
+      </p>
+      <p className="text-xs text-slate-500 dark:text-slate-400">
+        Podrás consultar disponibilidad y reservar tu turno en lenguaje natural.
+      </p>
+      <Link
+        href="/login"
+        className="mt-1 rounded-none bg-black px-5 py-2.5 text-xs uppercase tracking-widest text-white transition-colors hover:bg-slate-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
+      >
+        Ingresar
+      </Link>
+    </div>
+  );
+}
+
+function CuerpoCargandoSesion() {
+  return (
+    <div className="flex flex-1 items-center justify-center px-6">
+      <span className="text-xs uppercase tracking-widest text-slate-400 dark:text-slate-500">
+        Verificando sesión…
       </span>
     </div>
   );
 }
 
 export function ChatWidget() {
+  const { usuario, loading: sesionCargando } = useSesion();
+
   const [abierto, setAbierto] = useState(false);
   const [mensajes, setMensajes] = useState<Mensaje[]>([BIENVENIDA]);
   const [texto, setTexto] = useState("");
@@ -120,8 +186,8 @@ export function ChatWidget() {
   }, [mensajes, cargando, abierto]);
 
   useEffect(() => {
-    if (abierto) inputRef.current?.focus();
-  }, [abierto]);
+    if (abierto && usuario) inputRef.current?.focus();
+  }, [abierto, usuario]);
 
   async function enviar(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -136,24 +202,17 @@ export function ChatWidget() {
     setCargando(true);
 
     try {
-      const response = await fetch("http://127.0.0.1:3000/api/chat", {
+      const data = await apiFetch<RespuestaChat>("/api/chat", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({
           pregunta,
           ...(sesionId ? { sesionId } : {}),
         }),
       });
 
-      if (!response.ok) {
-        throw new Error("Error en la respuesta del servidor");
-      }
-
-      const data = (await response.json()) as RespuestaChat;
-
       if (data.conversacionId) setSesionId(data.conversacionId);
+
+      const herramientas = data.toolInvocadas?.filter(Boolean);
 
       setMensajes((prev) => [
         ...prev,
@@ -161,11 +220,16 @@ export function ChatWidget() {
           id: siguienteId.current++,
           rol: "asistente",
           texto: data.respuesta?.trim() || MENSAJE_ERROR,
+          ...(herramientas && herramientas.length > 0 ? { herramientas } : {}),
         },
       ]);
     } catch (err) {
       const mensaje =
-        err instanceof ApiError && err.message ? err.message : MENSAJE_ERROR;
+        err instanceof ApiError && err.status === 401
+          ? MENSAJE_SESION_EXPIRADA
+          : err instanceof ApiError && err.message
+            ? err.message
+            : MENSAJE_ERROR;
       setMensajes((prev) => [
         ...prev,
         { id: siguienteId.current++, rol: "asistente", texto: mensaje },
@@ -215,9 +279,11 @@ export function ChatWidget() {
               <p className="flex items-center gap-1.5 text-xs text-slate-300 dark:text-slate-400">
                 <span
                   aria-hidden
-                  className="h-2 w-2 rounded-full bg-emerald-400"
+                  className={`h-2 w-2 rounded-full ${
+                    usuario ? "bg-emerald-400" : "bg-slate-400 dark:bg-slate-500"
+                  }`}
                 />
-                En línea
+                {usuario ? "En línea" : "Sin sesión"}
               </p>
             </div>
             <button
@@ -230,60 +296,78 @@ export function ChatWidget() {
             </button>
           </header>
 
-          <div
-            ref={historialRef}
-            role="log"
-            aria-live="polite"
-            aria-relevant="additions"
-            className="flex flex-1 flex-col gap-3 overflow-y-auto px-4 py-4"
-          >
-            {mensajes.map((m) => (
+          {sesionCargando ? (
+            <CuerpoCargandoSesion />
+          ) : !usuario ? (
+            <CuerpoSinSesion />
+          ) : (
+            <>
               <div
-                key={m.id}
-                className={`flex ${m.rol === "usuario" ? "justify-end" : "justify-start"}`}
+                ref={historialRef}
+                role="log"
+                aria-live="polite"
+                aria-relevant="additions"
+                className="flex flex-1 flex-col gap-3 overflow-y-auto px-4 py-4"
               >
-                <p
-                  className={`max-w-[80%] whitespace-pre-wrap break-words px-4 py-2.5 text-sm leading-relaxed shadow-sm ${
-                    m.rol === "usuario"
-                      ? "rounded-2xl rounded-br-md bg-black text-white dark:bg-white dark:text-slate-900"
-                      : "rounded-2xl rounded-bl-md bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-100"
-                  }`}
-                >
-                  {m.texto}
-                </p>
+                {mensajes.map((m) => (
+                  <div
+                    key={m.id}
+                    className={`flex flex-col gap-1.5 ${
+                      m.rol === "usuario" ? "items-end" : "items-start"
+                    }`}
+                  >
+                    <p
+                      className={`max-w-[80%] whitespace-pre-wrap break-words px-4 py-2.5 text-sm leading-relaxed shadow-sm ${
+                        m.rol === "usuario"
+                          ? "rounded-2xl rounded-br-md bg-black text-white dark:bg-white dark:text-slate-900"
+                          : "rounded-2xl rounded-bl-md bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-100"
+                      }`}
+                    >
+                      {m.texto}
+                    </p>
+
+                    {m.herramientas && m.herramientas.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 pl-1">
+                        {m.herramientas.map((nombre, i) => (
+                          <EtiquetaHerramienta key={`${m.id}-${nombre}-${i}`} nombre={nombre} />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+
+                {cargando && <IndicadorPensando />}
               </div>
-            ))}
 
-            {cargando && <IndicadorEscritura />}
-          </div>
-
-          <form
-            onSubmit={enviar}
-            className="flex items-end gap-2 border-t border-slate-200 bg-slate-50 px-3 py-3 dark:border-slate-700 dark:bg-slate-900"
-          >
-            <label htmlFor="chat-input" className="sr-only">
-              Escribí tu mensaje
-            </label>
-            <textarea
-              id="chat-input"
-              ref={inputRef}
-              rows={1}
-              value={texto}
-              onChange={(e) => setTexto(e.target.value)}
-              onKeyDown={manejarTeclas}
-              placeholder="Escribí tu mensaje…"
-              disabled={cargando}
-              className="max-h-28 min-h-10 flex-1 resize-none rounded-2xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-black focus:outline-none focus:ring-2 focus:ring-black/20 disabled:opacity-60 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-white dark:focus:ring-white/20"
-            />
-            <button
-              type="submit"
-              disabled={cargando || !texto.trim()}
-              aria-label="Enviar mensaje"
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-black text-white transition-colors hover:bg-slate-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black disabled:cursor-not-allowed disabled:opacity-40 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
-            >
-              <IconoEnviar />
-            </button>
-          </form>
+              <form
+                onSubmit={enviar}
+                className="flex items-end gap-2 border-t border-slate-200 bg-slate-50 px-3 py-3 dark:border-slate-700 dark:bg-slate-900"
+              >
+                <label htmlFor="chat-input" className="sr-only">
+                  Escribí tu mensaje
+                </label>
+                <textarea
+                  id="chat-input"
+                  ref={inputRef}
+                  rows={1}
+                  value={texto}
+                  onChange={(e) => setTexto(e.target.value)}
+                  onKeyDown={manejarTeclas}
+                  placeholder="Escribí tu mensaje…"
+                  disabled={cargando}
+                  className="max-h-28 min-h-10 flex-1 resize-none rounded-2xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-black focus:outline-none focus:ring-2 focus:ring-black/20 disabled:opacity-60 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-white dark:focus:ring-white/20"
+                />
+                <button
+                  type="submit"
+                  disabled={cargando || !texto.trim()}
+                  aria-label="Enviar mensaje"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-black text-white transition-colors hover:bg-slate-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black disabled:cursor-not-allowed disabled:opacity-40 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
+                >
+                  <IconoEnviar />
+                </button>
+              </form>
+            </>
+          )}
         </section>
       )}
     </>

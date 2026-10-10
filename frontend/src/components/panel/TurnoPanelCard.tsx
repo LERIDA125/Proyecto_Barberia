@@ -2,8 +2,9 @@
 
 import { Button } from "@/components/ui/Button";
 import { EstadoBadge } from "@/components/ui/EstadoBadge";
+import { SyncTurnoButton } from "@/components/integraciones/SyncTurnoButton";
 import { formatearDuracion, formatearHora, formatearPrecio } from "@/lib/utils/format";
-import type { EstadoTurno, Turno } from "@/types/api";
+import type { EstadoTurno, SincronizacionTurno, Turno } from "@/types/api";
 
 type VarianteAccion = "primary" | "secondary" | "ghost" | "danger";
 
@@ -35,15 +36,21 @@ function accionesDisponibles(estado: EstadoTurno): AccionEstado[] {
 interface TurnoPanelCardProps {
   turno: Turno;
   actualizando?: boolean;
+  puedeSincronizar?: boolean;
   onCambiarEstado: (turno: Turno, estado: EstadoTurno) => void;
+  onSincronizado?: (resultado: SincronizacionTurno) => void;
 }
 
 export function TurnoPanelCard({
   turno,
   actualizando = false,
+  puedeSincronizar = false,
   onCambiarEstado,
+  onSincronizado,
 }: TurnoPanelCardProps) {
   const acciones = accionesDisponibles(turno.estado);
+  const mostrarSync =
+    puedeSincronizar && (turno.estado === "pendiente" || turno.estado === "confirmado");
 
   return (
     <article className="flex flex-col border border-gray-100 bg-white p-5 transition-shadow hover:shadow-sm dark:border-slate-800 dark:bg-slate-950">
@@ -77,22 +84,27 @@ export function TurnoPanelCard({
       </div>
 
       <div className="mt-auto flex flex-wrap gap-2 pt-5">
-        {acciones.length === 0 ? (
+        {acciones.length === 0 && !mostrarSync ? (
           <p className="text-xs uppercase tracking-widest text-slate-400 dark:text-slate-500">
             Sin acciones disponibles
           </p>
         ) : (
-          acciones.map((accion) => (
-            <Button
-              key={accion.estado}
-              variante={accion.variante}
-              disabled={actualizando}
-              onClick={() => onCambiarEstado(turno, accion.estado)}
-              className="px-3 py-1.5"
-            >
-              {actualizando ? "Guardando…" : accion.etiqueta}
-            </Button>
-          ))
+          <>
+            {acciones.map((accion) => (
+              <Button
+                key={accion.estado}
+                variante={accion.variante}
+                disabled={actualizando}
+                onClick={() => onCambiarEstado(turno, accion.estado)}
+                className="px-3 py-1.5"
+              >
+                {actualizando ? "Guardando…" : accion.etiqueta}
+              </Button>
+            ))}
+            {mostrarSync && (
+              <SyncTurnoButton turnoId={turno.id} onSincronizado={onSincronizado} />
+            )}
+          </>
         )}
       </div>
     </article>

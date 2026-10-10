@@ -21,6 +21,8 @@ const LINKS_PANEL = [
   { href: "/panel/clientes", label: "Clientes" },
 ];
 
+const LINKS_ADMIN = [{ href: "/panel/configuracion", label: "Configuración" }];
+
 export function Navbar() {
   const { usuario, loading } = useSesion();
   const pathname = usePathname();
@@ -32,6 +34,7 @@ export function Navbar() {
     ...LINKS,
     ...(usuario ? LINKS_USUARIO : []),
     ...(puedeVerPanel ? LINKS_PANEL : []),
+    ...(usuario?.rol === "admin" ? LINKS_ADMIN : []),
   ];
 
   return (

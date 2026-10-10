@@ -1,0 +1,27 @@
+{
+  "name": "barberia-mcp-google-calendar",
+  "version": "1.0.0",
+  "description": "Servidor MCP externo que expone Google Calendar como tools (crear/actualizar/eliminar/consultar eventos).",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "google-calendar",
+    "barberia"
+  ],
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.7",
+    "express": "^5.3.0",
+    "googleapis": "^185.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}

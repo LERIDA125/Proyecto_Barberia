@@ -1,21 +1,56 @@
-# Entorno y secretos
+# =========================
+# Entorno y Secretos
+# =========================
 .env
+.env.local
+.env.development
+.env.test
+.env.production
+google-credentials*.json
 
-# Node
+# =========================
+# Node.js
+# =========================
 node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 *.log
 
+# =========================
+# Next.js (Frontend)
+# =========================
+.next/
+out/
+build/
+.vercel/
+
+# =========================
+# Prisma / Base de datos
+# =========================
+*.db
+*.sqlite
+*.sqlite3
+
+# =========================
 # Python (demo de la catedra)
+# =========================
 .venv/
 __pycache__/
 *.pyc
 
-# Artefactos de la demo RAG (python y node)
+# =========================
+# Artefactos RAG e IA
+# =========================
 chroma_db/
 conversaciones/
 backend/data/vector_db.json
 backend/data/conversaciones/
 
-# Varios
+# =========================
+# SO y Varios
+# =========================
 .DS_Store
+Thumbs.db
 dist/
+coverage/

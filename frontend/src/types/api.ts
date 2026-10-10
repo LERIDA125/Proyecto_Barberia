@@ -106,3 +106,27 @@ export interface Notificacion {
   leida: boolean;
   createdAt: string;
 }
+
+export interface CalendarEstado {
+  conectado: boolean;
+  configurado: boolean;
+  calendarId: string;
+  ultimaSync: string | null;
+}
+
+export interface ReconectarCalendar extends CalendarEstado {
+  reconectado: boolean;
+}
+
+export interface SincronizacionTurno {
+  sincronizado: boolean;
+  eventId: string | null;
+  pendiente: boolean;
+  motivo: string | null;
+}
+
+export interface RespuestaChat {
+  respuesta: string;
+  conversacionId?: string;
+  toolInvocadas?: string[];
+}

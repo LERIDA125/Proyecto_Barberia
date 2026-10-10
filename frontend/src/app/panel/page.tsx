@@ -169,6 +169,7 @@ export default function PanelPage() {
                 key={turno.id}
                 turno={turno}
                 actualizando={actualizandoId === turno.id}
+                puedeSincronizar={usuario.rol === "admin"}
                 onCambiarEstado={manejarCambioEstado}
               />
             ))}

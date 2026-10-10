@@ -25,7 +25,7 @@ async function enviar(req, res, next) {
   try {
     const pregunta = obtenerPregunta(req.body);
     const sesionId = obtenerSesionId(req.body);
-    const resultado = await asistenteService.responder(pregunta, sesionId);
+    const resultado = await asistenteService.responder(pregunta, sesionId, req.usuario);
     return res.status(200).json(resultado);
   } catch (err) {
     if (err instanceof AppError) return next(err);

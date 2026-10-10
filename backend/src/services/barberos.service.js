@@ -97,33 +97,41 @@ async function listar() {
 }
 
 async function disponibilidad({ barberoId, fecha, servicioId }) {
-  requerirCampos({ barberoId, fecha, servicioId }, ['barberoId', 'fecha', 'servicioId']);
+  requerirCampos({ barberoId, fecha }, ['barberoId', 'fecha']);
   validarUUID(barberoId, 'barberoId');
-  validarUUID(servicioId, 'servicioId');
   const dia = parseFechaTexto(fecha);
 
   const barbero = await prisma.barbero.findUnique({ where: { id: barberoId } });
   if (!barbero) throw new AppError(404, 'Barbero no encontrado');
 
-  const servicio = await prisma.servicio.findUnique({ where: { id: servicioId } });
-  if (!servicio) throw new AppError(404, 'Servicio no encontrado');
+  // servicioId es opcional: define la duración de la franja. Sin él se usa un
+  // tamaño de slot genérico (30 min), útil para sondeos de disponibilidad.
+  let duracionMin = 30;
+  let servicioRef = null;
+  if (servicioId) {
+    validarUUID(servicioId, 'servicioId');
+    const servicio = await prisma.servicio.findUnique({ where: { id: servicioId } });
+    if (!servicio) throw new AppError(404, 'Servicio no encontrado');
+    duracionMin = servicio.duracionMin;
+    servicioRef = servicioId;
+  }
 
   const franjas = [];
 
   if (!barbero.horarioInicio || !barbero.horarioFin || barbero.diasLaborales.length === 0) {
-    return { fecha, barberoId, servicioId, franjas };
+    return { fecha, barberoId, servicioId: servicioRef, franjas };
   }
 
   if (!barbero.diasLaborales.includes(dia.getDay())) {
-    return { fecha, barberoId, servicioId, franjas };
+    return { fecha, barberoId, servicioId: servicioRef, franjas };
   }
 
   const inicioJornada = combinarFechaHora(dia, barbero.horarioInicio);
   const finJornada = combinarFechaHora(dia, barbero.horarioFin);
-  const duracionMs = servicio.duracionMin * 60000;
+  const duracionMs = duracionMin * 60000;
 
   if (inicioJornada >= finJornada) {
-    return { fecha, barberoId, servicioId, franjas };
+    return { fecha, barberoId, servicioId: servicioRef, franjas };
   }
 
   const finDia = new Date(inicioJornada);
@@ -164,7 +172,7 @@ async function disponibilidad({ barberoId, fecha, servicioId }) {
     franjas.push({ inicio: inicio.toISOString(), fin: fin.toISOString() });
   }
 
-  return { fecha, barberoId, servicioId, franjas };
+  return { fecha, barberoId, servicioId: servicioRef, franjas };
 }
 
 async function agendaBarbero(barberoId, desde, hasta) {

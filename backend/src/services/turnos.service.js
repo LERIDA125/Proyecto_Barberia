@@ -5,6 +5,7 @@ const { requerirCampos, validarUUID, validarFecha, parseFechaTexto } = require('
 const { serializarTurno } = require('../utils/serializers');
 const { ESTADOS, ESTADOS_OCUPADOS, validarHorario } = require('./barberos.service');
 const notificacionesService = require('./notificaciones.service');
+const integracionesService = require('./integraciones.service');
 
 const TRANSICIONES_VALIDAS = {
   pendiente: ['confirmado', 'cancelado', 'ausente'],
@@ -147,6 +148,23 @@ async function crear({ clienteId, barberoId, servicioId, fechaInicio, notas }) {
     return creado;
   });
 
+  const sync = await integracionesService.sincronizarAlta({
+    turnoId: turno.id,
+    titulo: integracionesService.construirResumen({
+      servicio: servicio.nombre,
+      cliente: cliente.nombre,
+    }),
+    inicio: turno.fechaInicio.toISOString(),
+    fin: turno.fechaFin.toISOString(),
+    descripcion: integracionesService.construirDescripcion({
+      servicio: servicio.nombre,
+      barbero: barbero.usuario?.nombre,
+      cliente: cliente.nombre,
+      notas: turno.notas,
+    }),
+  });
+  if (sync.eventId) turno.googleEventId = sync.eventId;
+
   return serializarTurno(turno);
 }
 
@@ -259,6 +277,12 @@ async function cancelar({ id, usuario, motivo }) {
     return turnoActualizado;
   });
 
+  const sync = await integracionesService.sincronizarCancelacion({
+    turnoId: actualizado.id,
+    googleEventId: actualizado.googleEventId,
+  });
+  if (sync.sincronizado) actualizado.googleEventId = null;
+
   return serializarTurno(actualizado);
 }
 
@@ -316,6 +340,24 @@ async function reprogramar({ id, usuario, nuevaFechaInicio }) {
     });
   });
 
+  const sync = await integracionesService.sincronizarReprogramacion({
+    turnoId: actualizado.id,
+    googleEventId: actualizado.googleEventId,
+    titulo: integracionesService.construirResumen({
+      servicio: actualizado.servicio?.nombre,
+      cliente: actualizado.cliente?.nombre,
+    }),
+    inicio: actualizado.fechaInicio.toISOString(),
+    fin: actualizado.fechaFin.toISOString(),
+    descripcion: integracionesService.construirDescripcion({
+      servicio: actualizado.servicio?.nombre,
+      barbero: actualizado.barbero?.usuario?.nombre,
+      cliente: actualizado.cliente?.nombre,
+      notas: actualizado.notas,
+    }),
+  });
+  if (sync.eventId) actualizado.googleEventId = sync.eventId;
+
   return serializarTurno(actualizado);
 }
 
@@ -366,6 +408,14 @@ async function cambiarEstado({ id, usuario, estado }) {
 
     return turnoActualizado;
   });
+
+  if (estado === 'cancelado') {
+    const sync = await integracionesService.sincronizarCancelacion({
+      turnoId: actualizado.id,
+      googleEventId: actualizado.googleEventId,
+    });
+    if (sync.sincronizado) actualizado.googleEventId = null;
+  }
 
   return serializarTurno(actualizado);
 }

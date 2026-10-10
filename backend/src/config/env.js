@@ -19,4 +19,10 @@ module.exports = {
   asistenteDoc:
     process.env.ASISTENTE_DOC || path.join(__dirname, '..', '..', '..', 'datos_barberia.md'),
   asistenteTopK: Number(process.env.ASISTENTE_TOP_K || 4),
+  // --- Integración Google Calendar vía MCP externo (CU-07) ---
+  mcpCalendarUrl: process.env.MCP_CALENDAR_URL || '',
+  mcpCalendarToken: process.env.MCP_CALENDAR_TOKEN || '',
+  mcpCalendarId: process.env.CALENDAR_ID || 'primary',
+  mcpCalendarTimeoutMs: Number(process.env.MCP_CALENDAR_TIMEOUT_MS || 5000),
+  timezone: process.env.TIMEZONE || 'America/Argentina/Buenos_Aires',
 };
