@@ -4,10 +4,10 @@ const prisma = require('../config/prisma');
 
 async function cargarUsuarioDesdeCookie(req) {
   const token = getSessionCookie(req);
-  const usuarioId = token ? verificarToken(token) : null;
-  if (!usuarioId) return null;
+  const sesion = token ? verificarToken(token) : null;
+  if (!sesion) return null;
 
-  const usuario = await prisma.usuario.findUnique({ where: { id: usuarioId } });
+  const usuario = await prisma.usuario.findUnique({ where: { id: sesion.id } });
   if (!usuario || !usuario.activo) return null;
   return usuario;
 }

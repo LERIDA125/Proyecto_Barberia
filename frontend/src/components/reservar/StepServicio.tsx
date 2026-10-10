@@ -26,7 +26,7 @@ export function StepServicio({
 }: StepServicioProps) {
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-semibold uppercase tracking-widest text-neutral-100">
+      <h2 className="text-lg font-black uppercase tracking-tighter text-white">
         ¿Qué servicio necesitás?
       </h2>
       <p className="text-sm text-neutral-400">Elegí uno del catálogo. La duración define el horario disponible.</p>

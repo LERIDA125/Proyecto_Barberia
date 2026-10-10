@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { StatusMessage } from "@/components/ui/StatusMessage";
 import { ApiError } from "@/lib/api/client";
 import { registrarConPasskey } from "@/lib/api/auth";
-import { iniciarSesion } from "@/lib/hooks/useSesion";
+import { iniciarSesion, refrescarSesion } from "@/lib/hooks/useSesion";
 import { useWebAuthnSoportado } from "@/lib/hooks/useWebAuthnSoportado";
 
 export function RegistroForm() {
@@ -33,6 +33,7 @@ export function RegistroForm() {
         telefono: form.telefono.trim() || undefined,
       });
       iniciarSesion(usuario);
+      void refrescarSesion();
       router.push("/servicios");
     } catch (err) {
       if (err instanceof ApiError) setError(err.message);

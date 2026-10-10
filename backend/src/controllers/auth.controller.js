@@ -13,7 +13,7 @@ async function registroOpciones(req, res, next) {
 async function registroVerificar(req, res, next) {
   try {
     const usuario = await authService.verificarRegistro(req.body);
-    setSessionCookie(res, usuario.id);
+    setSessionCookie(res, usuario);
     res.status(201).json({ usuario, ok: true });
   } catch (err) {
     next(err);
@@ -32,7 +32,7 @@ async function loginOpciones(req, res, next) {
 async function loginVerificar(req, res, next) {
   try {
     const usuario = await authService.verificarLogin(req.body);
-    setSessionCookie(res, usuario.id);
+    setSessionCookie(res, usuario);
     res.json({ usuario });
   } catch (err) {
     next(err);
@@ -42,6 +42,7 @@ async function loginVerificar(req, res, next) {
 async function sesion(req, res, next) {
   try {
     const usuario = await authService.usuarioActual(req.usuario.id);
+    res.set('Cache-Control', 'no-store');
     res.json(usuario);
   } catch (err) {
     next(err);

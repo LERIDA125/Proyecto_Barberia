@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { StatusMessage } from "@/components/ui/StatusMessage";
 import { ApiError } from "@/lib/api/client";
 import { loginConPasskey } from "@/lib/api/auth";
-import { iniciarSesion } from "@/lib/hooks/useSesion";
+import { iniciarSesion, refrescarSesion } from "@/lib/hooks/useSesion";
 import { useWebAuthnSoportado } from "@/lib/hooks/useWebAuthnSoportado";
 
 export function LoginForm() {
@@ -29,6 +29,7 @@ export function LoginForm() {
     try {
       const usuario = await loginConPasskey(email.trim());
       iniciarSesion(usuario);
+      void refrescarSesion();
       router.push("/servicios");
     } catch (err) {
       if (err instanceof ApiError) setError(err.message);

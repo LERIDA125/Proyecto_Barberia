@@ -25,7 +25,7 @@ export function StepBarbero({
 }: StepBarberoProps) {
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-semibold uppercase tracking-widest text-neutral-100">
+      <h2 className="text-lg font-black uppercase tracking-tighter text-white">
         ¿Con quién querés atenderte?
       </h2>
       <p className="text-sm text-neutral-400">Cada barbero tiene su especialidad y su agenda propia.</p>

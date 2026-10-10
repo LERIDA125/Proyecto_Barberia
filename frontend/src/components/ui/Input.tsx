@@ -11,13 +11,13 @@ export function Input({ label, error, id, className = "", ...rest }: InputProps)
   const inputId = id ?? rest.name;
   return (
     <div className="flex flex-col gap-1">
-      <label htmlFor={inputId} className="text-sm font-medium text-foreground ">
+      <label htmlFor={inputId} className="text-xs font-medium uppercase tracking-widest text-neutral-500 ">
         {label}
       </label>
       <input
         {...rest}
         id={inputId}
-        className={`rounded-none bg-surface border-none px-4 py-4 text-sm text-foreground outline-none transition focus:ring-2 focus:ring-accent/30 ${
+        className={`rounded-none border border-neutral-800 bg-neutral-900 px-4 py-4 text-sm text-white outline-none transition placeholder:text-neutral-600 focus:border-neutral-500 focus:ring-0 ${
           error ? "border-red-500" : ""
         } ${className}`}
       />
@@ -32,13 +32,13 @@ export function Textarea({ label, error, id, className = "", ...rest }: Textarea
   const inputId = id ?? rest.name;
   return (
     <div className="flex flex-col gap-1">
-      <label htmlFor={inputId} className="text-sm font-medium text-foreground ">
+      <label htmlFor={inputId} className="text-xs font-medium uppercase tracking-widest text-neutral-500 ">
         {label}
       </label>
       <textarea
         {...rest}
         id={inputId}
-        className={`rounded-none bg-surface border-none px-4 py-4 text-sm text-foreground outline-none transition focus:ring-2 focus:ring-accent/30 ${
+        className={`rounded-none border border-neutral-800 bg-neutral-900 px-4 py-4 text-sm text-white outline-none transition placeholder:text-neutral-600 focus:border-neutral-500 focus:ring-0 ${
           error ? "border-red-500" : ""
         } ${className}`}
       />

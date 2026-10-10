@@ -27,8 +27,8 @@ export function Stepper({ pasos, actual }: StepperProps) {
                   completado
                     ? "text-neutral-500 line-through decoration-neutral-800"
                     : esActual
-                      ? "font-semibold text-neutral-100"
-                      : "text-neutral-400"
+                      ? "font-bold text-white"
+                      : "text-neutral-500"
                 } hidden sm:inline`}
               >
                 {etiqueta}

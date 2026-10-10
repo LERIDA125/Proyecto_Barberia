@@ -35,7 +35,7 @@ export function StepConfirmacion({
 }: StepConfirmacionProps) {
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-semibold uppercase tracking-widest text-neutral-100">
+      <h2 className="text-lg font-black uppercase tracking-tighter text-white">
         Revisá y confirmá
       </h2>
       <p className="text-sm text-neutral-400">

@@ -104,7 +104,7 @@ export default function PanelPage() {
   if (!puedeOperar) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-neutral-950 px-6 py-12 text-center">
-        <StatusMessage tipo="error" mensaje="No autorizado: este panel es exclusivo para barberos." />
+        <StatusMessage tipo="error" mensaje="No autorizado: este panel es exclusivo para barberos y administradores." />
         <div className="mt-4">
           <Link href="/" className="text-sm uppercase tracking-widest text-neutral-100 underline">
             Volver al inicio
@@ -142,7 +142,7 @@ export default function PanelPage() {
         <div className="px-6 py-10 lg:px-10">
           <div className="flex flex-wrap items-end justify-between gap-6">
             <div>
-              <h1 className="text-3xl font-black uppercase tracking-widest text-neutral-100">
+              <h1 className="text-3xl font-black uppercase tracking-tighter text-white">
                 Panel del barbero
               </h1>
               <p className="text-sm capitalize text-neutral-500">
@@ -166,9 +166,9 @@ export default function PanelPage() {
             ).map(([etiqueta, valor]) => (
               <div
                 key={etiqueta}
-                className="border border-neutral-800 bg-transparent p-5"
+                className="border border-neutral-800 bg-neutral-900 p-5"
               >
-                <span className="block font-mono text-3xl font-black tabular-nums text-neutral-100">
+                <span className="block font-mono text-3xl font-black tabular-nums text-white">
                   {valor}
                 </span>
                 <span className="mt-1 block text-xs uppercase tracking-widest text-neutral-500">
@@ -209,7 +209,7 @@ export default function PanelPage() {
                 />
               </div>
             ) : (
-              <div className="mt-4 border-t border-neutral-900">
+              <div className="mt-4 border-t border-neutral-800">
                 {turnos.map((turno) => (
                   <TurnoPanelCard
                     key={turno.id}

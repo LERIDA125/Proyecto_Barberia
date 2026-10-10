@@ -1,6 +1,6 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { getSesion, logout as apiLogout } from "@/lib/api/auth";
 import type { Usuario } from "@/types/api";
 
@@ -34,14 +34,18 @@ function getServerSnapshot() {
   return estado;
 }
 
-export async function cargarSesion() {
-  emitir({ ...estado, loading: true });
+export async function cargarSesion(silencioso = false) {
+  if (!silencioso) emitir({ ...estado, loading: true });
   try {
     const usuario = await getSesion();
     emitir({ usuario, loading: false, inicializado: true });
   } catch {
     emitir({ usuario: null, loading: false, inicializado: true });
   }
+}
+
+export function refrescarSesion() {
+  return cargarSesion(true);
 }
 
 export function iniciarSesion(usuario: Usuario) {
@@ -57,5 +61,20 @@ export async function cerrarSesion() {
 }
 
 export function useSesion() {
-  return useSyncExternalStore(suscribir, getSnapshot, getServerSnapshot);
+  const sesion = useSyncExternalStore(suscribir, getSnapshot, getServerSnapshot);
+
+  useEffect(() => {
+    if (!sesion.inicializado) return;
+    function alVolver() {
+      if (document.visibilityState === "visible") void refrescarSesion();
+    }
+    window.addEventListener("focus", alVolver);
+    document.addEventListener("visibilitychange", alVolver);
+    return () => {
+      window.removeEventListener("focus", alVolver);
+      document.removeEventListener("visibilitychange", alVolver);
+    };
+  }, [sesion.inicializado]);
+
+  return sesion;
 }

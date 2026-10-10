@@ -90,8 +90,13 @@ def get_llm():
         return ChatGroq(
             model=os.getenv("LLM_MODEL", "llama3-70b-8192"),
             temperature=0,
-            api_key=os.getenv("GROQ_API_KEY"),
+            # Eliminamos la línea de api_key, LangChain la detecta automáticamente
         )
+
+    return ChatOllama(
+        model=os.getenv("LLM_MODEL", "llama3.2"),
+        temperature=0,
+    )
 
     return ChatOllama(
         model=os.getenv("LLM_MODEL", "llama3.2"),

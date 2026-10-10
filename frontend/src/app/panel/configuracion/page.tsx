@@ -49,7 +49,7 @@ export default function ConfiguracionPage() {
 
   if (sesionCargando) {
     return (
-      <div className="mx-auto max-w-3xl px-6 py-12">
+      <div className="mx-auto max-w-3xl bg-neutral-950 px-6 py-12">
         <Skeleton className="h-8 w-56" />
         <Skeleton className="mt-3 h-4 w-72" />
         <Skeleton className="mt-8 h-64" />
@@ -59,18 +59,18 @@ export default function ConfiguracionPage() {
 
   if (!usuario) {
     return (
-      <div className="mx-auto max-w-md px-6 py-12 text-center">
-        <div className="mx-auto mb-6 max-w-xl bg-surface p-8 ">
-          <h1 className="mb-2 text-3xl font-black uppercase tracking-widest text-foreground ">
+      <div className="mx-auto max-w-md bg-neutral-950 px-6 py-12 text-center">
+        <div className="mx-auto mb-6 max-w-xl rounded-none border border-neutral-800 bg-neutral-900 p-8 ">
+          <h1 className="mb-2 text-3xl font-black uppercase tracking-tighter text-white ">
             Iniciá sesión para ver la configuración
           </h1>
-          <p className="text-sm text-muted ">
+          <p className="text-sm text-neutral-400 ">
             La configuración de la integración está disponible para administradores.
           </p>
           <div className="mt-4">
             <Link
               href="/login"
-              className="bg-foreground px-6 py-3 text-sm uppercase tracking-widest text-background hover:bg-foreground/90 "
+              className="rounded-none bg-white px-6 py-3 text-sm font-bold uppercase tracking-widest text-black hover:bg-neutral-300 "
             >
               Ingresar
             </Link>
@@ -82,7 +82,7 @@ export default function ConfiguracionPage() {
 
   if (!esAdmin) {
     return (
-      <div className="mx-auto max-w-md px-6 py-12 text-center">
+      <div className="mx-auto max-w-md bg-neutral-950 px-6 py-12 text-center">
         <StatusMessage
           tipo="error"
           mensaje="No autorizado: la configuración es exclusiva para administradores."
@@ -90,7 +90,7 @@ export default function ConfiguracionPage() {
         <div className="mt-4">
           <Link
             href="/"
-            className="text-sm uppercase tracking-widest text-foreground underline "
+            className="text-sm uppercase tracking-widest text-neutral-400 underline hover:text-white "
           >
             Volver al inicio
           </Link>
@@ -100,19 +100,19 @@ export default function ConfiguracionPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl bg-surface px-6 py-10 ">
+    <div className="mx-auto max-w-3xl min-h-screen bg-neutral-950 px-6 py-10 ">
       <div className="flex flex-wrap items-end justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-black uppercase tracking-widest text-foreground ">
+          <h1 className="text-3xl font-black uppercase tracking-tighter text-white ">
             Configuración
           </h1>
-          <p className="mt-1 text-sm text-muted ">
+          <p className="mt-1 text-sm text-neutral-400 ">
             Estado de la integración con Google Calendar (servidor MCP).
           </p>
         </div>
         <Link
           href="/panel"
-          className="text-sm uppercase tracking-widest text-foreground underline "
+          className="text-sm uppercase tracking-widest text-neutral-400 underline hover:text-white "
         >
           Volver al panel
         </Link>

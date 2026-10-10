@@ -55,7 +55,7 @@ export function TurnoPanelCard({
   return (
     <article className="grid grid-cols-1 items-center gap-4 border-b border-neutral-900 py-5 md:grid-cols-[7rem_minmax(0,1fr)_auto]">
       <div className="flex flex-col">
-        <p className="font-mono text-xl font-bold leading-none tabular-nums text-neutral-100">
+        <p className="font-mono text-xl font-bold leading-none tabular-nums text-white">
           {formatearHora(turno.fechaInicio)}
         </p>
         <p className="mt-1 font-mono text-xs tabular-nums text-neutral-500">
@@ -64,7 +64,7 @@ export function TurnoPanelCard({
       </div>
 
       <div className="min-w-0 space-y-0.5">
-        <p className="truncate text-base font-semibold text-neutral-100">
+        <p className="truncate text-base font-semibold text-white">
           {turno.cliente?.nombre ?? "Cliente sin nombre"}
         </p>
         <p className="truncate text-sm text-neutral-400">

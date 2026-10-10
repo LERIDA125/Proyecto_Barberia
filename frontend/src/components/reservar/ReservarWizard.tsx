@@ -153,7 +153,7 @@ export function ReservarWizard({ servicioInicialId }: ReservarWizardProps) {
       <div className="min-h-screen bg-neutral-950 px-6 py-12">
         <div className="mx-auto max-w-2xl text-center">
           <Skeleton className="mx-auto mb-4 h-16 w-24 bg-neutral-900" />
-          <h2 className="text-2xl font-bold text-neutral-100">Cargando...</h2>
+          <h2 className="text-2xl font-black uppercase tracking-tighter text-white">Cargando...</h2>
         </div>
       </div>
     );
@@ -162,23 +162,23 @@ export function ReservarWizard({ servicioInicialId }: ReservarWizardProps) {
   if (!usuario) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-neutral-950 px-6 py-12">
-        <div className="w-full max-w-xl rounded-none border border-neutral-800 bg-neutral-950 p-8 shadow-2xl">
-          <h1 className="mb-2 text-4xl font-black uppercase tracking-widest text-neutral-100">Iniciá sesión para reservar</h1>
+        <div className="w-full max-w-xl rounded-none border border-neutral-800 bg-neutral-900 p-8 shadow-2xl">
+          <h1 className="mb-2 text-4xl font-black uppercase tracking-tighter text-white">Iniciá sesión para reservar</h1>
           <p className="mb-6 text-sm text-neutral-400">Necesitás una cuenta para elegir un horario y confirmar tu turno.</p>
           <div className="flex flex-col gap-3">
             <Link
               href="/login"
-              className="rounded-none bg-white px-6 py-3 text-sm font-bold uppercase tracking-widest text-black transition hover:bg-neutral-200">
+              className="rounded-none bg-white px-6 py-3 text-sm font-bold uppercase tracking-widest text-black transition hover:bg-neutral-300">
               Ingresar
             </Link>
             <Link
               href="/registro"
-              className="rounded-none border border-neutral-800 px-6 py-3 text-sm uppercase tracking-widest text-neutral-100 transition hover:border-neutral-300 hover:bg-neutral-900">
+              className="rounded-none border border-neutral-800 px-6 py-3 text-sm font-bold uppercase tracking-widest text-neutral-100 transition hover:border-neutral-300 hover:bg-neutral-900">
               Crear cuenta con passkey
             </Link>
             <Link
               href="/servicios"
-              className="mt-2 text-sm text-neutral-400 underline">
+              className="mt-2 text-sm text-neutral-400 underline hover:text-white">
               Ver catálogo de servicios
             </Link>
           </div>
@@ -189,14 +189,14 @@ export function ReservarWizard({ servicioInicialId }: ReservarWizardProps) {
 
   return (
     <div className="min-h-screen bg-neutral-950 px-4 py-12 sm:px-6">
-      <div className="mx-auto w-full max-w-4xl rounded-none border border-neutral-800 bg-neutral-950 p-6 shadow-2xl sm:p-10">
-      <h1 className="mb-2 text-3xl font-black uppercase tracking-widest text-neutral-100">Reservar turno</h1>
+      <div className="mx-auto w-full max-w-4xl rounded-none border border-neutral-800 bg-neutral-900 p-6 shadow-2xl sm:p-10">
+      <h1 className="mb-2 text-3xl font-black uppercase tracking-tighter text-white">Reservar turno</h1>
       <p className="mb-8 text-sm text-neutral-400">Completá los pasos y confirmá tu turno en la barbería.</p>
 
       <div className="grid gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
         <aside className="hidden lg:block">
           <div className="mb-8 rounded-none border border-neutral-800 bg-neutral-900 p-4">
-            <h2 className="text-sm font-semibold uppercase tracking-widest text-neutral-100">Tu reserva</h2>
+            <h2 className="text-sm font-bold uppercase tracking-widest text-white">Tu reserva</h2>
             <dl className="mt-4 space-y-3">
               <ResumenFila etiqueta="Servicio" valor={servicio?.nombre} />
               <ResumenFila etiqueta="Profesional" valor={barbero?.nombre ?? undefined} />
@@ -321,7 +321,7 @@ function ResumenFila({ etiqueta, valor }: { etiqueta: string; valor?: string }) 
       <dd
         className={`text-sm ${
           valor
-            ? "font-medium text-neutral-100"
+            ? "font-medium text-white"
             : "text-neutral-500 "
         }`}
       >
