@@ -1,6 +1,6 @@
 export type Rol = "cliente" | "barbero" | "admin";
 
-export type EstadoTurno = "pendiente" | "confirmado" | "cancelado" | "completado";
+export type EstadoTurno = "pendiente" | "confirmado" | "cancelado" | "completado" | "ausente";
 
 export interface Usuario {
   id: string;
@@ -55,6 +55,20 @@ export interface TurnoInput {
   notas?: string;
 }
 
+export interface Bloqueo {
+  id: string;
+  barberoId: string;
+  inicio: string;
+  fin: string;
+  motivo: string | null;
+}
+
+export interface BloqueoInput {
+  inicio: string;
+  fin: string;
+  motivo?: string;
+}
+
 export interface Turno {
   id: string;
   clienteId: string;
@@ -69,4 +83,26 @@ export interface Turno {
   servicio?: Pick<Servicio, "id" | "nombre" | "duracionMin" | "precio">;
   barbero?: { id: string; nombre: string | null };
   cliente?: { id: string; nombre: string; email: string; telefono?: string | null };
+}
+
+export interface Cliente {
+  id: string;
+  nombre: string;
+  email: string;
+  telefono: string | null;
+  activo: boolean;
+}
+
+export interface HistorialCliente {
+  cliente: Cliente;
+  turnos: Turno[];
+}
+
+export interface Notificacion {
+  id: string;
+  usuarioId: string;
+  titulo: string;
+  mensaje: string;
+  leida: boolean;
+  createdAt: string;
 }

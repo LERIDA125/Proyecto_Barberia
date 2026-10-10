@@ -1,10 +1,10 @@
 const prisma = require('../config/prisma');
 const AppError = require('../utils/AppError');
-const { requerirCampos, validarUUID, parseFechaTexto } = require('../utils/validators');
+const { requerirCampos, validarUUID, parseFechaTexto, validarFecha } = require('../utils/validators');
 const { serializarTurno } = require('../utils/serializers');
 
 const ESTADOS_OCUPADOS = ['pendiente', 'confirmado'];
-const ESTADOS = ['pendiente', 'confirmado', 'cancelado', 'completado'];
+const ESTADOS = ['pendiente', 'confirmado', 'cancelado', 'completado', 'ausente'];
 const RE_HORA = /^([01]\d|2[0-3]):([0-5]\d)(?::[0-5]\d)?$/;
 
 function serializarBarbero(barbero) {
@@ -139,6 +139,15 @@ async function disponibilidad({ barberoId, fecha, servicioId }) {
     select: { fechaInicio: true, fechaFin: true },
   });
 
+  const bloqueos = await prisma.bloqueo.findMany({
+    where: {
+      barberoId,
+      inicio: { lt: finDia },
+      fin: { gt: inicioJornada },
+    },
+    select: { inicio: true, fin: true },
+  });
+
   const ahora = new Date();
 
   for (
@@ -148,7 +157,9 @@ async function disponibilidad({ barberoId, fecha, servicioId }) {
   ) {
     const fin = new Date(inicio.getTime() + duracionMs);
     if (inicio <= ahora) continue;
-    const solapa = ocupados.some((turno) => inicio < turno.fechaFin && fin > turno.fechaInicio);
+    const solapa =
+      ocupados.some((turno) => inicio < turno.fechaFin && fin > turno.fechaInicio) ||
+      bloqueos.some((bloqueo) => inicio < bloqueo.fin && fin > bloqueo.inicio);
     if (solapa) continue;
     franjas.push({ inicio: inicio.toISOString(), fin: fin.toISOString() });
   }
@@ -249,7 +260,7 @@ async function metricas({ usuario, barberoId, desde, hasta }) {
     select: { estado: true },
   });
 
-  const resumen = { pendiente: 0, confirmado: 0, completado: 0, cancelado: 0 };
+  const resumen = { pendiente: 0, confirmado: 0, completado: 0, cancelado: 0, ausente: 0 };
   for (const turno of turnos) resumen[turno.estado] += 1;
 
   return {
@@ -259,6 +270,64 @@ async function metricas({ usuario, barberoId, desde, hasta }) {
     total: turnos.length,
     ...resumen,
   };
+}
+
+function serializarBloqueo(bloqueo) {
+  return {
+    id: bloqueo.id,
+    barberoId: bloqueo.barberoId,
+    inicio: bloqueo.inicio,
+    fin: bloqueo.fin,
+    motivo: bloqueo.motivo,
+  };
+}
+
+async function listarBloqueos(usuarioId) {
+  const barbero = await resolverBarberoDeUsuario(usuarioId);
+  const bloqueos = await prisma.bloqueo.findMany({
+    where: { barberoId: barbero.id },
+    orderBy: { inicio: 'asc' },
+  });
+  return bloqueos.map(serializarBloqueo);
+}
+
+async function crearBloqueo(usuarioId, datos) {
+  requerirCampos(datos, ['inicio', 'fin']);
+
+  const inicio = validarFecha(datos.inicio, 'inicio');
+  const fin = validarFecha(datos.fin, 'fin');
+
+  if (fin <= inicio) {
+    throw new AppError(400, 'La fecha de fin debe ser posterior a la fecha de inicio');
+  }
+
+  const barbero = await resolverBarberoDeUsuario(usuarioId);
+
+  const bloqueo = await prisma.bloqueo.create({
+    data: {
+      barberoId: barbero.id,
+      inicio,
+      fin,
+      motivo: datos.motivo != null ? String(datos.motivo).trim() || null : null,
+    },
+  });
+
+  return serializarBloqueo(bloqueo);
+}
+
+async function eliminarBloqueo(usuarioId, id) {
+  validarUUID(id, 'id');
+
+  const barbero = await resolverBarberoDeUsuario(usuarioId);
+
+  const bloqueo = await prisma.bloqueo.findUnique({ where: { id } });
+  if (!bloqueo) throw new AppError(404, 'Bloqueo no encontrado');
+  if (bloqueo.barberoId !== barbero.id) {
+    throw new AppError(403, 'No autorizado para eliminar este bloqueo');
+  }
+
+  await prisma.bloqueo.delete({ where: { id } });
+  return { ok: true };
 }
 
 module.exports = {
@@ -274,4 +343,7 @@ module.exports = {
   obtenerDisponibilidadConfig,
   actualizarDisponibilidad,
   metricas,
+  listarBloqueos,
+  crearBloqueo,
+  eliminarBloqueo,
 };

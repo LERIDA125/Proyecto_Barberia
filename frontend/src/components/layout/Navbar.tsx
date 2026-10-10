@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cerrarSesion, useSesion } from "@/lib/hooks/useSesion";
 import { Button } from "@/components/ui/Button";
+import { NotificationBell } from "@/components/layout/NotificationBell";
 
 const LINKS = [
   { href: "/", label: "Inicio" },
@@ -15,9 +16,23 @@ const LINKS_USUARIO = [
   { href: "/mis-turnos", label: "Mis turnos" },
 ];
 
+const LINKS_PANEL = [
+  { href: "/panel", label: "Mi Panel" },
+  { href: "/panel/clientes", label: "Clientes" },
+];
+
 export function Navbar() {
   const { usuario, loading } = useSesion();
   const pathname = usePathname();
+
+  const puedeVerPanel = Boolean(
+    usuario && (usuario.rol === "barbero" || usuario.rol === "admin"),
+  );
+  const links = [
+    ...LINKS,
+    ...(usuario ? LINKS_USUARIO : []),
+    ...(puedeVerPanel ? LINKS_PANEL : []),
+  ];
 
   return (
     <header className="sticky top-0 z-40 border-b bg-white/80 backdrop-blur dark:border-gray-900 dark:bg-slate-950">
@@ -30,7 +45,7 @@ export function Navbar() {
             Barbería
           </Link>
           <ul className="flex items-center gap-2">
-            {[...LINKS, ...(usuario ? LINKS_USUARIO : [])].map((link) => {
+            {links.map((link) => {
               const activo = pathname === link.href;
               return (
                 <li key={link.href}>
@@ -53,6 +68,7 @@ export function Navbar() {
         <div className="flex items-center gap-2">
           {loading ? null : usuario ? (
             <>
+              <NotificationBell />
               <span className="hidden text-sm text-slate-600 sm:inline dark:text-slate-300">
                 {usuario.nombre}
                 <span className="ml-2 bg-gray-100 text-slate-700 capitalize text-xs px-2 py-0.5">

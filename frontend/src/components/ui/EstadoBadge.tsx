@@ -8,6 +8,7 @@ const MAPA: Record<EstadoTurno, { tono: Tono; etiqueta: string }> = {
   confirmado: { tono: "info", etiqueta: "Confirmado" },
   cancelado: { tono: "danger", etiqueta: "Cancelado" },
   completado: { tono: "success", etiqueta: "Completado" },
+  ausente: { tono: "neutral", etiqueta: "Ausente" },
 };
 
 export function EstadoBadge({ estado }: { estado: EstadoTurno }) {

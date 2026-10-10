@@ -17,6 +17,7 @@ enum EstadoTurno {
   confirmado
   cancelado
   completado
+  ausente
 }
 
 model Usuario {
@@ -30,9 +31,10 @@ model Usuario {
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
-  barbero      Barbero?
-  turnos       Turno[]  @relation("TurnosCliente")
-  credenciales CredencialPasskey[]
+  barbero        Barbero?
+  turnos         Turno[]  @relation("TurnosCliente")
+  credenciales   CredencialPasskey[]
+  notificaciones Notificacion[]
 
   @@map("usuarios")
 }
@@ -48,8 +50,22 @@ model Barbero {
 
   usuario       Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
   turnos        Turno[]   @relation("TurnosBarbero")
+  bloqueos      Bloqueo[]
 
   @@map("barberos")
+}
+
+model Bloqueo {
+  id        String   @id @default(uuid())
+  barberoId String   @map("barbero_id")
+  inicio    DateTime
+  fin       DateTime
+  motivo    String?
+
+  barbero   Barbero  @relation(fields: [barberoId], references: [id], onDelete: Cascade)
+
+  @@index([barberoId, inicio])
+  @@map("bloqueos")
 }
 
 model Servicio {
@@ -100,4 +116,18 @@ model CredencialPasskey {
 
   @@index([usuarioId])
   @@map("credenciales_passkey")
+}
+
+model Notificacion {
+  id        String   @id @default(uuid())
+  usuarioId String   @map("usuario_id")
+  titulo    String
+  mensaje   String
+  leida     Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId, createdAt])
+  @@map("notificaciones")
 }

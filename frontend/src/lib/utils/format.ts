@@ -60,3 +60,20 @@ export function generarDias(desde: Date, cantidad: number): { clave: string; fec
 export function esFuturo(iso: string): boolean {
   return new Date(iso).getTime() > Date.now();
 }
+
+export function formatearTiempoRelativo(iso: string, referencia: number): string {
+  const formateador = new Intl.RelativeTimeFormat("es-AR", { numeric: "auto" });
+  const segundos = Math.round((new Date(iso).getTime() - referencia) / 1000);
+  const minutos = Math.round(segundos / 60);
+  const horas = Math.round(minutos / 60);
+  const dias = Math.round(horas / 24);
+
+  if (Math.abs(segundos) < 60) return formateador.format(segundos, "second");
+  if (Math.abs(minutos) < 60) return formateador.format(minutos, "minute");
+  if (Math.abs(horas) < 24) return formateador.format(horas, "hour");
+  if (Math.abs(dias) < 30) return formateador.format(dias, "day");
+
+  const meses = Math.round(dias / 30);
+  if (Math.abs(meses) < 12) return formateador.format(meses, "month");
+  return formateador.format(Math.round(meses / 12), "year");
+}

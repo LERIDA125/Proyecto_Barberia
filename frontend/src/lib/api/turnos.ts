@@ -1,5 +1,5 @@
 import { apiFetch } from "./client";
-import type { Turno, TurnoInput } from "@/types/api";
+import type { EstadoTurno, Turno, TurnoInput } from "@/types/api";
 
 export function getTurnos() {
   return apiFetch<Turno[]>("/api/turnos");
@@ -27,5 +27,19 @@ export function reprogramarTurno(id: string, nuevaFechaInicio: string) {
   return apiFetch<Turno>(`/api/turnos/${id}/reprogramar`, {
     method: "PATCH",
     body: JSON.stringify({ nuevaFechaInicio }),
+  });
+}
+
+export function cambiarEstadoTurno(id: string, estado: EstadoTurno) {
+  return apiFetch<Turno>(`/api/turnos/${id}/estado`, {
+    method: "PATCH",
+    body: JSON.stringify({ estado }),
+  });
+}
+
+export function actualizarNotaTurno(id: string, notas: string) {
+  return apiFetch<Turno>(`/api/turnos/${id}/notas`, {
+    method: "PATCH",
+    body: JSON.stringify({ notas }),
   });
 }

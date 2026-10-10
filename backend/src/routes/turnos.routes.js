@@ -10,5 +10,6 @@ router.get('/:id', requiereAuth, turnosController.obtener);
 router.patch('/:id/cancelar', requiereAuth, turnosController.cancelar);
 router.patch('/:id/reprogramar', requiereAuth, turnosController.reprogramar);
 router.patch('/:id/estado', requiereAuth, turnosController.cambiarEstado);
+router.patch('/:id/notas', requiereAuth, turnosController.actualizarNotas);
 
 module.exports = router;

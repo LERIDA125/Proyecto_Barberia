@@ -76,4 +76,17 @@ async function cambiarEstado(req, res, next) {
   }
 }
 
-module.exports = { crear, listar, obtener, cancelar, reprogramar, cambiarEstado };
+async function actualizarNotas(req, res, next) {
+  try {
+    const turno = await turnosService.actualizarNotas({
+      id: req.params.id,
+      usuario: req.usuario,
+      notas: req.body.notas,
+    });
+    res.json(turno);
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { crear, listar, obtener, cancelar, reprogramar, cambiarEstado, actualizarNotas };

@@ -4,10 +4,12 @@ const AppError = require('../utils/AppError');
 const { requerirCampos, validarUUID, validarFecha, parseFechaTexto } = require('../utils/validators');
 const { serializarTurno } = require('../utils/serializers');
 const { ESTADOS, ESTADOS_OCUPADOS, validarHorario } = require('./barberos.service');
+const notificacionesService = require('./notificaciones.service');
 
 const TRANSICIONES_VALIDAS = {
-  pendiente: ['confirmado', 'cancelado'],
-  confirmado: ['completado', 'cancelado'],
+  pendiente: ['confirmado', 'cancelado', 'ausente'],
+  confirmado: ['completado', 'cancelado', 'ausente'],
+  ausente: [],
   completado: [],
   cancelado: [],
 };
@@ -17,6 +19,29 @@ const INCLUDE_DETALLE = {
   barbero: { include: { usuario: { select: { nombre: true } } } },
   cliente: { select: { id: true, nombre: true, email: true, telefono: true } },
 };
+
+function formatearFechaNotificacion(fecha) {
+  return new Intl.DateTimeFormat('es-AR', {
+    dateStyle: 'short',
+    timeStyle: 'short',
+  }).format(fecha);
+}
+
+function notificacionPorEstado(estado, turno, fecha) {
+  const servicio = turno.servicio?.nombre ?? 'tu servicio';
+  switch (estado) {
+    case 'confirmado':
+      return { titulo: 'Turno Confirmado', mensaje: `Tu turno de ${servicio} del ${fecha} fue confirmado.` };
+    case 'completado':
+      return { titulo: 'Turno Completado', mensaje: `Tu turno de ${servicio} del ${fecha} fue marcado como completado.` };
+    case 'cancelado':
+      return { titulo: 'Turno Cancelado', mensaje: `Tu turno de ${servicio} del ${fecha} fue cancelado.` };
+    case 'ausente':
+      return { titulo: 'Turno Ausente', mensaje: `Registramos tu ausencia al turno de ${servicio} del ${fecha}.` };
+    default:
+      return null;
+  }
+}
 
 function verificarPropietario(turno, usuario) {
   const esDueno = turno.clienteId === usuario.id;
@@ -53,7 +78,10 @@ async function crear({ clienteId, barberoId, servicioId, fechaInicio, notas }) {
   if (!servicio) throw new AppError(404, 'Servicio no encontrado');
   if (!servicio.activo) throw new AppError(400, 'El servicio no está disponible');
 
-  const barbero = await prisma.barbero.findUnique({ where: { id: barberoId } });
+  const barbero = await prisma.barbero.findUnique({
+    where: { id: barberoId },
+    include: { usuario: { select: { id: true, nombre: true } } },
+  });
   if (!barbero) throw new AppError(404, 'Barbero no encontrado');
   if (!barbero.activo) throw new AppError(400, 'El barbero no está disponible');
 
@@ -74,7 +102,18 @@ async function crear({ clienteId, barberoId, servicioId, fechaInicio, notas }) {
     });
     if (cruce) throw new AppError(409, 'La franja horaria ya está ocupada');
 
-    return tx.turno.create({
+    const bloqueo = await tx.bloqueo.findFirst({
+      where: {
+        barberoId,
+        inicio: { lt: fin },
+        fin: { gt: inicio },
+      },
+    });
+    if (bloqueo) {
+      throw new AppError(400, 'El horario seleccionado ha sido bloqueado por el barbero');
+    }
+
+    const creado = await tx.turno.create({
       data: {
         clienteId,
         barberoId,
@@ -86,6 +125,26 @@ async function crear({ clienteId, barberoId, servicioId, fechaInicio, notas }) {
         notas: notas ? String(notas) : null,
       },
     });
+
+    const fecha = formatearFechaNotificacion(inicio);
+    await notificacionesService.crearNotificacion(
+      {
+        usuarioId: clienteId,
+        titulo: 'Turno Confirmado',
+        mensaje: `Tu turno de ${servicio.nombre} con ${barbero.usuario.nombre} quedó confirmado para el ${fecha}.`,
+      },
+      tx
+    );
+    await notificacionesService.crearNotificacion(
+      {
+        usuarioId: barbero.usuarioId,
+        titulo: 'Nuevo Turno Agendado',
+        mensaje: `${cliente.nombre} reservó ${servicio.nombre} para el ${fecha}.`,
+      },
+      tx
+    );
+
+    return creado;
   });
 
   return serializarTurno(turno);
@@ -165,10 +224,39 @@ async function cancelar({ id, usuario, motivo }) {
     ? `${turno.notas ? `${turno.notas}\n` : ''}[Cancelación] ${String(motivo).trim()}`
     : turno.notas;
 
-  const actualizado = await prisma.turno.update({
-    where: { id },
-    data: { estado: 'cancelado', notas },
-    include: INCLUDE_DETALLE,
+  const actualizado = await prisma.$transaction(async (tx) => {
+    const turnoActualizado = await tx.turno.update({
+      where: { id },
+      data: { estado: 'cancelado', notas },
+      include: INCLUDE_DETALLE,
+    });
+
+    const fecha = formatearFechaNotificacion(turno.fechaInicio);
+    const motivoTexto = motivo ? ` Motivo: ${String(motivo).trim()}.` : '';
+
+    if (turno.clienteId !== usuario.id) {
+      await notificacionesService.crearNotificacion(
+        {
+          usuarioId: turno.clienteId,
+          titulo: 'Turno Cancelado',
+          mensaje: `Tu turno de ${turno.servicio.nombre} del ${fecha} fue cancelado.${motivoTexto}`,
+        },
+        tx
+      );
+    }
+
+    if (turno.barbero && turno.barbero.usuarioId !== usuario.id) {
+      await notificacionesService.crearNotificacion(
+        {
+          usuarioId: turno.barbero.usuarioId,
+          titulo: 'Turno Cancelado',
+          mensaje: `El turno de ${turno.cliente.nombre} del ${fecha} fue cancelado.${motivoTexto}`,
+        },
+        tx
+      );
+    }
+
+    return turnoActualizado;
   });
 
   return serializarTurno(actualizado);
@@ -210,6 +298,17 @@ async function reprogramar({ id, usuario, nuevaFechaInicio }) {
     });
     if (cruce) throw new AppError(409, 'La franja horaria ya está ocupada');
 
+    const bloqueo = await tx.bloqueo.findFirst({
+      where: {
+        barberoId: turno.barberoId,
+        inicio: { lt: fin },
+        fin: { gt: inicio },
+      },
+    });
+    if (bloqueo) {
+      throw new AppError(400, 'El horario seleccionado ha sido bloqueado por el barbero');
+    }
+
     return tx.turno.update({
       where: { id },
       data: { fechaInicio: inicio, fechaFin: fin },
@@ -244,13 +343,75 @@ async function cambiarEstado({ id, usuario, estado }) {
     throw new AppError(409, `Transición de estado inválida: ${turno.estado} → ${estado}`);
   }
 
+  const actualizado = await prisma.$transaction(async (tx) => {
+    const turnoActualizado = await tx.turno.update({
+      where: { id },
+      data: { estado },
+      include: INCLUDE_DETALLE,
+    });
+
+    if (turno.clienteId !== usuario.id) {
+      const notificacion = notificacionPorEstado(
+        estado,
+        turno,
+        formatearFechaNotificacion(turno.fechaInicio)
+      );
+      if (notificacion) {
+        await notificacionesService.crearNotificacion(
+          { usuarioId: turno.clienteId, ...notificacion },
+          tx
+        );
+      }
+    }
+
+    return turnoActualizado;
+  });
+
+  return serializarTurno(actualizado);
+}
+
+async function actualizarNotas({ id, usuario, notas }) {
+  validarUUID(id, 'id');
+
+  if (typeof notas !== 'string') {
+    throw new AppError(400, 'Las notas deben ser un texto');
+  }
+
+  const textoLimpio = notas.trim();
+  if (textoLimpio.length > 1000) {
+    throw new AppError(400, 'Las notas no pueden superar los 1000 caracteres');
+  }
+
+  const turno = await prisma.turno.findUnique({ where: { id }, include: INCLUDE_DETALLE });
+  if (!turno) throw new AppError(404, 'Turno no encontrado');
+
+  const esAdmin = usuario.rol === 'admin';
+  let esBarberoAsignado = false;
+  if (usuario.rol === 'barbero') {
+    const barbero = await prisma.barbero.findUnique({ where: { usuarioId: usuario.id } });
+    esBarberoAsignado = Boolean(barbero && barbero.id === turno.barberoId);
+  }
+
+  if (!esAdmin && !esBarberoAsignado) {
+    throw new AppError(403, 'No autorizado para editar la nota de este turno');
+  }
+
   const actualizado = await prisma.turno.update({
     where: { id },
-    data: { estado },
+    data: { notas: textoLimpio || null },
     include: INCLUDE_DETALLE,
   });
 
   return serializarTurno(actualizado);
 }
 
-module.exports = { crear, listar, obtenerPorId, cancelar, reprogramar, cambiarEstado, serializarTurno };
+module.exports = {
+  crear,
+  listar,
+  obtenerPorId,
+  cancelar,
+  reprogramar,
+  cambiarEstado,
+  actualizarNotas,
+  serializarTurno,
+};
