@@ -33,4 +33,7 @@ Admin-only global business metrics: ingresos, ocupación de agenda, top servicio
 - `frontend/src/app/panel/page.tsx`
 
 ## Progress
-- Created: 09-S. T1/T2 pending.
+- T1 ✅ delegated writer; node --check ×4 verde + spot check padre verde.
+- T2 ✅ delegated writer; tsc + eslint scoped verdes + spot check padre verde.
+- T3 🔄 Commits hechos en `feature/metricas`: `1fcabb3` (backend+spec+tracking), `96d80fd` (frontend) — 646 líneas.
+- RDD: assess → `high` (unassessable por untracked) → reevaluado `medium` / `slice_budget_reached` (740 líneas) → preflight STATUS base-diff → collect untracked (exclude, docs de vista-clientes NO son parte del candidato) → collect base_ref resuelto trayendo selectores → START con `--consent=relay` → **consent/v3 devuelto, esperando decisión humana** (runtime sin tool `question`; el usuario debe correr el comando del envelope o disable).
