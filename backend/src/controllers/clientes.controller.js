@@ -1,5 +1,14 @@
 const clientesService = require('../services/clientes.service');
 
+async function listarClientes(req, res, next) {
+  try {
+    const clientes = await clientesService.listarClientes({ limite: req.query.limite });
+    res.json(clientes);
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function buscarClientes(req, res, next) {
   try {
     const clientes = await clientesService.buscarClientes(req.query.q);
@@ -18,4 +27,4 @@ async function obtenerHistorialCliente(req, res, next) {
   }
 }
 
-module.exports = { buscarClientes, obtenerHistorialCliente };
+module.exports = { listarClientes, buscarClientes, obtenerHistorialCliente };
