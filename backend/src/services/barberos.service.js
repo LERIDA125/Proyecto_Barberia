@@ -177,11 +177,14 @@ async function disponibilidad({ barberoId, fecha, servicioId }) {
 
 async function agendaBarbero(barberoId, desde, hasta) {
   const { inicio, fin } = rangoFechas(desde, hasta);
+  const where = { fechaInicio: { gte: inicio, lte: fin } };
+  if (barberoId) where.barberoId = barberoId;
   const turnos = await prisma.turno.findMany({
-    where: { barberoId, fechaInicio: { gte: inicio, lte: fin } },
+    where,
     include: {
       servicio: true,
       cliente: { select: { id: true, nombre: true, email: true, telefono: true } },
+      barbero: { include: { usuario: { select: { nombre: true } } } },
     },
     orderBy: { fechaInicio: 'asc' },
   });
@@ -189,6 +192,9 @@ async function agendaBarbero(barberoId, desde, hasta) {
 }
 
 async function miAgenda({ usuario, desde, hasta }) {
+  if (usuario.rol === 'admin') {
+    return agendaBarbero(null, desde, hasta);
+  }
   const barbero = await resolverBarberoDeUsuario(usuario.id);
   return agendaBarbero(barbero.id, desde, hasta);
 }
@@ -290,16 +296,20 @@ function serializarBloqueo(bloqueo) {
   };
 }
 
-async function listarBloqueos(usuarioId) {
-  const barbero = await resolverBarberoDeUsuario(usuarioId);
+async function listarBloqueos(usuario) {
+  const where = {};
+  if (usuario.rol !== 'admin') {
+    const barbero = await resolverBarberoDeUsuario(usuario.id);
+    where.barberoId = barbero.id;
+  }
   const bloqueos = await prisma.bloqueo.findMany({
-    where: { barberoId: barbero.id },
+    where,
     orderBy: { inicio: 'asc' },
   });
   return bloqueos.map(serializarBloqueo);
 }
 
-async function crearBloqueo(usuarioId, datos) {
+async function crearBloqueo(usuario, datos) {
   requerirCampos(datos, ['inicio', 'fin']);
 
   const inicio = validarFecha(datos.inicio, 'inicio');
@@ -309,11 +319,20 @@ async function crearBloqueo(usuarioId, datos) {
     throw new AppError(400, 'La fecha de fin debe ser posterior a la fecha de inicio');
   }
 
-  const barbero = await resolverBarberoDeUsuario(usuarioId);
+  let barberoId;
+  if (usuario.rol === 'admin') {
+    validarUUID(datos.barberoId, 'barberoId');
+    const barbero = await prisma.barbero.findUnique({ where: { id: datos.barberoId } });
+    if (!barbero) throw new AppError(404, 'Barbero no encontrado');
+    barberoId = barbero.id;
+  } else {
+    const barbero = await resolverBarberoDeUsuario(usuario.id);
+    barberoId = barbero.id;
+  }
 
   const bloqueo = await prisma.bloqueo.create({
     data: {
-      barberoId: barbero.id,
+      barberoId,
       inicio,
       fin,
       motivo: datos.motivo != null ? String(datos.motivo).trim() || null : null,
@@ -323,15 +342,17 @@ async function crearBloqueo(usuarioId, datos) {
   return serializarBloqueo(bloqueo);
 }
 
-async function eliminarBloqueo(usuarioId, id) {
+async function eliminarBloqueo(usuario, id) {
   validarUUID(id, 'id');
-
-  const barbero = await resolverBarberoDeUsuario(usuarioId);
 
   const bloqueo = await prisma.bloqueo.findUnique({ where: { id } });
   if (!bloqueo) throw new AppError(404, 'Bloqueo no encontrado');
-  if (bloqueo.barberoId !== barbero.id) {
-    throw new AppError(403, 'No autorizado para eliminar este bloqueo');
+
+  if (usuario.rol !== 'admin') {
+    const barbero = await resolverBarberoDeUsuario(usuario.id);
+    if (bloqueo.barberoId !== barbero.id) {
+      throw new AppError(403, 'No autorizado para eliminar este bloqueo');
+    }
   }
 
   await prisma.bloqueo.delete({ where: { id } });
