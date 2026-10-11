@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSesion } from "@/lib/hooks/useSesion";
@@ -12,8 +12,9 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { StatusMessage } from "@/components/ui/StatusMessage";
 import { ApiError } from "@/lib/api/client";
+import { getBarberos } from "@/lib/api/barberos";
 import { formatearFechaCorta } from "@/lib/utils/format";
-import type { EstadoTurno, Turno } from "@/types/api";
+import type { Barbero, EstadoTurno, Turno } from "@/types/api";
 
 const VACIO: Record<EstadoTurno, number> = {
   pendiente: 0,
@@ -27,15 +28,55 @@ export default function PanelPage() {
   const pathname = usePathname();
   const { usuario, loading: sesionCargando } = useSesion();
   const puedeOperar = Boolean(usuario && (usuario.rol === "barbero" || usuario.rol === "admin"));
+  const esAdmin = usuario?.rol === "admin";
   const { turnos, loading, error, recargar, cambiarEstado } = useMiAgenda(puedeOperar);
   const [actualizandoId, setActualizandoId] = useState<string | null>(null);
   const [accionError, setAccionError] = useState<string | null>(null);
+  const [barberos, setBarberos] = useState<Barbero[]>([]);
+  const [barberosCargados, setBarberosCargados] = useState(false);
+  const [errorBarberos, setErrorBarberos] = useState<string | null>(null);
+  const cargandoBarberos = esAdmin && !barberosCargados;
+  const [filtroBarberoId, setFiltroBarberoId] = useState("");
+
+  useEffect(() => {
+    if (!esAdmin) return;
+    let activo = true;
+    getBarberos()
+      .then((data) => {
+        if (!activo) return;
+        setBarberos(data);
+        setErrorBarberos(null);
+      })
+      .catch((err) => {
+        if (!activo) return;
+        setErrorBarberos(
+          err instanceof ApiError ? err.message : "No se pudieron cargar los barberos",
+        );
+      })
+      .finally(() => {
+        if (activo) setBarberosCargados(true);
+      });
+    return () => {
+      activo = false;
+    };
+  }, [esAdmin]);
+
+  const nombrePorBarbero = useMemo(() => {
+    const mapa = new Map<string, string>();
+    for (const b of barberos) if (b.nombre) mapa.set(b.id, b.nombre);
+    return mapa;
+  }, [barberos]);
+
+  const turnosVisibles = useMemo(
+    () => (filtroBarberoId ? turnos.filter((t) => t.barberoId === filtroBarberoId) : turnos),
+    [turnos, filtroBarberoId],
+  );
 
   const resumen = useMemo(() => {
     const conteo = { ...VACIO };
-    for (const turno of turnos) conteo[turno.estado] += 1;
+    for (const turno of turnosVisibles) conteo[turno.estado] += 1;
     return conteo;
-  }, [turnos]);
+  }, [turnosVisibles]);
 
   async function manejarCambioEstado(turno: Turno, estado: EstadoTurno) {
     setAccionError(null);
@@ -51,12 +92,15 @@ export default function PanelPage() {
     }
   }
 
+  function nombreBarbero(turno: Turno): string | undefined {
+    if (!esAdmin) return undefined;
+    return turno.barbero?.nombre ?? nombrePorBarbero.get(turno.barberoId) ?? "Barbero sin nombre";
+  }
+
   const navItems = [
     { href: "/panel", label: "Agenda" },
     { href: "/panel/clientes", label: "Clientes" },
-    ...(usuario?.rol === "admin"
-      ? [{ href: "/panel/configuracion", label: "Configuración" }]
-      : []),
+    ...(esAdmin ? [{ href: "/panel/configuracion", label: "Configuración" }] : []),
   ];
 
   if (sesionCargando) {
@@ -143,21 +187,53 @@ export default function PanelPage() {
           <div className="flex flex-wrap items-end justify-between gap-6">
             <div>
               <h1 className="text-3xl font-black uppercase tracking-tighter text-white">
-                Panel del barbero
+                {esAdmin ? "Panel de administración" : "Panel del barbero"}
               </h1>
               <p className="text-sm capitalize text-neutral-500">
                 {formatearFechaCorta(new Date().toISOString())}
               </p>
             </div>
-            <Button variante="secondary" onClick={() => void recargar()} disabled={loading}>
-              Actualizar
-            </Button>
+            <div className="flex flex-wrap items-end gap-3">
+              {esAdmin && (
+                <div className="flex flex-col gap-1">
+                  <label
+                    htmlFor="filtroBarbero"
+                    className="text-xs font-medium uppercase tracking-widest text-neutral-500"
+                  >
+                    Barbero
+                  </label>
+                  <select
+                    id="filtroBarbero"
+                    value={filtroBarberoId}
+                    disabled={cargandoBarberos}
+                    onChange={(e) => setFiltroBarberoId(e.target.value)}
+                    className="rounded-none border border-neutral-800 bg-neutral-900 px-4 py-2 text-sm text-white outline-none transition focus:border-neutral-500 focus:ring-0 disabled:opacity-50"
+                  >
+                    <option value="">Todos los barberos</option>
+                    {barberos.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.nombre ?? "Barbero"}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              <Button variante="secondary" onClick={() => void recargar()} disabled={loading}>
+                Actualizar
+              </Button>
+            </div>
           </div>
+
+          {esAdmin && errorBarberos && (
+            <div className="mt-4">
+              <StatusMessage tipo="error" mensaje={errorBarberos} />
+            </div>
+          )}
 
           <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
             {(
               [
-                ["Turnos", turnos.length, "text-foreground "],
+                ["Turnos", turnosVisibles.length, "text-foreground "],
                 ["Pendientes", resumen.pendiente, "text-foreground "],
                 ["Confirmados", resumen.confirmado, "text-foreground "],
                 ["Completados", resumen.completado, "text-green-300 "],
@@ -201,21 +277,24 @@ export default function PanelPage() {
                   Reintentar
                 </Button>
               </div>
-            ) : turnos.length === 0 ? (
+            ) : turnosVisibles.length === 0 ? (
               <div className="mt-4">
                 <EmptyState
-                  titulo="No tenés turnos para hoy"
+                  titulo={
+                    filtroBarberoId ? "Sin turnos para este barbero" : "No tenés turnos para hoy"
+                  }
                   descripcion="Cuando el calendario tenga reservas, van a aparecer acá para gestionarlas."
                 />
               </div>
             ) : (
               <div className="mt-4 border-t border-neutral-800">
-                {turnos.map((turno) => (
+                {turnosVisibles.map((turno) => (
                   <TurnoPanelCard
                     key={turno.id}
                     turno={turno}
                     actualizando={actualizandoId === turno.id}
-                    puedeSincronizar={usuario.rol === "admin"}
+                    puedeSincronizar={esAdmin}
+                    barberoNombre={nombreBarbero(turno)}
                     onCambiarEstado={manejarCambioEstado}
                   />
                 ))}
@@ -224,7 +303,7 @@ export default function PanelPage() {
           </div>
 
           <div className="mt-12 border-t border-neutral-800 pt-8">
-            <BloqueosManager />
+            <BloqueosManager filtroBarberoId={filtroBarberoId} />
           </div>
         </div>
       </div>

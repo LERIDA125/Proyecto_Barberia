@@ -1,5 +1,6 @@
 "use client";
 
+import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { EstadoBadge } from "@/components/ui/EstadoBadge";
 import { SyncTurnoButton } from "@/components/integraciones/SyncTurnoButton";
@@ -37,6 +38,7 @@ interface TurnoPanelCardProps {
   turno: Turno;
   actualizando?: boolean;
   puedeSincronizar?: boolean;
+  barberoNombre?: string;
   onCambiarEstado: (turno: Turno, estado: EstadoTurno) => void;
   onSincronizado?: (resultado: SincronizacionTurno) => void;
 }
@@ -45,6 +47,7 @@ export function TurnoPanelCard({
   turno,
   actualizando = false,
   puedeSincronizar = false,
+  barberoNombre,
   onCambiarEstado,
   onSincronizado,
 }: TurnoPanelCardProps) {
@@ -64,9 +67,12 @@ export function TurnoPanelCard({
       </div>
 
       <div className="min-w-0 space-y-0.5">
-        <p className="truncate text-base font-semibold text-white">
-          {turno.cliente?.nombre ?? "Cliente sin nombre"}
-        </p>
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="truncate text-base font-semibold text-white">
+            {turno.cliente?.nombre ?? "Cliente sin nombre"}
+          </p>
+          {barberoNombre && <Badge tone="neutral">Barbero · {barberoNombre}</Badge>}
+        </div>
         <p className="truncate text-sm text-neutral-400">
           {turno.servicio?.nombre ?? "Servicio"}
           {turno.servicio
