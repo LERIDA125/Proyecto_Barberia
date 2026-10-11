@@ -92,11 +92,20 @@ export interface Cliente {
   email: string;
   telefono: string | null;
   activo: boolean;
+  totalTurnos?: number;
+}
+
+export interface ResumenCliente {
+  totalTurnos: number;
+  completados: number;
+  totalGastado: number;
+  ultimaVisita: string | null;
 }
 
 export interface HistorialCliente {
   cliente: Cliente;
   turnos: Turno[];
+  resumen: ResumenCliente | null;
 }
 
 export interface Notificacion {
