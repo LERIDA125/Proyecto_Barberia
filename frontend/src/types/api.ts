@@ -131,3 +131,36 @@ export interface RespuestaChat {
   conversacionId?: string;
   toolInvocadas?: string[];
 }
+
+export interface MetricasTurnos {
+  total: number;
+  porEstado: Record<EstadoTurno, number>;
+}
+
+export interface MetricasIngresos {
+  completados: number;
+  monto: number;
+}
+
+export interface MetricasOcupacion {
+  turnos: number;
+  horasOcupadas: number;
+  horasDisponibles: number;
+  porcentaje: number;
+}
+
+export interface MetricasServicio {
+  servicioId: string;
+  nombre: string;
+  cantidad: number;
+  ingresos: number;
+}
+
+export interface Metricas {
+  desde: string;
+  hasta: string;
+  turnos: MetricasTurnos;
+  ingresos: MetricasIngresos;
+  ocupacion: MetricasOcupacion;
+  serviciosMasPedidos: MetricasServicio[];
+}

@@ -100,7 +100,12 @@ export default function PanelPage() {
   const navItems = [
     { href: "/panel", label: "Agenda" },
     { href: "/panel/clientes", label: "Clientes" },
-    ...(esAdmin ? [{ href: "/panel/configuracion", label: "Configuración" }] : []),
+    ...(esAdmin
+      ? [
+          { href: "/panel/configuracion", label: "Configuración" },
+          { href: "/panel/metricas", label: "Métricas" },
+        ]
+      : []),
   ];
 
   if (sesionCargando) {
