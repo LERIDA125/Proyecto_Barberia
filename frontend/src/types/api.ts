@@ -67,6 +67,7 @@ export interface BloqueoInput {
   inicio: string;
   fin: string;
   motivo?: string;
+  barberoId?: string;
 }
 
 export interface Turno {
