@@ -11,6 +11,7 @@ const asistenteRoutes = require('./asistente.routes');
 const chatRoutes = require('./chat.routes');
 const notificacionesRoutes = require('./notificaciones.routes');
 const integracionesRoutes = require('./integraciones.routes');
+const metricasRoutes = require('./metricas.routes');
 
 const router = Router();
 
@@ -25,5 +26,6 @@ router.use('/asistente', asistenteRoutes);
 router.use('/chat', chatRoutes);
 router.use('/notificaciones', notificacionesRoutes);
 router.use('/integraciones', integracionesRoutes);
+router.use('/metricas', metricasRoutes);
 
 module.exports = router;
