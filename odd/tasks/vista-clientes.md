@@ -32,4 +32,7 @@ Panel cliente view lists ALL clients, filters/sorts client-side, and shows per-c
 - `frontend/src/components/panel/FichaCliente.tsx`
 
 ## Progress
-- Created: 09-S. T1/T2 pending.
+- T1 ✅ delegated writer; node --check ×3 verde + spot check padre verde.
+- T2 ✅ delegated writer; tsc + eslint scoped verdes + spot check padre verde.
+- T3 ✅ Commits en `feature/clientes`: `ed95d25` (backend+spec+tracking), `4fdd264` (frontend), `60d6051` (chore: cierre metricas-dashboard).
+- RDD: assess base-ref `96d80fd` committed-only → `medium` (`executable_change` en clientes.controller.js), 380 líneas, `review_due: false` (`under_budget`: sigue pendiente en el slice hasta alcanzar ~400 líneas).
