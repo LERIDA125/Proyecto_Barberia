@@ -5,7 +5,7 @@ import type { FormEvent, KeyboardEvent } from "react";
 import Link from "next/link";
 import { apiFetch, ApiError } from "@/lib/api/client";
 import { useSesion } from "@/lib/hooks/useSesion";
-import type { RespuestaChat } from "@/types/api";
+import type { HistorialChat, RespuestaChat } from "@/types/api";
 
 type Rol = "usuario" | "asistente";
 
@@ -28,6 +28,8 @@ const MENSAJE_ERROR =
 
 const MENSAJE_SESION_EXPIRADA =
   "Tu sesión expiró. Iniciá sesión nuevamente para seguir chateando.";
+
+const CLAVE_SESION_CHAT = "barberia:chat:sesionId";
 
 const ETIQUETA_HERRAMIENTA: Record<string, string> = {
   consultar_disponibilidad: "Consultó la agenda",
@@ -174,7 +176,7 @@ export function ChatWidget() {
   const [mensajes, setMensajes] = useState<Mensaje[]>([BIENVENIDA]);
   const [texto, setTexto] = useState("");
   const [cargando, setCargando] = useState(false);
-  const [sesionId, setSesionId] = useState<string | null>(null);
+  const [sesion, setSesion] = useState<{ id: string; usuarioId: string } | null>(null);
 
   const siguienteId = useRef(1);
   const historialRef = useRef<HTMLDivElement>(null);
@@ -189,13 +191,60 @@ export function ChatWidget() {
     if (abierto && usuario) inputRef.current?.focus();
   }, [abierto, usuario]);
 
+  useEffect(() => {
+    if (sesionCargando || !usuario) return;
+    let activo = true;
+
+    const clave = `${CLAVE_SESION_CHAT}:${usuario.id}`;
+    let guardado: string | null = null;
+    try {
+      guardado = window.localStorage.getItem(clave);
+    } catch {
+      guardado = null;
+    }
+    if (!guardado) return;
+    const sesionGuardada = guardado;
+
+    void (async () => {
+      try {
+        const data = await apiFetch<HistorialChat>(
+          `/api/asistente/historial?sesionId=${encodeURIComponent(sesionGuardada)}`,
+        );
+        if (!activo) return;
+        const restaurados: Mensaje[] = (data.mensajes ?? []).map((mensaje, indice) => ({
+          id: indice + 1,
+          rol: mensaje.role === "user" ? "usuario" : "asistente",
+          texto: mensaje.content,
+        }));
+        siguienteId.current = restaurados.length + 1;
+        setSesion({ id: data.conversacionId ?? sesionGuardada, usuarioId: usuario.id });
+        setMensajes(restaurados.length > 0 ? [BIENVENIDA, ...restaurados] : [BIENVENIDA]);
+      } catch {
+        if (!activo) return;
+        try {
+          window.localStorage.removeItem(clave);
+        } catch {
+          // almacenamiento no disponible
+        }
+      }
+    })();
+
+    return () => {
+      activo = false;
+    };
+  }, [usuario, sesionCargando]);
+
   async function enviar(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const pregunta = texto.trim();
-    if (!pregunta || cargando) return;
+    if (!pregunta || cargando || !usuario) return;
+
+    const cambiaDeUsuario = Boolean(sesion && sesion.usuarioId !== usuario.id);
+    const sesionActual = sesion && sesion.usuarioId === usuario.id ? sesion.id : null;
+    if (cambiaDeUsuario) siguienteId.current = 1;
 
     setMensajes((prev) => [
-      ...prev,
+      ...(cambiaDeUsuario ? [BIENVENIDA] : prev),
       { id: siguienteId.current++, rol: "usuario", texto: pregunta },
     ]);
     setTexto("");
@@ -206,11 +255,21 @@ export function ChatWidget() {
         method: "POST",
         body: JSON.stringify({
           pregunta,
-          ...(sesionId ? { sesionId } : {}),
+          ...(sesionActual ? { sesionId: sesionActual } : {}),
         }),
       });
 
-      if (data.conversacionId) setSesionId(data.conversacionId);
+      if (data.conversacionId) {
+        setSesion({ id: data.conversacionId, usuarioId: usuario.id });
+        try {
+          window.localStorage.setItem(
+            `${CLAVE_SESION_CHAT}:${usuario.id}`,
+            data.conversacionId,
+          );
+        } catch {
+          // almacenamiento no disponible
+        }
+      }
 
       const herramientas = data.toolInvocadas?.filter(Boolean);
 
@@ -245,6 +304,9 @@ export function ChatWidget() {
       event.currentTarget.form?.requestSubmit();
     }
   }
+
+  const mensajesVisibles =
+    sesion && usuario && sesion.usuarioId !== usuario.id ? [BIENVENIDA] : mensajes;
 
   return (
     <>
@@ -309,7 +371,7 @@ export function ChatWidget() {
                 aria-relevant="additions"
                 className="flex flex-1 flex-col gap-3 overflow-y-auto px-4 py-4"
               >
-                {mensajes.map((m) => (
+                {mensajesVisibles.map((m) => (
                   <div
                     key={m.id}
                     className={`flex flex-col gap-1.5 ${

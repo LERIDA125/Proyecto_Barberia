@@ -141,6 +141,16 @@ export interface RespuestaChat {
   toolInvocadas?: string[];
 }
 
+export interface MensajeChat {
+  role: "user" | "assistant";
+  content: string;
+}
+
+export interface HistorialChat {
+  conversacionId?: string;
+  mensajes: MensajeChat[];
+}
+
 export interface MetricasTurnos {
   total: number;
   porEstado: Record<EstadoTurno, number>;

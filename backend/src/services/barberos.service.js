@@ -62,19 +62,37 @@ function validarHorario(barbero, inicio, fin) {
   }
 }
 
-function rangoFechas(desde, hasta) {
-  const hoy = new Date();
-  const inicio = desde
-    ? parseFechaTexto(desde)
-    : new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate(), 0, 0, 0, 0);
+const ZONA_HORARIA = 'America/Argentina/Buenos_Aires';
+const OFFSET_ZONA = '-03:00';
 
+function diaActualEnZona(fecha = new Date()) {
+  const partes = new Intl.DateTimeFormat('en-CA', {
+    timeZone: ZONA_HORARIA,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(fecha);
+  const valor = (tipo) => partes.find((parte) => parte.type === tipo)?.value ?? '';
+  return `${valor('year')}-${valor('month')}-${valor('day')}`;
+}
+
+function rangoFechas(desde, hasta) {
+  let inicio;
   let fin;
-  if (hasta) {
-    fin = parseFechaTexto(hasta);
+
+  if (desde) {
+    inicio = parseFechaTexto(desde);
+    fin = hasta ? parseFechaTexto(hasta) : new Date(inicio);
     fin.setHours(23, 59, 59, 999);
   } else {
-    fin = new Date(inicio);
-    fin.setHours(23, 59, 59, 999);
+    const dia = diaActualEnZona();
+    inicio = new Date(`${dia}T00:00:00.000${OFFSET_ZONA}`);
+    if (hasta) {
+      fin = parseFechaTexto(hasta);
+      fin.setHours(23, 59, 59, 999);
+    } else {
+      fin = new Date(`${dia}T23:59:59.999${OFFSET_ZONA}`);
+    }
   }
 
   if (inicio > fin) throw new AppError(400, 'Rango de fechas inválido');
@@ -177,7 +195,10 @@ async function disponibilidad({ barberoId, fecha, servicioId }) {
 
 async function agendaBarbero(barberoId, desde, hasta) {
   const { inicio, fin } = rangoFechas(desde, hasta);
-  const where = { fechaInicio: { gte: inicio, lte: fin } };
+  const where = {
+    fechaInicio: { gte: inicio, lte: fin },
+    estado: { not: 'cancelado' },
+  };
   if (barberoId) where.barberoId = barberoId;
   const turnos = await prisma.turno.findMany({
     where,
