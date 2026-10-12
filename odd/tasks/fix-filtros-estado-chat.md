@@ -56,10 +56,14 @@ Fix three filtering/state bugs without modifying the rest of the architecture (F
   - frontend `npx eslint` (3 files) → 0 errors, 2 pre-existing warnings
 - No test infrastructure exists in the repo (no test scripts), so verification is static:
   syntax check + type check + lint.
-- **No commits** (`.instructions.md` rule #8). Changes remain unstaged in the worktree.
-- RDD review: switch is `on` (global), but the runtime returned
-  `immutable_review_transport_unsupported` — this runtime cannot provide the immutable
-  receipt-review transport, so the native review could not run. Delivery is unmanaged,
-  pending user decision.
-- Next step: user reviews the diff and decides commit/push (rule #8 requires explicit
-  authorization).
+- Committed with explicit user authorization (`.instructions.md` rule #8):
+  `e2a0882` on `feature/clientes` — 5 files, +179/-19. Unrelated pre-existing worktree
+  changes were left untouched.
+- RDD assessment on the committed diff (`--base-ref 60d6051 --committed-only`,
+  untracked excluded): risk **medium** (`executable_change`),
+  `review_due: false` (`under_budget`, 198 changed lines < ~400 budget) → the review
+  boundary advances; no native review is required for this work unit.
+- Standing limitation: the native review lifecycle is unavailable in this runtime
+  (`immutable_review_transport_unsupported`), so if a future slice reaches the budget the
+  review cannot be entered here. This is a runtime capability limit, not an agent action.
+- Next step: push is a separate decision (not requested).
