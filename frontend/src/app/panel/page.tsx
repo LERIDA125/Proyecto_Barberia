@@ -267,7 +267,7 @@ export default function PanelPage() {
 
           <div className="mt-10">
             <h2 className="text-xs uppercase tracking-widest text-neutral-500">
-              Agenda de hoy
+              Agenda próxima (30 días)
             </h2>
             {loading ? (
               <div className="mt-4 space-y-2">
@@ -286,7 +286,9 @@ export default function PanelPage() {
               <div className="mt-4">
                 <EmptyState
                   titulo={
-                    filtroBarberoId ? "Sin turnos para este barbero" : "No tenés turnos para hoy"
+                    filtroBarberoId
+                      ? "Sin turnos para este barbero"
+                      : "No tenés turnos programados"
                   }
                   descripcion="Cuando el calendario tenga reservas, van a aparecer acá para gestionarlas."
                 />

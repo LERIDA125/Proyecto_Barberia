@@ -15,6 +15,23 @@ interface AccionEstado {
   variante: VarianteAccion;
 }
 
+const FORMATEADOR_FECHA_TURNO = new Intl.DateTimeFormat("es-AR", {
+  timeZone: "America/Argentina/Buenos_Aires",
+  weekday: "short",
+  day: "numeric",
+  month: "short",
+});
+
+function formatearFechaTurno(iso: string): string {
+  const partes = FORMATEADOR_FECHA_TURNO.formatToParts(new Date(iso));
+  const valor = (tipo: Intl.DateTimeFormatPartTypes) =>
+    partes.find((parte) => parte.type === tipo)?.value ?? "";
+  const capitalizar = (texto: string) =>
+    texto.charAt(0).toLocaleUpperCase("es-AR") + texto.slice(1);
+
+  return `${capitalizar(valor("weekday"))} ${valor("day")} ${capitalizar(valor("month"))}`;
+}
+
 function accionesDisponibles(estado: EstadoTurno): AccionEstado[] {
   switch (estado) {
     case "pendiente":
@@ -56,10 +73,10 @@ export function TurnoPanelCard({
     puedeSincronizar && (turno.estado === "pendiente" || turno.estado === "confirmado");
 
   return (
-    <article className="grid grid-cols-1 items-center gap-4 border-b border-neutral-900 py-5 md:grid-cols-[7rem_minmax(0,1fr)_auto]">
+    <article className="grid grid-cols-1 items-center gap-4 border-b border-neutral-900 py-5 md:grid-cols-[14rem_minmax(0,1fr)_auto]">
       <div className="flex flex-col">
         <p className="font-mono text-xl font-bold leading-none tabular-nums text-white">
-          {formatearHora(turno.fechaInicio)}
+          {formatearFechaTurno(turno.fechaInicio)} · {formatearHora(turno.fechaInicio)}
         </p>
         <p className="mt-1 font-mono text-xs tabular-nums text-neutral-500">
           hasta {formatearHora(turno.fechaFin)}

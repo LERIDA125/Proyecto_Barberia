@@ -92,6 +92,7 @@ function rangoFechas(desde, hasta) {
       fin.setHours(23, 59, 59, 999);
     } else {
       fin = new Date(`${dia}T23:59:59.999${OFFSET_ZONA}`);
+      fin.setUTCDate(fin.getUTCDate() + 30);
     }
   }
 
