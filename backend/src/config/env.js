@@ -2,11 +2,36 @@ require('dotenv').config();
 
 const path = require('path');
 
+const nodeEnv = process.env.NODE_ENV || 'development';
+
+// SESSION_SECRET firma las cookies de sesión (HMAC-SHA256). En producción no se
+// admite ningún valor por defecto: un secreto conocido permite forjar sesiones
+// de cualquier usuario. Sin secreto, la aplicación no debe levantar.
+let sessionSecret = process.env.SESSION_SECRET;
+if (!sessionSecret) {
+  if (nodeEnv === 'production') {
+    throw new Error(
+      'SESSION_SECRET es obligatoria en producción (NODE_ENV=production). ' +
+        'Definí un valor largo y aleatorio en el entorno o en el archivo .env.'
+    );
+  }
+  sessionSecret = 'dev-secret-cambiar-en-produccion';
+  console.warn('[config] SESSION_SECRET no definida: usando secreto de desarrollo. No usar en producción.');
+}
+
+// Orígenes permitidos para CORS (lista separada por comas).
+// Si no se define, app.js aplica los defaults locales (3000/3001).
+const corsOrigins = (process.env.CORS_ORIGIN || process.env.FRONTEND_URL || '')
+  .split(',')
+  .map((origen) => origen.trim())
+  .filter(Boolean);
+
 module.exports = {
   port: process.env.PORT || 3000,
-  nodeEnv: process.env.NODE_ENV || 'development',
+  nodeEnv,
   databaseUrl: process.env.DATABASE_URL,
-  sessionSecret: process.env.SESSION_SECRET || 'dev-secret-cambiar-en-produccion',
+  sessionSecret,
+  corsOrigins,
   webauthnRpId: process.env.WEBAUTHN_RP_ID || 'localhost',
   webauthnRpName: process.env.WEBAUTHN_RP_NAME || 'Barberia',
   webauthnOrigin: process.env.WEBAUTHN_ORIGIN || 'http://localhost:3000',

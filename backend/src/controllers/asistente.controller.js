@@ -44,7 +44,7 @@ async function enviar(req, res, next) {
 function historial(req, res, next) {
   try {
     const sesionId = req.query.sesionId;
-    const mensajes = asistenteService.historial(sesionId);
+    const mensajes = asistenteService.historial(sesionId, req.usuario.id);
     return res.status(200).json({ conversacionId: sesionId, mensajes });
   } catch (err) {
     return next(err);
@@ -53,7 +53,7 @@ function historial(req, res, next) {
 
 function limpiar(req, res, next) {
   try {
-    asistenteService.limpiarHistorial(req.query.sesionId);
+    asistenteService.limpiarHistorial(req.query.sesionId, req.usuario.id);
     return res.status(200).json({ ok: true });
   } catch (err) {
     return next(err);

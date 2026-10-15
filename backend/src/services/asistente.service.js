@@ -1,4 +1,5 @@
 const { SystemMessage, HumanMessage, AIMessage, ToolMessage } = require('@langchain/core/messages');
+const AppError = require('../utils/AppError');
 const env = require('../config/env');
 const { getLlm } = require('../agent/llm');
 const { PROMPT_AGENTE } = require('../agent/prompts');
@@ -6,7 +7,7 @@ const { obtenerStore } = require('../agent/vectorStore');
 const { TOOLS, ejecutarTool } = require('../agent/tools');
 const barberosService = require('./barberos.service');
 const serviciosService = require('./servicios.service');
-const { crearConversacion, cargar, guardar, eliminar } = require('../agent/conversations');
+const { crearConversacion, cargar, guardar, eliminar, perteneceA } = require('../agent/conversations');
 
 const MENSAJE_DISULPA =
   'Disculpá, tuve un problema para procesar el mensaje. Podés consultar el catálogo y los horarios en la sección Servicios.';
@@ -51,7 +52,10 @@ async function responder(pregunta, sesionId, usuario) {
   const llm = getLlm().bindTools(TOOLS);
 
   let conv = sesionId ? cargar(sesionId) : null;
-  if (!conv) conv = crearConversacion();
+  // Una conversación ajena (o previa al control de propiedad) nunca se reutiliza:
+  // se arranca una nueva para no filtrar ni inyectar contexto de otro usuario.
+  if (conv && !perteneceA(conv, usuario?.id)) conv = null;
+  if (!conv) conv = crearConversacion(usuario?.id);
 
   const [recuperados, catalogo] = await Promise.all([
     store.similaritySearch(pregunta, env.asistenteTopK),
@@ -121,13 +125,23 @@ async function responder(pregunta, sesionId, usuario) {
   return resultado;
 }
 
-function historial(sesionId) {
+function historial(sesionId, usuarioId) {
   const conv = sesionId ? cargar(sesionId) : null;
-  return conv ? conv.messages : [];
+  if (!conv) return [];
+  if (!perteneceA(conv, usuarioId)) {
+    throw new AppError(403, 'No tenés acceso a esta conversación');
+  }
+  return conv.messages;
 }
 
-function limpiarHistorial(sesionId) {
-  if (sesionId) eliminar(sesionId);
+function limpiarHistorial(sesionId, usuarioId) {
+  if (!sesionId) return;
+  const conv = cargar(sesionId);
+  if (!conv) return;
+  if (!perteneceA(conv, usuarioId)) {
+    throw new AppError(403, 'No tenés acceso a esta conversación');
+  }
+  eliminar(sesionId);
 }
 
 module.exports = { responder, historial, limpiarHistorial };
