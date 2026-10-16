@@ -263,6 +263,33 @@ Esto asciende el usuario a `admin` y crea su perfil de barbero operativo si no e
 
 ---
 
+
+### Primer inicio de sesión con usuario Admin
+
+El seed (`backend/prisma/seed.js`) crea un usuario administrador con email `admin@barberia.com`. Este usuario no tiene una Passkey registrada inicialmente.
+
+Para enrolar tu propia passkey y poder iniciar sesión:
+
+1. Asegúrate de tener el backend y frontend en ejecución.
+2. Abre el frontend (por defecto `http://localhost:3001`) y accede a la pantalla de registro/login.
+3. Regístrate con el email exacto: `admin@barberia.com` (junto con tu nombre y teléfono si se solicita).
+4. El sistema permitirá registrar la passkey aunque el usuario ya exista en la base de datos, siempre que no tenga credenciales previas asociadas. De este modo, tu passkey quedará asociada al usuario admin existente.
+5. Una vez registrada la passkey, puedes iniciar sesión con `admin@barberia.com` usando esa passkey.
+
+> Nota: si ya existe una passkey para ese email, el registro fallará con "El email ya está registrado".
+
+### Tests
+
+Los tests unitarios utilizan el **Node.js Test Runner** nativo (sin dependencias externas):
+
+```bash
+cd backend
+npm test
+```
+
+Actualmente se incluyen tests básicos de autorización sobre turnos: un cliente solo ve sus propios turnos, un administrador ve todos, y un barbero no puede cancelar el turno de otro barbero (prevención de IDOR horizontal).
+
+
 ## Variables de entorno
 
 Archivo `backend/.env` (ver `backend/.env.example`):
@@ -354,6 +381,7 @@ PostgreSQL vía Prisma (`backend/prisma/schema.prisma`):
 - **Autenticación sin contraseñas:** Passkeys (WebAuthn) con challenge de un solo uso y TTL de 5 minutos.
 - **Sesión:** cookie `httpOnly` + `sameSite=lax` (y `secure` en producción) con token firmado HMAC-SHA256 (`crypto.timingSafeEqual`).
 - **RBAC:** `requiereAuth` y `requiereRol('admin')` en rutas sensibles (métricas, integraciones, CRUD de servicios). El cliente solo ve y cancela **sus propios turnos** (ownership verificado en service).
+- **Convención de autorización sobre turnos (prevención de IDOR horizontal):** la autorización se centraliza en `verificarPropietario()` (`backend/src/services/turnos.service.js`) y se aplica a cancelar/reprogramar. La política es: **admin** gestiona cualquier turno; el **cliente** solo los propios (`turno.clienteId === usuario.id`); el **barbero** solo los asignados a él. Importante: `turno.barberoId` es FK a `barbero.id`, **no** a `usuario.id`, por lo que la pertenencia del barbero se resuelve con `prisma.barbero.findUnique({ where: { usuarioId } })` y se compara `barbero.id === turno.barberoId`. Cualquier acceso fuera de la política devuelve **403 Forbidden**.
 - **El rol se resuelve desde la base de datos** en cada request; un rol alterado en el cookie no tiene efecto.
 - **Aislamiento de conversaciones:** el historial del chat valida propiedad por usuario (403 si la conversación es ajena); los ids se validan como UUID antes de tocar el filesystem.
 - **CORS:** lista blanca explícita de orígenes (`CORS_ORIGIN`); nunca se refleja cualquier origen con credenciales.
@@ -364,3 +392,4 @@ PostgreSQL vía Prisma (`backend/prisma/schema.prisma`):
 ## Licencia
 
 Proyecto académico — Materia "Desarrollo de Software y Arquitectura de Agentes con IA".
+

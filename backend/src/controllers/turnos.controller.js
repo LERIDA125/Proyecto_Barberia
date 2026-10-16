@@ -1,7 +1,9 @@
 const turnosService = require('../services/turnos.service');
+const { validar, schemas } = require('../utils/validation');
 
 async function crear(req, res, next) {
   try {
+    validar(schemas.crearTurno, req.body);
     const esAdmin = req.usuario.rol === 'admin';
     const clienteId = esAdmin && req.body.clienteId ? req.body.clienteId : req.usuario.id;
 
@@ -39,6 +41,7 @@ async function obtener(req, res, next) {
 
 async function cancelar(req, res, next) {
   try {
+    validar(schemas.cancelarTurno, req.body);
     const turno = await turnosService.cancelar({
       id: req.params.id,
       usuario: req.usuario,
@@ -52,6 +55,7 @@ async function cancelar(req, res, next) {
 
 async function reprogramar(req, res, next) {
   try {
+    validar(schemas.reprogramarTurno, req.body);
     const turno = await turnosService.reprogramar({
       id: req.params.id,
       usuario: req.usuario,
@@ -65,6 +69,7 @@ async function reprogramar(req, res, next) {
 
 async function cambiarEstado(req, res, next) {
   try {
+    validar(schemas.cambiarEstado, req.body);
     const turno = await turnosService.cambiarEstado({
       id: req.params.id,
       usuario: req.usuario,
@@ -78,6 +83,7 @@ async function cambiarEstado(req, res, next) {
 
 async function actualizarNotas(req, res, next) {
   try {
+    validar(schemas.actualizarNotas, req.body);
     const turno = await turnosService.actualizarNotas({
       id: req.params.id,
       usuario: req.usuario,
