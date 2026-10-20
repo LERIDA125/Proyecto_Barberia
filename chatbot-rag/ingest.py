@@ -11,8 +11,20 @@ import warnings
 # Silencia un warning de urllib3 relacionado con LibreSSL (inofensivo en macOS)
 warnings.filterwarnings("ignore", module="urllib3")
 
-# TextLoader: lee archivos de texto plano
-from langchain_community.document_loaders import TextLoader
+# Document: representa el texto y sus metadatos para LangChain
+from langchain_core.documents import Document
+
+
+class TextLoader:
+    """Carga un archivo de texto sin depender de langchain-community."""
+
+    def __init__(self, file_path, encoding="utf-8"):
+        self.file_path = file_path
+        self.encoding = encoding
+
+    def load(self):
+        with open(self.file_path, "r", encoding=self.encoding) as file:
+            return [Document(page_content=file.read(), metadata={"source": self.file_path})]
 
 # RecursiveCharacterTextSplitter: divide el texto en fragmentos del mismo tamano
 from langchain_text_splitters import RecursiveCharacterTextSplitter

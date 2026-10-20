@@ -114,7 +114,7 @@ flowchart LR
 
 ## 8. Fase 1 implementada (AI Engineer)
 
-**Alcance actual:** asistente RAG de consulta (servicios, precios y horarios) sobre un archivo de conocimiento Markdown, replicando la lógica de `ingest.py` / `chat.py` de la cátedra en el backend Node.js con LangChain.js.
+**Alcance actual:** asistente RAG de consulta (servicios, precios y horarios) sobre un archivo de conocimiento Markdown, replicando la lógica del prototipo Python `chatbot-rag/ingest.py` / `chatbot-rag/chat.py` en el backend Node.js con LangChain.js.
 
 **Componentes:**
 

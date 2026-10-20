@@ -7,6 +7,8 @@
     "dev": "nodemon server.js",
     "start": "node server.js",
     "mcp:postgres": "node src/mcp/postgres/server.js",
+    "mcp:calendar": "npm start --prefix src/mcp/google-calendar",
+    "mcp:calendar:install": "npm install --prefix src/mcp/google-calendar",
     "ingest": "node scripts/ingest.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",

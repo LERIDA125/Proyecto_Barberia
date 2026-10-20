@@ -110,8 +110,9 @@ Reglas de corrección (ciclos de reintento): si un gate falla, se **detiene la c
 | Archivo | Rol |
 |---------|-----|
 | [`AGENTS.md`](./AGENTS.md) | Define los 3 roles que asumen los agentes (Tech Lead, Backend, Frontend), sus responsabilidades, entregables y criterios de éxito. Establece el DoD (Definition of Done) y las reglas de coordinación entre roles. |
+| [`.opencode/agents/`](./.opencode/agents/) | Versión nativa OpenCode de esos 3 roles: `arquitecto.md` (primary), `backend.md` y `frontend.md` (subagents). |
 | [`.instructions.md`](./.instructions.md) | "Reglas de Oro": spec antes que código, stack fijo (LangChain + MCP), contratos primero, testing obligatorio, y la tabla de acciones ante situaciones de error (incluye el ciclo de autocorrección). |
-| [`SDD.md`](./SDD.md) | Spec maestra de arquitectura: capas, modelo de datos completo, árbol de carpetas y decisiones con trade-offs. |
+| [`specs/SDD.md`](./specs/SDD.md) | Spec maestra de arquitectura: capas, modelo de datos completo, árbol de carpetas y decisiones con trade-offs. |
 | [`odd/tasks/`](./odd/tasks/) | Tracking de ejecución por features: superficies de edición autorizadas, verificaciones y evidencia por tarea. |
 
 ### Prompts clave
@@ -347,16 +348,53 @@ Proyecto_Barberia/
 │       ├── app/                    # App Router (login, reservar, panel, etc.)
 │       ├── components/             # UI (auth, turnos, chat, panel, layout)
 │       └── lib/                    # Cliente API + hooks
-├── specs/                          # Especificaciones SDD (spec-cu01..cu10)
+├── chatbot-rag/                    # Prototipo Python del asistente RAG (standalone)
+│   ├── ingest.py                   # MD → chunks → embeddings → ChromaDB
+│   ├── chat.py                     # Chat RAG por consola
+│   └── requirements.txt            # Dependencias Python del prototipo
+├── specs/                          # Especificaciones SDD
+│   ├── index.md                    # Mapa maestro de specs
+│   ├── SDD.md                      # Spec maestra de arquitectura
+│   └── spec-*.md                   # Specs por CU + features
 ├── odd/tasks/                      # Tracking de ejecución por features
+├── .opencode/                      # Configuración nativa de OpenCode
+│   ├── agents/                     # Roles de la IA (Tech Lead, Backend, Frontend)
+│   └── skills/                     # Skills propios del proyecto
+├── opencode.json                   # MCPs del proyecto (Postgres local + Calendar)
 ├── AGENTS.md                       # Roles de los agentes de IA
 ├── .instructions.md                # Reglas de oro del proyecto
 ├── IA_WORKFLOW.md                  # Pipeline SDD con gates
-├── SDD.md                          # Spec maestra de arquitectura
 ├── ESTADO.md                       # Auditoría de estado por CU
 ├── datos_barberia.md               # Documento fuente del RAG
 └── make-admin.ts                   # Script de ascenso a administrador
 ```
+
+---
+
+## Tooling de IA (OpenCode)
+
+El proyecto está inicializado como entorno nativo de **OpenCode**:
+
+```
+opencode.json          # MCPs del proyecto + instrucciones ambientales
+.opencode/
+├── agents/            # arquitecto.md · backend.md · frontend.md
+└── skills/
+    ├── sdd-workflow/SKILL.md          # Pipeline SDD con gates
+    ├── barberia-domain/SKILL.md       # Reglas de negocio e invariantes
+    └── proyecto-convenciones/SKILL.md # Naming, commits, estructura
+```
+
+### Servidores MCP configurados
+
+| MCP | Tipo | Levantado por | Detalle |
+|-----|------|---------------|---------|
+| `postgres-local` | local (stdio) | OpenCode | Inspección de esquema en **solo lectura**. Requiere `DATABASE_URL` en `backend/.env`. |
+| `google-calendar` | remote (HTTP) | **Manual** | `cd backend && npm run mcp:calendar` → `http://localhost:8000/mcp` |
+
+> ⚠️ **El MCP de Google Calendar no arranca solo.** Si aparece en timeout, el proceso en `localhost:8000` no está corriendo — no es un bug del código. Levantalo con `cd backend && npm run mcp:calendar` (requiere `google-credentials.json` y, la primera vez, `npm run mcp:calendar:install`).
+
+> ⚠️ **Reiniciar OpenCode** después de cambios en `opencode.json`, agentes o skills: la configuración se carga una sola vez al arrancar y no se recarga en caliente.
 
 ---
 
