@@ -3,7 +3,7 @@ const { McpError } = require('../mcp/client');
 
 function manejarError(err, res, next) {
   if (err instanceof McpError) {
-    return res.status(err.status || 502).json({ error: err.message });
+    return res.status(err.status || 502).json({ error: true, message: err.message });
   }
   return next(err);
 }

@@ -148,7 +148,7 @@ async function verificarLogin(body) {
   const challenge = challengeStore.consumir(`login:${email}`);
   if (!challenge) throw new AppError(400, 'El inicio de sesión expiró, volvé a intentar');
 
-  const credencial = verificacion.registrationInfo.credential;
+  const credencial = usuario.credenciales.find((c) => c.credentialId === body.response.id);
   if (!credencial) throw new AppError(400, 'Credencial desconocida');
 
   let verificacion;
