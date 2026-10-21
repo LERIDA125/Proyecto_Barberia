@@ -1,70 +1,67 @@
 # Índice de Especificaciones — Sistema Integral de Barbería
 
-> **Metodología:** Spec-Driven Development (SDD)
-> **Mapa maestro de specs:** este archivo indexa todos los documentos de especificación del proyecto.
-> **Flujo obligatorio:** [`../IA_WORKFLOW.md`](../IA_WORKFLOW.md) · **Reglas de oro:** [`../.instructions.md`](../.instructions.md)
+> **Metodología:** GitHub Spec Kit.
+> Este archivo es el índice de la estructura Spec Kit del proyecto: cada feature vive en `specs/NNN-nombre/` con su `spec.md` (el "qué") y su `plan.md` (el "cómo").
+> **Constitución del proyecto:** [`../.specify/memory/constitution.md`](../.specify/memory/constitution.md) — principios, restricciones técnicas, roles y governance.
 
 ---
 
-## 1. Documento de arquitectura
+## 1. Arquitectura maestra
 
-| Documento | Rol |
-|-----------|-----|
-| [`SDD.md`](./SDD.md) | **System Design Document** — spec maestra: capas, modelo de datos completo, árbol de carpetas y decisiones de arquitectura con trade-offs. Es la fuente de verdad para entidades y contratos transversales. |
+| Spec Kit | Título | Estado |
+|:---------|:-------|:------:|
+| [`000-arquitectura`](./000-arquitectura/spec.md) | Arquitectura del Sistema de Barbería | ✅ Implemented |
 
----
-
-## 2. Casos de uso (CU-01 → CU-10)
-
-Los 10 casos de uso del sistema. Cada spec define contrato de API, modelo de datos afectado y criterios de aceptación verificables.
-
-| CU | Spec | Título | Estado |
-|:---|:-----|:-------|:------:|
-| **CU-01** | [`spec-cu01-registro-passkeys.md`](./spec-cu01-registro-passkeys.md) | Autenticación con Passkeys (WebAuthn) | ✅ Funcional |
-| **CU-02** | [`spec-cu02-catalogo-servicios.md`](./spec-cu02-catalogo-servicios.md) | Catálogo de Servicios | ✅ Funcional |
-| **CU-03** | [`spec-cu03-reserva-turnos.md`](./spec-cu03-reserva-turnos.md) | Reserva de Turnos | ✅ Funcional |
-| **CU-04** | [`spec-cu04-gestion-turnos-cliente.md`](./spec-cu04-gestion-turnos-cliente.md) | Gestión de Turnos (Cliente) | ✅ Funcional |
-| **CU-05** | [`spec-cu05-panel-barberos.md`](./spec-cu05-panel-barberos.md) | Panel de Barberos | ✅ Funcional |
-| **CU-06** | [`spec-cu06-chatbot-langchain.md`](./spec-cu06-chatbot-langchain.md) | Asistente Inteligente (LangChain + RAG) | ⚠️ Parcial |
-| **CU-07** | [`spec-cu07-sync-calendario-mcp.md`](./spec-cu07-sync-calendario-mcp.md) | Sincronización de Calendario (MCP) | ⚠️ Parcial |
-| **CU-08** | [`spec-cu08-gestion-disponibilidad.md`](./spec-cu08-gestion-disponibilidad.md) | Gestión de Disponibilidad (Bloqueos) | ✅ Funcional |
-| **CU-09** | [`spec-cu09-historial-visitas.md`](./spec-cu09-historial-visitas.md) | Historial de Visitas (Fichas de Cliente) | ✅ Funcional |
-| **CU-10** | [`spec-cu10-notificaciones-estado.md`](./spec-cu10-notificaciones-estado.md) | Notificaciones de Estado | ✅ Funcional |
-
-> El estado detallado por CU, con justificación y evidencia de código, se audita en [`../ESTADO.md`](../ESTADO.md).
+`spec.md` describe la arquitectura technology-agnostic (qué es, actores, capacidades); `plan.md` contiene el diseño técnico completo: capas, modelo de datos, árbol de carpetas y decisiones con trade-offs.
 
 ---
 
-## 3. Features adicionales (specs ODD)
+## 2. Features (numeración Spec Kit)
 
-Features que surgieron por fuera de los 10 CU originales y siguen el mismo pipeline SDD.
+| Spec Kit | Título | Estado |
+|:---------|:-------|:------:|
+| [`001-registro-passkeys`](./001-registro-passkeys/spec.md) | Registro y Autenticación con Passkeys | ✅ Implemented |
+| [`002-catalogo-servicios`](./002-catalogo-servicios/spec.md) | Catálogo de Servicios | ✅ Implemented |
+| [`003-reserva-turnos`](./003-reserva-turnos/spec.md) | Reserva de Turnos | ✅ Implemented |
+| [`004-gestion-turnos-cliente`](./004-gestion-turnos-cliente/spec.md) | Gestión de Turnos del Cliente | ✅ Implemented |
+| [`005-panel-barberos`](./005-panel-barberos/spec.md) | Panel de Barberos | ✅ Implemented |
+| [`006-chatbot-langchain`](./006-chatbot-langchain/spec.md) | Asistente Conversacional (LangChain + RAG) | ⚠️ Partial |
+| [`007-sync-calendario-mcp`](./007-sync-calendario-mcp/spec.md) | Sincronización con Google Calendar (MCP) | ⚠️ Partial |
+| [`008-gestion-disponibilidad`](./008-gestion-disponibilidad/spec.md) | Gestión de Disponibilidad y Ausencias | ✅ Implemented |
+| [`009-historial-visitas`](./009-historial-visitas/spec.md) | Historial de Visitas (Fichas de Cliente) | ✅ Implemented |
+| [`010-notificaciones-estado`](./010-notificaciones-estado/spec.md) | Notificaciones de Estado de Turno | ✅ Implemented |
+| [`011-metricas-dashboard`](./011-metricas-dashboard/spec.md) | Dashboard de Métricas de Negocio | ✅ Implemented |
+| [`012-vista-clientes`](./012-vista-clientes/spec.md) | Vista de Clientes | ✅ Implemented |
 
-| Feature | Spec | Estado |
-|:--------|:-----|:------:|
-| Vista de Clientes | [`spec-vista-clientes.md`](./spec-vista-clientes.md) | ✅ Funcional |
-| Dashboard de Métricas | [`spec-metricas-dashboard.md`](./spec-metricas-dashboard.md) | ✅ Funcional |
-
-> El seguimiento de ejecución de estas features vive en [`../odd/tasks/`](../odd/tasks/).
+> El estado detallado por feature, con justificación y evidencia de código, se audita en [`../ESTADO.md`](../ESTADO.md).
 
 ---
 
-## 4. Trazabilidad SDD
+## 3. Estructura de cada feature
 
-El pipeline completo está definido en [`../IA_WORKFLOW.md`](../IA_WORKFLOW.md) con 4 gates obligatorios:
-
-```
-Requerimientos → Specs → Código → Testing
-   (GATE 1)    (GATE 2)         (GATE 3/4)
+```text
+specs/NNN-nombre/
+├── spec.md     # El QUÉ: historias de usuario, requisitos funcionales (FR-###),
+│               #       entidades clave, criterios de éxito (SC-###) y supuestos
+└── plan.md     # El CÓMO: resumen, contexto técnico, endpoints REST, componentes
+                #       de UI, constitution check, estructura del proyecto y riesgos
 ```
 
-**Regla fundamental:** ninguna línea de código se escribe sin una especificación aprobada. Si un gate falla, se detiene la codificación, se corrige la spec y recién entonces se reimplementa.
+- **spec.md** es technology-agnostic: describe capacidades y criterios verificables sin detalle de implementación.
+- **plan.md** concentra el detalle técnico: endpoints, rutas, componentes, dependencias y decisiones.
+
+---
+
+## 4. Trazabilidad
 
 | Artefacto | Ubicación | Rol |
 |-----------|-----------|-----|
-| Especificaciones | `specs/spec-*.md` | Contrato de API, modelo de datos y criterios de aceptación por feature |
-| Arquitectura maestra | [`specs/SDD.md`](./SDD.md) | Capas, entidades y decisiones técnicas |
+| Constitución | `.specify/memory/constitution.md` | Principios, restricciones técnicas, roles y governance |
+| Arquitectura maestra | `specs/000-arquitectura/` | Capas, entidades y decisiones técnicas |
+| Especificaciones | `specs/NNN-nombre/spec.md` | Qué, para qué y criterios de aceptación por feature |
+| Planes de implementación | `specs/NNN-nombre/plan.md` | Cómo: contratos, componentes y estructura por feature |
 | Tracking de ejecución | `odd/tasks/*.md` | Superficies autorizadas, verificaciones y evidencia por tarea |
-| Auditoría de estado | [`../ESTADO.md`](../ESTADO.md) | Estado real del código por CU, fechado |
+| Auditoría de estado | [`../ESTADO.md`](../ESTADO.md) | Estado real del código por feature, fechado |
 | Contexto para agentes | [`../.opencode/agents/`](../.opencode/agents/) | Roles: Tech Lead, Backend, Frontend |
 | Fuente del RAG | [`../datos_barberia.md`](../datos_barberia.md) | Documento fuente del chatbot (NO es una spec) |
 
@@ -72,9 +69,9 @@ Requerimientos → Specs → Código → Testing
 
 ## 5. Herramientas MCP documentadas
 
-| MCP | Spec relacionada | Descripción |
-|-----|:----------------:|-------------|
-| PostgreSQL (local, stdio) | CU-06, CU-09 | Inspección de esquema en solo lectura para agentes |
-| Google Calendar (externo, HTTP) | CU-07 | Sincronización de turnos con la agenda externa |
+| MCP | Features relacionadas | Descripción |
+|-----|:---------------------:|-------------|
+| PostgreSQL (local, stdio) | 006, 009 | Inspección de esquema en solo lectura para agentes |
+| Google Calendar (externo, HTTP) | 007 | Sincronización de turnos con la agenda externa |
 
 > La configuración operativa de ambos servidores MCP vive en [`../opencode.json`](../opencode.json) (integración con OpenCode) y en [`../backend/src/mcp/`](../backend/src/mcp/) (implementación).

@@ -34,7 +34,7 @@ Convertir requerimientos de negocio en especificaciones técnicas claras, segura
 
 ## Entregables
 
-- Documentos de especificación en `specs/` (`spec-<feature>.md`).
+- Documentos de especificación en `specs/NNN-<feature>/` (`spec.md` para el "qué", `plan.md` para el "cómo").
 - Diagramas de arquitectura y modelo de datos (Mermaid).
 - Definición de contratos de API (request/response) y de las `tools` del agente.
 
@@ -45,7 +45,7 @@ Convertir requerimientos de negocio en especificaciones técnicas claras, segura
 
 ## Destilado de reglas del proyecto
 
-1. **Spec antes que código.** Ninguna línea sin spec aprobada (ver `IA_WORKFLOW.md`).
+1. **Spec antes que código.** Ninguna línea sin spec aprobada (ver `.specify/memory/constitution.md`).
 2. **Un rol por turno.** Declarás el rol activo (`[Tech Lead]`, `[Backend]`, `[Frontend]`) cuando la tarea toca varias capas.
 3. **Backend y Frontend no modifican la spec por conveniencia.** Si algo falta, se escala al Tech Lead.
 4. **Definition of Done:** código + tests + actualización de la spec/estado correspondiente.

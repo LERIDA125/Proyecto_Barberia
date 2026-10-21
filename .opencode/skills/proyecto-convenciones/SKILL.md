@@ -87,4 +87,4 @@ Tipos: `feat`, `fix`, `chore`, `refactor`, `docs`, `test`, `perf`.
 4. Testing obligatorio (ver DoD).
 5. Un rol por turno — declaralo al inicio del trabajo.
 
-Detalle completo en `.instructions.md` y `IA_WORKFLOW.md`.
+Detalle completo en `.instructions.md` y `.specify/memory/constitution.md`.

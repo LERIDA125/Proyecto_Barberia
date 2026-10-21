@@ -89,9 +89,9 @@ Los clientes se autentican con **Passkeys (WebAuthn)** — sin contraseñas — 
 
 El proyecto fue desarrollado aplicando ingeniería de software asistida por IA de forma **metodológica y trazable**:
 
-### Metodología: Spec-Driven Development (SDD)
+### Metodología: Spec Kit (Spec-Driven Development)
 
-Todo feature pasa por un pipeline documentado en [`IA_WORKFLOW.md`](./IA_WORKFLOW.md) con 4 gates obligatorios:
+Todo feature pasa por un pipeline con 4 gates obligatorios, definidos en [`.specify/memory/constitution.md`](./.specify/memory/constitution.md):
 
 ```
 Requerimientos → Specs → Código → Testing
@@ -99,11 +99,11 @@ Requerimientos → Specs → Código → Testing
 ```
 
 1. **Requerimientos:** la especificación se escribe y aprueba **antes** de codificar.
-2. **Specs:** cada feature tiene un contrato de API, modelo de datos y criterios de aceptación en [`specs/spec-*.md`](./specs/) (12 specs: CU-01 a CU-10 + métricas y vista de clientes).
+2. **Specs:** cada feature tiene dos artefactos en [`specs/NNN-<feature>/`](./specs/) — `spec.md` (el "qué": historias, requisitos, criterios de aceptación) y `plan.md` (el "cómo": endpoints, componentes, decisiones técnicas). Son 13 features: arquitectura + CU-01 a CU-10 + métricas y vista de clientes.
 3. **Código:** la implementación respeta el contrato de la spec sin campos ni endpoints inventados.
 4. **Testing / auditoría:** verificación contra los criterios de aceptación; el estado real se audita en [`ESTADO.md`](./ESTADO.md).
 
-Reglas de corrección (ciclos de reintento): si un gate falla, se **detiene la codificación**, se vuelve a la spec, se corrige y recién entonces se reimplementa (ver `IA_WORKFLOW.md` y la tabla situación→acción de `.instructions.md`).
+Reglas de corrección (ciclos de reintento): si un gate falla, se **detiene la codificación**, se vuelve a la spec, se corrige y recién entonces se reimplementa (ver `.specify/memory/constitution.md` y la tabla situación→acción de `.instructions.md`).
 
 ### Contexto para agentes de IA
 
@@ -112,7 +112,8 @@ Reglas de corrección (ciclos de reintento): si un gate falla, se **detiene la c
 | [`AGENTS.md`](./AGENTS.md) | Define los 3 roles que asumen los agentes (Tech Lead, Backend, Frontend), sus responsabilidades, entregables y criterios de éxito. Establece el DoD (Definition of Done) y las reglas de coordinación entre roles. |
 | [`.opencode/agents/`](./.opencode/agents/) | Versión nativa OpenCode de esos 3 roles: `arquitecto.md` (primary), `backend.md` y `frontend.md` (subagents). |
 | [`.instructions.md`](./.instructions.md) | "Reglas de Oro": spec antes que código, stack fijo (LangChain + MCP), contratos primero, testing obligatorio, y la tabla de acciones ante situaciones de error (incluye el ciclo de autocorrección). |
-| [`specs/SDD.md`](./specs/SDD.md) | Spec maestra de arquitectura: capas, modelo de datos completo, árbol de carpetas y decisiones con trade-offs. |
+| [`.specify/memory/constitution.md`](./.specify/memory/constitution.md) | Constitución del proyecto: principios rectores, los 4 gates del flujo, restricciones técnicas y roles con herencia. Es la autoridad metodológica. |
+| [`specs/000-arquitectura/plan.md`](./specs/000-arquitectura/plan.md) | Spec maestra de arquitectura: capas, modelo de datos completo, árbol de carpetas y decisiones con trade-offs. |
 | [`odd/tasks/`](./odd/tasks/) | Tracking de ejecución por features: superficies de edición autorizadas, verificaciones y evidencia por tarea. |
 
 ### Prompts clave
@@ -352,18 +353,19 @@ Proyecto_Barberia/
 │   ├── ingest.py                   # MD → chunks → embeddings → ChromaDB
 │   ├── chat.py                     # Chat RAG por consola
 │   └── requirements.txt            # Dependencias Python del prototipo
-├── specs/                          # Especificaciones SDD
+├── specs/                          # Especificaciones Spec Kit
 │   ├── index.md                    # Mapa maestro de specs
-│   ├── SDD.md                      # Spec maestra de arquitectura
-│   └── spec-*.md                   # Specs por CU + features
+│   ├── 000-arquitectura/           # Spec + plan de arquitectura maestra
+│   └── NNN-<feature>/              # spec.md (qué) + plan.md (cómo) por feature
 ├── odd/tasks/                      # Tracking de ejecución por features
+├── .specify/                       # Spec Kit: constitución, templates, scripts
 ├── .opencode/                      # Configuración nativa de OpenCode
 │   ├── agents/                     # Roles de la IA (Tech Lead, Backend, Frontend)
+│   ├── commands/                   # Comandos slash de Spec Kit
 │   └── skills/                     # Skills propios del proyecto
 ├── opencode.json                   # MCPs del proyecto (Postgres local + Calendar)
 ├── AGENTS.md                       # Roles de los agentes de IA
 ├── .instructions.md                # Reglas de oro del proyecto
-├── IA_WORKFLOW.md                  # Pipeline SDD con gates
 ├── ESTADO.md                       # Auditoría de estado por CU
 ├── datos_barberia.md               # Documento fuente del RAG
 └── make-admin.ts                   # Script de ascenso a administrador
@@ -377,13 +379,30 @@ El proyecto está inicializado como entorno nativo de **OpenCode**:
 
 ```
 opencode.json          # MCPs del proyecto + instrucciones ambientales
+.specify/              # Spec Kit: constitución, templates, scripts, workflows
+├── memory/constitution.md           # Principios rectores y gates del flujo
+└── templates/                       # Templates de spec, plan, tasks, checklist
 .opencode/
 ├── agents/            # arquitecto.md · backend.md · frontend.md
+├── commands/          # Comandos slash de Spec Kit (/speckit.specify, .plan, …)
 └── skills/
-    ├── sdd-workflow/SKILL.md          # Pipeline SDD con gates
+    ├── sdd-workflow/SKILL.md          # Pipeline Spec Kit con gates
     ├── barberia-domain/SKILL.md       # Reglas de negocio e invariantes
     └── proyecto-convenciones/SKILL.md # Naming, commits, estructura
 ```
+
+### Comandos Spec Kit
+
+El proyecto usa **GitHub Spec Kit** como metodología SDD. Los comandos se invocan desde el chat:
+
+| Comando | Uso |
+|---------|-----|
+| `/speckit.constitution` | Principios rectores del proyecto |
+| `/speckit.specify` | Crear la spec de una feature (el "qué") |
+| `/speckit.plan` | Generar el plan técnico (el "cómo") |
+| `/speckit.tasks` | Descomponer en tareas accionables |
+| `/speckit.implement` | Ejecutar la implementación |
+| `/speckit.clarify` · `/speckit.analyze` · `/speckit.checklist` | Comandos de calidad |
 
 ### Servidores MCP configurados
 

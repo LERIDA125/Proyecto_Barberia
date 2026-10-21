@@ -64,5 +64,5 @@ La transición se valida en `PATCH /api/turnos/:id/estado`.
 ## Fuente de verdad
 
 - Reglas completas de negocio: `datos_barberia.md`
-- Modelo de datos y relaciones: `specs/SDD.md`
+- Modelo de datos y relaciones: `specs/000-arquitectura/plan.md`
 - Horarios, precios y catálogo: `datos_barberia.md`
