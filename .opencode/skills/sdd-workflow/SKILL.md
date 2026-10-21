@@ -66,7 +66,7 @@ Detalle en `.specify/memory/constitution.md` y tabla situación→acción en `.i
 | Plan técnico de una feature (el "cómo") | `specs/NNN-<feature>/plan.md` |
 | Templates de Spec Kit | `.specify/templates/` |
 | Estado real del código por CU | `ESTADO.md` |
-| Tracking de ejecución de una feature | `odd/tasks/<feature>.md` |
+| Tracking de ejecución de una feature | `specs/NNN-<feature>/tasks.md` |
 | Roles de la IA | `.opencode/agents/` |
 
 ## Cómo empezar una feature nueva
@@ -74,8 +74,11 @@ Detalle en `.specify/memory/constitution.md` y tabla situación→acción en `.i
 1. **Leé el índice** (`specs/index.md`) y verificá si la feature ya tiene spec.
 2. **Leé la arquitectura maestra** (`specs/000-arquitectura/plan.md`) para reutilizar entidades existentes antes de inventar nuevas.
 3. **Revisá specs vecinas** — CU relacionados suelen definir contratos que necesitás respetar.
-4. **Creá la spec** con `/speckit.specify` (el "qué") y el plan con `/speckit.plan` (el "cómo").
-5. **Escalá al Tech Lead** si la spec cambia contratos existentes.
+4. **Creá la spec** con `/speckit.specify` (el "qué"), el plan con `/speckit.plan` (el "cómo") y las tareas con `/speckit.tasks` (descomposición atómica en `specs/NNN-<feature>/tasks.md`).
+5. **Implementá** siguiendo el `tasks.md`, con tests por tarea. El tracking de la ejecución vive en ese mismo `tasks.md`.
+6. **Escalá al Tech Lead** si la spec cambia contratos existentes.
+
+> **Deuda documentada:** las features 001-012 se implementaron sin `/speckit.tasks` y no tienen `tasks.md` (ver `ESTADO.md`). No se hace backfill; aplica desde la próxima feature.
 
 ## Reglas duras
 

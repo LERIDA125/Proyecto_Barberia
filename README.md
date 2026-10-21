@@ -114,7 +114,7 @@ Reglas de corrección (ciclos de reintento): si un gate falla, se **detiene la c
 | [`.instructions.md`](./.instructions.md) | "Reglas de Oro": spec antes que código, stack fijo (LangChain + MCP), contratos primero, testing obligatorio, y la tabla de acciones ante situaciones de error (incluye el ciclo de autocorrección). |
 | [`.specify/memory/constitution.md`](./.specify/memory/constitution.md) | Constitución del proyecto: principios rectores, los 4 gates del flujo, restricciones técnicas y roles con herencia. Es la autoridad metodológica. |
 | [`specs/000-arquitectura/plan.md`](./specs/000-arquitectura/plan.md) | Spec maestra de arquitectura: capas, modelo de datos completo, árbol de carpetas y decisiones con trade-offs. |
-| [`odd/tasks/`](./odd/tasks/) | Tracking de ejecución por features: superficies de edición autorizadas, verificaciones y evidencia por tarea. |
+| [`specs/NNN-<feature>/tasks.md`](./specs/) | Tracking de tareas por feature (pipeline `/speckit.tasks`). Las features 001-012 se implementaron sin `tasks.md` — deuda documentada en `ESTADO.md`. |
 
 ### Prompts clave
 
@@ -126,7 +126,7 @@ Los prompts del asistente están centralizados en:
 
 ### Iteración y evidencia
 
-- Historial de iteraciones por feature: `odd/tasks/*.md` (progreso, riesgos, verificaciones).
+- Historial de iteraciones por feature: `specs/NNN-<feature>/tasks.md` (progreso, riesgos, verificaciones — desde la próxima feature).
 - Commits convencionales (`feat:`, `fix:`, `chore:`) trazables en el historial de git.
 - Auditorías de estado fechadas en `ESTADO.md`.
 
@@ -254,11 +254,11 @@ Ver [Model Context Protocol (MCP)](#levantar-el-servidor-mcp-de-google-calendar)
 
 ### Paso 5 (opcional) — Crear un administrador
 
-El seed crea servicios y barberos, pero **no** usuarios administradores. Para ascender un usuario ya registrado:
+El seed crea el usuario administrador `admin@barberia.com`, servicios y barberos. Si querés ascender un **usuario propio** ya registrado a `admin` (creándole además el perfil de barbero):
 
 ```bash
 cd backend
-npx tsx ../make-admin.ts   # editar el email dentro del archivo antes de ejecutar
+npx tsx scripts/make-admin.ts   # editar el email dentro del archivo antes de ejecutar
 ```
 
 Esto asciende el usuario a `admin` y crea su perfil de barbero operativo si no existe.
@@ -336,14 +336,16 @@ Proyecto_Barberia/
 │   │   │   ├── client.js           # Cliente JSON-RPC 2.0 (fetch nativo)
 │   │   │   ├── google-calendar.js  # Adapter de las 5 tools
 │   │   │   ├── google-calendar/    # Servidor MCP externo (paquete autónomo)
-│   │   │   └── postgres/           # [reservado]
+│   │   │   └── postgres/           # Servidor MCP local (stdio, solo lectura)
 │   │   ├── config/                 # env.js, prisma.js
 │   │   └── utils/                  # session.js, challengeStore.js
 │   ├── prisma/
 │   │   ├── schema.prisma           # Modelo de datos
 │   │   ├── migrations/             # Migraciones SQL versionadas
 │   │   └── seed.js                 # Datos iniciales
-│   └── scripts/ingest.js           # Construcción del índice vectorial
+│   ├── scripts/
+│   │   ├── ingest.js               # Construcción del índice vectorial
+│   │   └── make-admin.ts           # Ascenso de un usuario a administrador
 ├── frontend/
 │   └── src/
 │       ├── app/                    # App Router (login, reservar, panel, etc.)
@@ -357,7 +359,6 @@ Proyecto_Barberia/
 │   ├── index.md                    # Mapa maestro de specs
 │   ├── 000-arquitectura/           # Spec + plan de arquitectura maestra
 │   └── NNN-<feature>/              # spec.md (qué) + plan.md (cómo) por feature
-├── odd/tasks/                      # Tracking de ejecución por features
 ├── .specify/                       # Spec Kit: constitución, templates, scripts
 ├── .opencode/                      # Configuración nativa de OpenCode
 │   ├── agents/                     # Roles de la IA (Tech Lead, Backend, Frontend)
@@ -366,9 +367,8 @@ Proyecto_Barberia/
 ├── opencode.json                   # MCPs del proyecto (Postgres local + Calendar)
 ├── AGENTS.md                       # Roles de los agentes de IA
 ├── .instructions.md                # Reglas de oro del proyecto
-├── ESTADO.md                       # Auditoría de estado por CU
-├── datos_barberia.md               # Documento fuente del RAG
-└── make-admin.ts                   # Script de ascenso a administrador
+├── ESTADO.md                       # Auditoría de estado por feature
+└── datos_barberia.md               # Documento fuente del RAG
 ```
 
 ---

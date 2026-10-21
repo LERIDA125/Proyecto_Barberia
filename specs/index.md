@@ -27,13 +27,17 @@
 | [`005-panel-barberos`](./005-panel-barberos/spec.md) | Panel de Barberos | ✅ Implemented |
 | [`006-chatbot-langchain`](./006-chatbot-langchain/spec.md) | Asistente Conversacional (LangChain + RAG) | ⚠️ Partial |
 | [`007-sync-calendario-mcp`](./007-sync-calendario-mcp/spec.md) | Sincronización con Google Calendar (MCP) | ⚠️ Partial |
-| [`008-gestion-disponibilidad`](./008-gestion-disponibilidad/spec.md) | Gestión de Disponibilidad y Ausencias | ✅ Implemented |
-| [`009-historial-visitas`](./009-historial-visitas/spec.md) | Historial de Visitas (Fichas de Cliente) | ✅ Implemented |
-| [`010-notificaciones-estado`](./010-notificaciones-estado/spec.md) | Notificaciones de Estado de Turno | ✅ Implemented |
+| [`008-gestion-disponibilidad`](./008-gestion-disponibilidad/spec.md) | Gestión de Disponibilidad y Ausencias | ⚠️ Partial |
+| [`009-historial-visitas`](./009-historial-visitas/spec.md) | Historial de Visitas (Fichas de Cliente) | ⚠️ Partial |
+| [`010-notificaciones-estado`](./010-notificaciones-estado/spec.md) | Notificaciones de Estado de Turno | ⚠️ Partial |
 | [`011-metricas-dashboard`](./011-metricas-dashboard/spec.md) | Dashboard de Métricas de Negocio | ✅ Implemented |
 | [`012-vista-clientes`](./012-vista-clientes/spec.md) | Vista de Clientes | ✅ Implemented |
 
 > El estado detallado por feature, con justificación y evidencia de código, se audita en [`../ESTADO.md`](../ESTADO.md).
+>
+> **Nota sobre 008/009/010:** sus `plan.md` declaran endpoints que aún no existen (`/api/barberos/me/horarios`, `/api/admin/feriados`, `/api/clientes/:id/ficha`, `/api/notificaciones/preferencias`, recordatorios por email). Lo que sí está implementado y operativo es el subconjunto de esas features listado en `ESTADO.md`; por eso su estado es **Partial** y no Implemented.
+>
+> **Deuda de proceso:** las features 001-012 se implementaron **sin ejecutar `/speckit.tasks`** — no tienen `tasks.md`. No se hace backfill (ya están implementadas); a partir de la próxima feature el pipeline completo specify → plan → **tasks** → implement es obligatorio.
 
 ---
 
@@ -60,7 +64,7 @@ specs/NNN-nombre/
 | Arquitectura maestra | `specs/000-arquitectura/` | Capas, entidades y decisiones técnicas |
 | Especificaciones | `specs/NNN-nombre/spec.md` | Qué, para qué y criterios de aceptación por feature |
 | Planes de implementación | `specs/NNN-nombre/plan.md` | Cómo: contratos, componentes y estructura por feature |
-| Tracking de ejecución | `odd/tasks/*.md` | Superficies autorizadas, verificaciones y evidencia por tarea |
+| Tracking de ejecución | `specs/NNN-nombre/tasks.md` | Tareas atómicas por feature (pipeline `/speckit.tasks`) — pendiente para features futuras |
 | Auditoría de estado | [`../ESTADO.md`](../ESTADO.md) | Estado real del código por feature, fechado |
 | Contexto para agentes | [`../.opencode/agents/`](../.opencode/agents/) | Roles: Tech Lead, Backend, Frontend |
 | Fuente del RAG | [`../datos_barberia.md`](../datos_barberia.md) | Documento fuente del chatbot (NO es una spec) |

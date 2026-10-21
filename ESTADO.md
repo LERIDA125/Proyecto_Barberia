@@ -1,40 +1,62 @@
 # Auditoría de Implementación — Sistema Barbería
 
-**Fecha de actualización:** 13 de octubre de 2026
+**Fecha de actualización:** 21 de octubre de 2026
+**Metodología:** GitHub Spec Kit — features en `specs/NNN-nombre/` (spec.md + plan.md).
+**Numeración antigua:** el código "CU-01…CU-10" corresponde a las specs `001…010` (misma numeración).
 
-_Nota: Esta auditoría refleja el estado real del código (Next.js en frontend y Node.js/Express en backend) y de los modelos de Prisma/PostgreSQL, sin modificaciones de archivos._
+---
 
-## Tabla de estado por CU
+## Tabla de estado por spec
 
-| CU                                 |    Estado    | Justificación (1 línea)                                                                                                                                                                              |
-| :--------------------------------- | :----------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **CU-01 Autenticación (passkeys)** | ✅ Funcional | `routes/auth.routes.js` (registro/login opciones+verificar, sesión, logout) + `pages/login` y `pages/registro` con WebAuthn y `useSesion`.                                                        |
-| **CU-02 Catálogo servicios**       | ✅ Funcional | `servicios.controller.js` CRUD + borrado lógico (DELETE→activo) y `pages/servicios` con `ServicioCard/ServicioFormModal` (alta admin).                                                            |
-| **CU-03 Reservas**                 | ✅ Funcional | `POST /api/turnos` con validación de solapamiento y bloqueos (`turnos.service.js`) + `GET /api/barberos/:id/disponibilidad` y wizard `/reservar` completo.                                       |
-| **CU-04 Mis Turnos**               | ✅ Funcional | `PATCH /api/turnos/:id/cancelar` y `/reprogramar` + `pages/mis-turnos` (próximos/historial, `CancelarTurnoDialog`, `ReprogramarDialog`). Próximos = futuros y no `completado`; Historial = `completado` o fecha pasada. |
-| **CU-05 Panel Barberos**           | ✅ Funcional | Página `/panel` (`TurnoPanelCard`, `useMiAgenda`) + `GET /api/barberos/me/agenda` y `PATCH /api/turnos/:id/estado`; resumen del día y cambio de estado (incl. `ausente`). La agenda excluye turnos `cancelado` y el rango default "hoy" se calcula en `America/Argentina/Buenos_Aires`. |
-| **CU-06 Chatbot IA**               |  ⚠️ Parcial  | Fase 1 (RAG `POST /api/chat`) + **Fase 2**: tools `consultar_disponibilidad`/`reservar_turno`/`consultar_mis_turnos`/`cancelar_turno` (`agent/tools.js`), tool loop y endpoints autenticados; `ChatWidget` con `apiFetch` (cookies), gate por `useSesion` e indicador de tools. **Fix aplicado (13-oct):** la conversación se persiste en `localStorage` scoped por usuario y se restaura el historial en mount. Faltan tests (CA-06.9). |
-| **CU-07 Google Calendar**          |  ⚠️ Parcial  | Cliente MCP (`mcp/client.js`), adapter (`mcp/google-calendar.js`), `integraciones` (service/controller/routes) y **servidor MCP externo** (`src/mcp/google-calendar/`, paquete autónomo con `googleapis`); sync en crear/cancelar/reprogramar con resiliencia. Falta la UI (`/configuracion/integraciones`). |
-| **CU-08 Ausencias**                | ✅ Funcional | Modelo `Bloqueo` + `GET/POST/DELETE /api/barberos/me/bloqueos`; `disponibilidad()` y alta/reprogramación descuentan bloqueos; `BloqueosManager` en `/panel` + estado `ausente`. **Migración aplicada (13-oct):** `add_bloqueos_y_notificaciones`. |
-| **CU-09 Fichas de Cliente**        | ✅ Funcional | `GET /api/clientes/buscar` y `/:id/historial` + página `/panel/clientes` (ficha, historial y edición de notas vía `PATCH /api/turnos/:id/notas`). **Ampliado:** ver "Vista de Clientes" abajo. |
-| **CU-10 Notificaciones**           | ✅ Funcional | Modelo `Notificacion` + `GET /api/notificaciones` y `PATCH /leer-todas` (y `/:id/leer`); turnos disparan notificaciones; `NotificationBell` en `Navbar`. **Migración aplicada (13-oct):** `add_bloqueos_y_notificaciones`. |
+| Spec | Estado | Justificación (1 línea) |
+| :--- | :----: | :---------------------- |
+| **000-arquitectura** | ✅ Implementada | `plan.md` con capas, modelo de datos completo, árbol de carpetas y decisiones; base de todas las specs. |
+| **001-registro-passkeys** | ✅ Implementada | 6 endpoints `/api/auth/*` (WebAuthn v14, cookie HttpOnly firmada) + login/registro en frontend con `useSesion`. **Fix (21-oct):** `verificarLogin` usaba `verificacion` antes de declararla (ReferenceError TDZ) — login 500 permanente desde `1b108e9`; restaurado el lookup de credencial en DB. |
+| **002-catalogo-servicios** | ✅ Implementada | CRUD con borrado lógico (`activo`) + `/servicios` con `ServicioCard`/`ServicioFormModal` (alta admin). |
+| **003-reserva-turnos** | ✅ Implementada | `POST /api/turnos` valida solapes, bloqueos y jornada laboral; `GET /api/barberos/:id/disponibilidad`; wizard `/reservar` completo. |
+| **004-gestion-turnos-cliente** | ✅ Implementada | `PATCH /api/turnos/:id/cancelar` y `/reprogramar` + `/mis-turnos` con próximos/historial filtrados por estado y fecha. |
+| **005-panel-barberos** | ✅ Implementada | `/api/barberos/me/*` + `/panel`; agenda excluye cancelados, cálculo en `America/Argentina/Buenos_Aires`, transiciones validadas (incl. `ausente`). Admin: agenda 30 días, filtro por barbero y bloqueos globales. |
+| **006-chatbot-langchain** | ⚠️ Parcial | RAG + 4 tools + tool loop (máx. 5 iteraciones) + `ChatWidget` con persistencia por usuario. **Faltan tests (CA-06.9)** y `datos_barberia.md` contradice el comportamiento real (ver Deuda #5). |
+| **007-sync-calendario-mcp** | ⚠️ Parcial | Cliente MCP (`mcp/client.js`), adapter, `integraciones` y servidor MCP autónomo; sync en crear/cancelar/reprogramar con resiliencia; UI en `/panel/configuracion`. Opt-in vía `MCP_CALENDAR_URL`. Del plan falta el endpoint de diagnóstico `/api/asistente/tools`. |
+| **008-gestion-disponibilidad** | ⚠️ Parcial | **Implementado:** modelo `Bloqueo`, CRUD `/api/barberos/me/bloqueos`, descuento en disponibilidad, `BloqueosManager`, estado `ausente`. **No implementado del plan:** `/api/barberos/me/horarios`, `/api/admin/feriados` (ni modelo `Feriado`) y el router `/api/disponibilidad` está vacío (404). |
+| **009-historial-visitas** | ⚠️ Parcial | **Implementado:** `/api/clientes/buscar`, `/api/clientes/:id/historial`, edición de notas vía `PATCH /api/turnos/:id/notas`. **No implementado del plan:** `/api/clientes/me/ficha` y `/api/clientes/:id/ficha` (campos preferencias/observaciones). |
+| **010-notificaciones-estado** | ⚠️ Parcial | **Implementado:** modelo `Notificacion`, listar/leer/leer-todas, disparo ante cambios de estado, `NotificationBell`. **No implementado del plan:** preferencias, recordatorios y proveedor de email. |
+| **011-metricas-dashboard** | ✅ Implementada | `GET /api/metricas` y `/api/barberos/me/metricas` (rangos opcionales) + `/panel/metricas`. |
+| **012-vista-clientes** | ✅ Implementada | `GET /api/clientes` con `_count.turnos` + resumen (tráfico/gasto) en historial; `/panel/clientes` con listado, filtro y ficha. |
 
-## Features nuevas (specs ODD)
+---
 
-| Feature                           |    Estado    | Justificación (1 línea)                                                                                                                                                                              |
-| :-------------------------------- | :----------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Vista de Clientes** (`spec-vista-clientes.md`) | ✅ Funcional | `GET /api/clientes` (listado con `_count.turnos`, orderBy nombre) + `resumen` (tráfico y gasto total) en `GET /api/clientes/:id/historial`; página `/panel/clientes` con listado, filtro/sort client-side y ficha con resumen. Commits `ed95d25` / `4fdd264`. |
-| **Dashboard de Métricas** (`spec-metricas-dashboard.md`) | ✅ Funcional | `GET /api/metricas` (admin-only): ingresos, ocupación de agenda y top servicios en rango de fechas opcional; página `/panel/metricas` + nav admin-only. Commits `1fcabb3` / `96d80fd`. |
-| **Panel Admin — Agenda 30 días**  | ✅ Funcional | Commit `d3cb5a1` (`Ampliacion_Agenda`): `rangoFechas` default extendido a 30 días, título "Agenda próxima (30 días)" y fecha legible (es-AR) en `TurnoPanelCard`. |
+## Correcciones aplicadas (21-oct-2026)
 
-## Hallazgos transversales
+- **fix(auth):** `backend/src/services/auth.service.js:151` — restaurado `usuario.credenciales.find((c) => c.credentialId === body.response.id)` en `verificarLogin`. El commit `1b108e9` lo había reemplazado por `verificacion.registrationInfo.credential`, usándolo antes de declarar la variable (TDZ → ReferenceError → 500 en todo login).
+- **test(auth):** nuevo `backend/src/tests/auth.test.js` (4 tests: happy path con actualización de counter, 404 sin usuario, 400 sin challenge, 400 con credencial ajena). Suite total: **8/8 en verde**.
+- **fix(api):** contrato de errores unificado `{ error: true, message }` en los últimos 2 emisores del shape viejo del contrato REST: `middlewares/notFound.middleware.js` y `controllers/integraciones.controller.js`.
+- **chore(repo):** eliminado `odd/` (tracking del flujo ODD/RDD pre-Spec-Kit, obsoleto), `.atl/`, `.gitkeep` residuales en carpetas con contenido, carpetas vacías `repositories/` y `types/`, y `.env` de raíz (redundante con `backend/.env`). `make-admin.ts` movido a `backend/scripts/`.
 
-- **Migraciones aplicadas (13-oct):** se creó y registró `20261013120000_add_bloqueos_y_notificaciones` (tablas `bloqueos`/`notificaciones`, índices, FKs y enum `ausente`). Las tablas ya existían en runtime desde antes (verificadas: `bloqueos` 0 filas / `notificaciones` 22 filas) y la migración se marcó como aplicada **sin ejecutar SQL destructivo ni reset** (ruta segura frente al reset que habría pedido `migrate dev` por drift). `prisma migrate status` → **2 migraciones, up to date**. En una base nueva, `prisma migrate deploy` crea todo desde `init`.
-- **Review nativa RDD:** los slices de `metricas-dashboard` y `ampliacion-agenda` se cerraron por **aprobación humana explícita** (13-oct) salteando la revisión nativa: el lifecycle no es ingresable en este runtime (`immutable_review_transport_unsupported`). No quedó acción pendiente. Ver `odd/tasks/metricas-dashboard.md` y `odd/tasks/ampliacion-agenda.md`.
-- **Endpoints Vacíos (Stubs):** solo `/api/disponibilidad` sigue siendo un Router vacío (404). `clientes`, `notificaciones` e `integraciones` ya están implementados.
-- **Modelo de datos:** `Usuario`, `Barbero`, `Bloqueo`, `Servicio`, `Turno` (con `notas` y `googleEventId`), `CredencialPasskey`, `Notificacion`.
-- **CU-07:** la integración es **opt-in**: sin `MCP_CALENDAR_URL` queda deshabilitada y los turnos se persisten igual (sync "pendiente" = `googleEventId` null). El backend actúa como cliente MCP y **no** llama a la API de Google directamente (cliente MCP con `fetch` de Node 18+, sin dependencias nuevas). El servidor MCP externo vive en `backend/src/mcp/google-calendar/` como **paquete autónomo** (su propio `package.json`), preservando el aislamiento (CA-07.7 / SDD "MCP encapsulado").
-- **CU-05:** el cambio de estado (`PATCH /api/turnos/:id/estado`) valida transiciones e incorpora `ausente`; el panel de barberos ya lo consume.
-- **Tests:** 0 archivos de test en el repo → deuda transversal que afecta el DoD (Definition of Done) de todos los CU. Pendiente por decisión explícita (no se escriben tests en esta etapa).
+---
 
-**Resumen:** 10 CUs completos (CU-01→05, CU-08, CU-09, CU-10 + features Vista de Clientes, Métricas y Agenda 30 días) y 2 parciales (CU-06, CU-07). Sin CU pendientes. Migraciones al día (2/2). Fuente: rama `feature/clientes` (`d3cb5a1`), sin cambios pendientes en working tree.
+## Deuda técnica conocida
+
+1. **`tasks.md` ausente en las 13 features** — se ejecutaron `/speckit.specify` y `/speckit.plan`, pero no `/speckit.tasks` ni `/speckit.implement`. No se hace backfill (features ya implementadas); el pipeline completo es obligatorio desde la próxima feature.
+2. **Doble sistema de validación** — `utils/validators.js` (imperativo, lanza `AppError`, usado por 8 services) y `utils/validation.js` (zod, usado por 2 controllers). Mismo dato validado dos veces con dos shapes de error distintos. Pendiente de unificar.
+3. **`VENTANA_CANCELACION_HORAS=0`** (sin límite de cancelación) contradice la política de "mínimo 2 horas" documentada en `datos_barberia.md`.
+4. **Seed incompleto vs catálogo documentado** — `prisma/seed.js` siembra 4 de 6 servicios (faltan Corte Niño y Coloración) y 2 de 3 barberos (falta Tomás). Además el modelo de un único horario por barbero no representa el horario corto de sábado (10-18) del documento de negocio.
+5. **`datos_barberia.md` contradice al chatbot** — el documento (fuente del RAG) afirma que el asistente "NO puede crear ni cancelar turnos", pero las tools `reservar_turno` y `cancelar_turno` (`agent/tools.js`) sí lo hacen. Requiere decisión: actualizar el documento o restringir el prompt.
+6. **`/api/disponibilidad`** — router vacío montado en el app (responde 404). Candidato a eliminar o implementar.
+7. **Cobertura de tests** — 8 tests sobre services de turnos y auth; sin tests de controllers, middlewares, agent, integraciones ni frontend.
+8. **Encoding dañado (mojibake)** residual en algunos archivos (p. ej. `backend/scripts/make-admin.ts`, `backend/src/tests/turnos.test.js`).
+
+---
+
+## Estado de infraestructura (verde)
+
+- **Migraciones Prisma:** 2/2 aplicadas y up to date (`init` + `add_bloqueos_y_notificaciones`).
+- **Contrato de errores:** uniforme `{ error: true, message }` en toda la API REST; el frontend lo consume vía `ApiError` en `lib/api/client.ts`.
+- **MCPs:** `postgres-local` (stdio, solo lectura) y `google-calendar` (HTTP, paquete autónomo) implementados, con script npm y declarados en `opencode.json`.
+- **Scripts npm:** backend y frontend verificados, sin targets rotos.
+- **Rutas backend:** 12 módulos registrados en `routes/index.js`, sin imports rotos.
+- **Especificaciones:** 13 features con `spec.md` + `plan.md` completos y coherentes con sus contratos implementados (008/009/010 marcadas Partial por contratos del plan aún no implementados).
+
+---
+
+**Resumen:** 8 specs completas (000-005, 011, 012) y 5 parciales (006-010). Sin specs sin implementar. Última auditoría: 21-oct-2026 sobre `ba699d4` + fixes de auth/contrato y limpieza de repo en working tree (sin commitear).

@@ -19,14 +19,15 @@ Proyecto_Barberia/
 │   │   ├── agent/           # LangChain: tools.js, prompts.js
 │   │   └── mcp/             # Cliente MCP + servidores MCP
 │   ├── prisma/              # schema.prisma + migrations
-│   └── scripts/ingest.js    # Construcción del índice vectorial (RAG)
+│   └── scripts/
+│       ├── ingest.js        # Construcción del índice vectorial (RAG)
+│       └── make-admin.ts    # Ascenso de un usuario a administrador
 ├── frontend/                # Next.js (App Router) + Tailwind
 │   └── src/
 │       ├── app/             # Rutas
 │       ├── components/      # UI por dominio (auth, turnos, chat, panel, layout)
 │       └── lib/             # api/ y hooks/
-├── specs/                   # Especificaciones SDD + SDD.md + index.md
-├── odd/tasks/               # Tracking de ejecución por feature
+├── specs/                   # Especificaciones Spec Kit (index.md + NNN-<feature>/)
 ├── .opencode/               # Configuración nativa de OpenCode (agents, skills)
 └── opencode.json            # MCPs del proyecto
 ```
@@ -59,8 +60,7 @@ Tipos: `feat`, `fix`, `chore`, `refactor`, `docs`, `test`, `perf`.
 
 ## Variables de entorno
 
-- **Raíz `.env`**: config del asistente (`LLM_PROVIDER`, `LLM_MODEL`, `GROQ_API_KEY`).
-- **`backend/.env`**: config del backend (`DATABASE_URL`, `SESSION_SECRET`, `WEBAUTHN_*`, `MCP_CALENDAR_*`).
+- **`backend/.env`**: única fuente de configuración — backend (`DATABASE_URL`, `SESSION_SECRET`, `WEBAUTHN_*`, `MCP_CALENDAR_*`) y asistente (`LLM_PROVIDER`, `LLM_MODEL`, `GROQ_API_KEY`, `ASISTENTE_*`). No existe `.env` en la raíz.
 - **Nunca** hardcodees secretos, tokens ni URLs de base de datos.
 - **Nunca** commitees `.env`, `google-credentials.json` ni `backend/data/`.
 
@@ -68,7 +68,7 @@ Tipos: `feat`, `fix`, `chore`, `refactor`, `docs`, `test`, `perf`.
 
 - Runner del backend: `node --test` → `cd backend; npm test`.
 - Cada endpoint nuevo: **un test de caso feliz y un test de caso de error**.
-- Estado actual: 0 tests en el repo — es deuda técnica conocida, afecta el DoD de todos los CU.
+- Estado actual: 8 tests (`src/tests/turnos.test.js` + `src/tests/auth.test.js`), todos en verde. Cobertura parcial: services de turnos y `verificarLogin`; faltan tests de controllers, middlewares y el resto de los services.
 
 ## MCPs disponibles
 
