@@ -74,14 +74,14 @@ Los clientes se autentican con **Passkeys (WebAuthn)** — sin contraseñas — 
 | **CU-02** | Catálogo de servicios | Listado público de servicios (nombre, duración, precio). CRUD completo con borrado lógico para administradores. | `backend/src/services/servicios.service.js` · `/servicios` |
 | **CU-03** | Reserva de turnos | Wizard de 4 pasos (servicio → barbero → fecha/hora → confirmación). Valida disponibilidad, solapes, bloqueos y jornada laboral. | `backend/src/services/turnos.service.js` · `/reservar` |
 | **CU-04** | Gestión de turnos (Cliente) | "Mis Turnos": próximos y historial, con cancelación y reprogramación propias. | `/mis-turnos` · `PATCH /api/turnos/:id/cancelar` |
-| **CU-05** | Panel de Barberos | Agenda del día (y próximos 30 días), cambio de estado de turnos (confirmado, en curso, completado, ausente, cancelado) y gestión de bloqueos. | `/panel` · `backend/src/services/barberos.service.js` |
+| **CU-05** | Panel de Barberos | Agenda del día (y próximos 30 días), cambio de estado de turnos (`pendiente`, `confirmado`, `completado`, `ausente`, `cancelado`) y gestión de bloqueos. | `/panel` · `backend/src/services/barberos.service.js` |
 | **CU-06** | Asistente Inteligente (Chatbot) | Chat en la esquina inferior de la UI. Agente **LangChain** con RAG sobre el catálogo y 4 tools (`consultar_disponibilidad`, `reservar_turno`, `consultar_mis_turnos`, `cancelar_turno`). | `backend/src/agent/` · `backend/src/services/asistente.service.js` |
 | **CU-07** | Sincronización de Calendario (MCP) | Alta, baja y modificación de eventos en Google Calendar al crear/cancelar/reprogramar turnos, vía servidor MCP externo. Integración *opt-in*. | `backend/src/mcp/` · `backend/src/services/integraciones.service.js` · `/panel/configuracion` |
 | **CU-08** | Gestión de Disponibilidad (Bloqueos) | Los barberos bloquean franjas (ausencias, almuerzo, etc.). Los bloqueos descontán de la disponibilidad y de la reserva. | `backend/src/services/barberos.service.js` · `BloqueosManager` en `/panel` |
-| **CU-09** | Historial de Visitas | Ficha completa de cliente por parte del staff: turnos pasados, total gastado, última visita y notas. | `/panel/clientes` · `GET /api/clientes/:id/historial` |
+| **CU-09** | Historial de Visitas | Ficha de cliente para staff: turnos pasados, total gastado, última visita y notas. Preferencias y endpoints `/me` pendientes. | `/panel/clientes` · `GET /api/clientes/:id/historial` |
 | **CU-10** | Notificaciones de Estado | Notificaciones in-app al cliente y al barbero ante altas, cancelaciones y cambios de estado. Campanita en el navbar. | `backend/src/services/notificaciones.service.js` · `NotificationBell` |
 
-> **Estado actual:** todos los CU funcionales. Detalle por CU en [`ESTADO.md`](./ESTADO.md). Especificaciones técnicas completas en [`specs/`](./specs/).
+> **Estado actual:** CU-01 a CU-05 completos; CU-06 a CU-10 parciales (ver deuda en [`ESTADO.md`](./ESTADO.md)); métricas y vista de clientes implementadas. Detalle por CU en [`ESTADO.md`](./ESTADO.md). Especificaciones técnicas completas en [`specs/`](./specs/).
 
 ---
 
@@ -99,7 +99,7 @@ Requerimientos → Specs → Código → Testing
 ```
 
 1. **Requerimientos:** la especificación se escribe y aprueba **antes** de codificar.
-2. **Specs:** cada feature tiene dos artefactos en [`specs/NNN-<feature>/`](./specs/) — `spec.md` (el "qué": historias, requisitos, criterios de aceptación) y `plan.md` (el "cómo": endpoints, componentes, decisiones técnicas). Son 13 features: arquitectura + CU-01 a CU-10 + métricas y vista de clientes.
+2. **Specs:** cada feature tiene tres artefactos en [`specs/NNN-<feature>/`](./specs/) — `spec.md` (el "qué": historias, requisitos, criterios de aceptación), `plan.md` (el "cómo": endpoints, componentes, decisiones técnicas) y `tasks.md` (tareas atómicas y evidencia). Son 14 entradas de especificación: 13 de negocio/proyecto (arquitectura + CU-01 a CU-10 + métricas y vista de clientes) y la mejora transversal 013 del pie de página.
 3. **Código:** la implementación respeta el contrato de la spec sin campos ni endpoints inventados.
 4. **Testing / auditoría:** verificación contra los criterios de aceptación; el estado real se audita en [`ESTADO.md`](./ESTADO.md).
 
@@ -114,19 +114,19 @@ Reglas de corrección (ciclos de reintento): si un gate falla, se **detiene la c
 | [`.instructions.md`](./.instructions.md) | "Reglas de Oro": spec antes que código, stack fijo (LangChain + MCP), contratos primero, testing obligatorio, y la tabla de acciones ante situaciones de error (incluye el ciclo de autocorrección). |
 | [`.specify/memory/constitution.md`](./.specify/memory/constitution.md) | Constitución del proyecto: principios rectores, los 4 gates del flujo, restricciones técnicas y roles con herencia. Es la autoridad metodológica. |
 | [`specs/000-arquitectura/plan.md`](./specs/000-arquitectura/plan.md) | Spec maestra de arquitectura: capas, modelo de datos completo, árbol de carpetas y decisiones con trade-offs. |
-| [`specs/NNN-<feature>/tasks.md`](./specs/) | Tracking de tareas por feature (pipeline `/speckit.tasks`). Las features 001-012 se implementaron sin `tasks.md` — deuda documentada en `ESTADO.md`. |
+| [`specs/NNN-<feature>/tasks.md`](./specs/) | Tracking de tareas por feature. Los 13 `tasks.md` de 000-012 fueron reconstruidos en el backfill documental del 26-oct-2026; `013-footer-anio` se creó antes de implementar. `[x]` solo indica evidencia verificable y `[ ]` deuda o verificación pendiente. |
 
 ### Prompts clave
 
 Los prompts del asistente están centralizados en:
 
-- **`backend/src/agent/prompts.js`** — `PROMPT_AGENTE` (system prompt con contexto RAG y catálogo vivo de servicios/barberos) y el template del RAG en Python (`PROMPT_TEMPLATE`).
+- **`backend/src/agent/prompts.js`** — `PROMPT_AGENTE` (system prompt con contexto RAG y catálogo vivo de servicios/barberos) y el template del RAG (`PROMPT_TEMPLATE`).
 - **`backend/src/agent/tools.js`** — definición de las 4 tools (schema function-calling + ejecución delegada en services).
 - **`backend/src/services/asistente.service.js`** — orquestación: retriever, construcción de mensajes y el **tool loop con autocorrección** (máximo 5 iteraciones de ejecución de tools + re-invocación del LLM).
 
 ### Iteración y evidencia
 
-- Historial de iteraciones por feature: `specs/NNN-<feature>/tasks.md` (progreso, riesgos, verificaciones — desde la próxima feature).
+- Historial de tareas por feature: `specs/NNN-<feature>/tasks.md` (backfill 26-oct-2026 para 000-012; ciclo completo en 013; las verificaciones pendientes quedan en `[ ]`).
 - Commits convencionales (`feat:`, `fix:`, `chore:`) trazables en el historial de git.
 - Auditorías de estado fechadas en `ESTADO.md`.
 
@@ -289,7 +289,7 @@ cd backend
 npm test
 ```
 
-Actualmente se incluyen tests básicos de autorización sobre turnos: un cliente solo ve sus propios turnos, un administrador ve todos, y un barbero no puede cancelar el turno de otro barbero (prevención de IDOR horizontal).
+Actualmente la suite incluye 8 tests: 4 de autenticación (`auth.test.js`) y 4 de turnos (`turnos.test.js`), entre ellos la autorización por propietario y la prevención de IDOR horizontal. No hay tests de controllers, middlewares, agente, integraciones ni frontend (ver deuda en `ESTADO.md`).
 
 
 ## Variables de entorno
@@ -357,8 +357,8 @@ Proyecto_Barberia/
 │   └── requirements.txt            # Dependencias Python del prototipo
 ├── specs/                          # Especificaciones Spec Kit
 │   ├── index.md                    # Mapa maestro de specs
-│   ├── 000-arquitectura/           # Spec + plan de arquitectura maestra
-│   └── NNN-<feature>/              # spec.md (qué) + plan.md (cómo) por feature
+│   ├── 000-arquitectura/           # Spec + plan + tasks de arquitectura maestra
+│   └── NNN-<feature>/              # spec.md (qué) + plan.md (cómo) + tasks.md por feature
 ├── .specify/                       # Spec Kit: constitución, templates, scripts
 ├── .opencode/                      # Configuración nativa de OpenCode
 │   ├── agents/                     # Roles de la IA (Tech Lead, Backend, Frontend)
@@ -427,7 +427,7 @@ PostgreSQL vía Prisma (`backend/prisma/schema.prisma`):
 | `CredencialPasskey` | Credenciales WebAuthn asociadas al usuario (credential ID, counter) |
 | `Barbero` | Perfil operativo: especialidad, días laborales, horario. Relación 1:1 con `Usuario` |
 | `Servicio` | Catálogo: nombre, descripción, duración, precio. Borrado lógico vía `activo` |
-| `Turno` | Reserva: fecha/hora, estado (`pendiente` → `confirmado` → `en_curso` → `completado` / `cancelado` / `ausente`), `notas`, `googleEventId` para la sync de Calendar |
+| `Turno` | Reserva: fecha/hora, estado (`pendiente`, `confirmado`, `completado`, `cancelado`, `ausente`), `notas`, `googleEventId` para la sync de Calendar |
 | `Bloqueo` | Ausencia/franja bloqueada de un barbero (CU-08) |
 | `Notificacion` | Notificación in-app dirigida a un usuario (CU-10) |
 

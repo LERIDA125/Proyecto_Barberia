@@ -29,6 +29,9 @@ const MENSAJE_ERROR =
 const MENSAJE_SESION_EXPIRADA =
   "Tu sesión expiró. Iniciá sesión nuevamente para seguir chateando.";
 
+const MENSAJE_ERROR_REINICIO =
+  "No se pudo iniciar una nueva conversación. Intentá nuevamente en unos segundos.";
+
 const CLAVE_SESION_CHAT = "barberia:chat:sesionId";
 
 const ETIQUETA_HERRAMIENTA: Record<string, string> = {
@@ -89,6 +92,24 @@ function IconoEnviar() {
     >
       <path d="m22 2-7 20-4-9-9-4 20-7z" />
       <path d="M22 2 11 13" />
+    </svg>
+  );
+}
+
+function IconoReiniciar() {
+  return (
+    <svg
+      aria-hidden
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-4 w-4"
+    >
+      <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
+      <path d="M3 3v5h5" />
     </svg>
   );
 }
@@ -176,6 +197,7 @@ export function ChatWidget() {
   const [mensajes, setMensajes] = useState<Mensaje[]>([BIENVENIDA]);
   const [texto, setTexto] = useState("");
   const [cargando, setCargando] = useState(false);
+  const [reiniciando, setReiniciando] = useState(false);
   const [sesion, setSesion] = useState<{ id: string; usuarioId: string } | null>(null);
 
   const siguienteId = useRef(1);
@@ -298,6 +320,53 @@ export function ChatWidget() {
     }
   }
 
+  async function reiniciarConversacion() {
+    if (reiniciando || cargando || !usuario) return;
+
+    const confirmado = window.confirm(
+      "¿Iniciar una nueva conversación? Se borrará el historial de este chat.",
+    );
+    if (!confirmado) return;
+
+    const sesionActual =
+      sesion && sesion.usuarioId === usuario.id ? sesion.id : null;
+
+    setReiniciando(true);
+
+    try {
+      if (sesionActual) {
+        await apiFetch<{ ok: boolean }>(
+          `/api/asistente/historial?sesionId=${encodeURIComponent(sesionActual)}`,
+          { method: "DELETE" },
+        );
+      }
+
+      try {
+        window.localStorage.removeItem(`${CLAVE_SESION_CHAT}:${usuario.id}`);
+      } catch {
+        // almacenamiento no disponible
+      }
+
+      setSesion(null);
+      setMensajes([BIENVENIDA]);
+      siguienteId.current = 1;
+      setTexto("");
+    } catch (err) {
+      const mensaje =
+        err instanceof ApiError && err.status === 401
+          ? MENSAJE_SESION_EXPIRADA
+          : err instanceof ApiError && err.message
+            ? err.message
+            : MENSAJE_ERROR_REINICIO;
+      setMensajes((prev) => [
+        ...prev,
+        { id: siguienteId.current++, rol: "asistente", texto: mensaje },
+      ]);
+    } finally {
+      setReiniciando(false);
+    }
+  }
+
   function manejarTeclas(event: KeyboardEvent<HTMLTextAreaElement>) {
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
@@ -348,6 +417,23 @@ export function ChatWidget() {
                 {usuario ? "En línea" : "Sin sesión"}
               </p>
             </div>
+            {usuario && (
+              <button
+                type="button"
+                onClick={() => void reiniciarConversacion()}
+                disabled={cargando || reiniciando}
+                aria-label={
+                  reiniciando
+                    ? "Reiniciando conversación"
+                    : "Iniciar nueva conversación"
+                }
+                aria-busy={reiniciando}
+                title="Iniciar nueva conversación"
+                className="rounded-full p-1.5 text-muted transition-colors hover:bg-foreground/10 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <IconoReiniciar />
+              </button>
+            )}
             <button
               type="button"
               onClick={() => setAbierto(false)}

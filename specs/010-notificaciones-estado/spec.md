@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-20
 
-**Status**: Implemented
+**Status**: Partial — notificaciones in-app implementadas; preferencias, recordatorios y email pendientes. Ver `ESTADO.md` y `tasks.md`.
 
 **Input**: User description: "CU-10 — Notificaciones y recordatorios: notificar a los actores cuando cambia el estado de un turno y enviar recordatorios previos a la cita, de forma interna y por email."
 

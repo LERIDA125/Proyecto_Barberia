@@ -1,7 +1,8 @@
 # Auditoría de Implementación — Sistema Barbería
 
-**Fecha de actualización:** 21 de octubre de 2026
-**Metodología:** GitHub Spec Kit — features en `specs/NNN-nombre/` (spec.md + plan.md).
+**Fecha de actualización:** 26 de octubre de 2026
+**Metodología:** GitHub Spec Kit — features en `specs/NNN-nombre/` (spec.md + plan.md + tasks.md).
+**Backfill documental:** el 26-oct-2026 se reconstruyeron los `tasks.md` de las 13 features a partir de spec, plan, código y esta auditoría. Ese backfill **no** demuestra uso histórico de Spec Kit: los primeros commits de código precedieron a los specs. A partir de ahora el pipeline completo es obligatorio.
 **Numeración antigua:** el código "CU-01…CU-10" corresponde a las specs `001…010` (misma numeración).
 
 ---
@@ -35,9 +36,18 @@
 
 ---
 
+## Mejora SDD aplicada (26-oct-2026)
+
+- **fix(frontend):** `frontend/src/components/layout/Footer.tsx` — reemplazado `useState` + `useEffect` por `useSyncExternalStore` con snapshot de servidor de respaldo. Elimina el error `react-hooks/set-state-in-effect` y evita el error de prerender de `new Date()` en Next.js 16.
+- **Verificación:** lint con 0 errores (3 advertencias preexistentes), typecheck sin errores, build de producción completado en copia aislada con Turbopack y HTML verificado por HTTP (año 2026 y tres enlaces).
+- **Limitación:** el build dentro del repositorio no completó en el intento (timeout); el servidor de desarrollo activo comparte `.next`. Se validó en una copia aislada.
+- **Trazabilidad:** `specs/013-footer-anio/` y `docs/sdd/REGISTRO_MEJORAS_SDD.md`.
+
+---
+
 ## Deuda técnica conocida
 
-1. **`tasks.md` ausente en las 13 features** — se ejecutaron `/speckit.specify` y `/speckit.plan`, pero no `/speckit.tasks` ni `/speckit.implement`. No se hace backfill (features ya implementadas); el pipeline completo es obligatorio desde la próxima feature.
+1. **`tasks.md` reconstruidos (backfill documental, 26-oct-2026)** — se ejecutaron `/speckit.specify` y `/speckit.plan` antes de los `tasks.md`; los 13 archivos se reconstruyeron retrospectivamente desde spec, plan, código y esta auditoría. El backfill no sustituye el uso histórico de `/speckit.tasks`; el pipeline completo se aplicó en `013-footer-anio` y es obligatorio en adelante. Además, muchas tareas de prueba siguen `[ ]` porque no hay evidencia de ejecución.
 2. **Doble sistema de validación** — `utils/validators.js` (imperativo, lanza `AppError`, usado por 8 services) y `utils/validation.js` (zod, usado por 2 controllers). Mismo dato validado dos veces con dos shapes de error distintos. Pendiente de unificar.
 3. **`VENTANA_CANCELACION_HORAS=0`** (sin límite de cancelación) contradice la política de "mínimo 2 horas" documentada en `datos_barberia.md`.
 4. **Seed incompleto vs catálogo documentado** — `prisma/seed.js` siembra 4 de 6 servicios (faltan Corte Niño y Coloración) y 2 de 3 barberos (falta Tomás). Además el modelo de un único horario por barbero no representa el horario corto de sábado (10-18) del documento de negocio.
@@ -55,8 +65,8 @@
 - **MCPs:** `postgres-local` (stdio, solo lectura) y `google-calendar` (HTTP, paquete autónomo) implementados, con script npm y declarados en `opencode.json`.
 - **Scripts npm:** backend y frontend verificados, sin targets rotos.
 - **Rutas backend:** 12 módulos registrados en `routes/index.js`, sin imports rotos.
-- **Especificaciones:** 13 features con `spec.md` + `plan.md` completos y coherentes con sus contratos implementados (008/009/010 marcadas Partial por contratos del plan aún no implementados).
+- **Especificaciones:** 14 entradas con `spec.md` + `plan.md` + `tasks.md`: 13 features preexistentes (000-012, backfill 26-oct-2026) y la mejora transversal `013-footer-anio` (ciclo completo). 008/009/010 siguen marcadas Partial por contratos del plan aún no implementados.
 
 ---
 
-**Resumen:** 8 specs completas (000-005, 011, 012) y 5 parciales (006-010). Sin specs sin implementar. Última auditoría: 21-oct-2026 sobre `ba699d4` + fixes de auth/contrato y limpieza de repo en working tree (sin commitear).
+**Resumen:** 8 specs completas de negocio (000-005, 011, 012), 1 mejora transversal implementada (013) y 5 parciales (006-010). Sin specs sin implementar. Última auditoría: 21-oct-2026 sobre `ba699d4` + fixes de auth/contrato y limpieza de repo en working tree (sin commitear). Backfill de `tasks.md`, normalización documental y mejora 013: 26-oct-2026.

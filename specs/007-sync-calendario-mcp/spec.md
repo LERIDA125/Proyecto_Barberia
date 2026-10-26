@@ -102,7 +102,7 @@ Un administrador ve el estado de la conexión y puede forzar la sincronización 
 
 - Alcance: crear, actualizar, consultar y eliminar eventos; registrar el identificador de evento en el turno.
 - Fuera de alcance: múltiples proveedores de calendario e invitaciones por email a clientes.
-- Estado actual: parcial; el MVP de reserva persiste turnos sin sincronización (identificador de evento nulo). El caso de uso está en borrador de implementación.
-- Se dispone de credenciales OAuth 2.0 de la cuenta de la barbería y del calendario destino.
-- Existe el servidor MCP externo de Google Calendar (transporte SSE/HTTP, con stdio como alternativa de desarrollo).
+- Estado actual: parcial; el cliente, el adapter, el servicio de integración, los endpoints administrativos y el servidor MCP están presentes en código. La sincronización se invoca al crear, cancelar y reprogramar, y degrada a pendiente si la integración falla. No hay evidencia registrada de creación, actualización o eliminación real de eventos ni de reconexión end-to-end.
+- Se asume que existen credenciales válidas de Google Calendar (cuenta de servicio o OAuth con refresh token), provistas fuera del repositorio; su validez no está verificada por esta especificación.
+- El servidor MCP de Calendar forma parte del repositorio y se ejecuta como proceso separado; su disponibilidad no está garantizada.
 - Los flujos de creación/reprogramación/cancelación dependen de CU-03 y CU-04.

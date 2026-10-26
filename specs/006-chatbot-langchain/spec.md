@@ -105,6 +105,6 @@ Un cliente lista, cancela sus turnos por chat y conserva/reinicia el historial d
 
 - Alcance: agente, tools, memoria y endpoints de chat.
 - Fuera de alcance: voz, multiidioma, acciones administrativas por chat.
-- Estado actual: backend de la fase 1 (RAG de consulta) y de la fase 2 (tools de reserva y tool loop) implementados; pendientes la UI del widget (credenciales y render de tools) y los tests de CA-06.9.
+- Estado actual: el backend de la fase 1 (RAG de consulta) y de la fase 2 (tools de reserva y tool loop) está presente en código; la interfaz de chat está integrada en la aplicación y exige sesión autenticada. No existen tests de CA-06.9 ni evidencia de ejecución end-to-end que demuestre que el RAG responde correctamente o que las tools se ejecutan con el proveedor real.
 - El cliente está autenticado (ver 001-registro-passkeys) y existen los services de reservas/servicios/turnos (CU-02, CU-03, CU-04).
 - Se dispone de un proveedor de lenguaje configurable (definido por el Tech Lead) y de la base de conocimiento del local.

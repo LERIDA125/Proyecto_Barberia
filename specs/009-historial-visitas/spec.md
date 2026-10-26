@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-20
 
-**Status**: Implemented
+**Status**: Partial — historial y ficha staff implementados; endpoints `/me`, filtros y contadores del plan pendientes. Ver `ESTADO.md` y `tasks.md`.
 
 **Input**: User description: "CU-09 — Registro histórico de turnos y preferencias: el cliente consulta el historial de sus visitas y el barbero/admin ve la ficha e historial de un cliente."
 

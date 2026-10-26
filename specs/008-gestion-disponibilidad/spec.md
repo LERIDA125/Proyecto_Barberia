@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-20
 
-**Status**: Implemented
+**Status**: Partial — bloqueos implementados; horarios laborales configurables, feriados y `/api/disponibilidad` pendientes. Ver `ESTADO.md` y `tasks.md`.
 
 **Input**: User description: "CU-08 — Motor de disponibilidad, bloqueos y excepciones: definir y gestionar las reglas que determinan qué franjas horarias están disponibles para reservar (horarios laborales por barbero, bloqueos puntuales y feriados)."
 
