@@ -6,7 +6,7 @@
 
 ## Summary
 
-Asistente conversacional con LangChain.js: fase 1 RAG de consulta (servicios, precios, horarios) sobre un archivo de conocimiento Markdown; fase 2 tool calling real sobre los services del backend con `usuarioId` de sesión, confirmación antes de escrituras y resiliencia. Pendientes: UI del widget (credenciales + render de tools) y tests (CA-06.9).
+Asistente conversacional con LangChain.js: fase 1 RAG de consulta (servicios, precios, horarios) sobre un archivo de conocimiento Markdown; fase 2 tool calling real sobre los services del backend con `usuarioId` de sesión, confirmación antes de escrituras y resiliencia. `ChatWidget` está integrado; el incremento `014-chat-reinicio-conversacion` completa desde la UI el reinicio de historial requerido por FR-008. Siguen pendientes los tests del agente (CA-06.9) y las verificaciones end-to-end.
 
 ## Arquitectura de la Integración (LangChain ⇄ Backend)
 

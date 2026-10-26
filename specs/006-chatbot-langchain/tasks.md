@@ -42,6 +42,8 @@
 - [ ] **T030** Implementar el límite de uso `429` previsto en `plan.md`. Verificar si existe rate limiting real.
 - [ ] **T031** Verificar que el `delete` del historial limpie efectivamente la conversación en el backend y en la UI.
 
+> **Relación con 014:** la acción de reinicio en `ChatWidget` y los tests de propiedad/borrado del historial se implementan y registran en [`../014-chat-reinicio-conversacion/`](../014-chat-reinicio-conversacion/). T031 y T040 continúan pendientes hasta contar con verificación end-to-end de la UI; no duplican el alcance de implementación de 014.
+
 ## Fase 3 — Integración
 
 - [x] **T032** Conectar el widget con `POST /api/asistente/mensaje` usando cookies de sesión.

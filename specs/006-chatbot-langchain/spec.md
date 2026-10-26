@@ -81,6 +81,8 @@ Un cliente lista, cancela sus turnos por chat y conserva/reinicia el historial d
 - **FR-010**: El sistema MUST exigir autenticación para las capacidades de reserva y gestión de turnos.
 - **FR-011**: Las tools del asistente MUST reutilizar los services del backend, sin reimplementar validaciones.
 
+> **Trazabilidad de FR-008:** el incremento `014-chat-reinicio-conversacion` completa la acción de reinicio desde la UI reutilizando el contrato existente de historial. No duplica ni reemplaza FR-008; `006` permanece `Partial` mientras sigan pendientes sus pruebas del agente y verificaciones end-to-end.
+
 ### Key Entities
 
 - **Conversación**: historial de mensajes entre el cliente y el asistente, acotado a una sesión.

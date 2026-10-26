@@ -137,3 +137,47 @@ Limitación: no se verificó la hidratación en un navegador real; el HTML servi
 - `specs/index.md` — índice y trazabilidad.
 - `docs/sdd/ESTADO_DOCUMENTACION_SDD.md` — inventario documental actualizado.
 - `ESTADO.md` — estado del proyecto actualizado.
+
+---
+
+## 9. Ciclo SDD 014 — Reinicio de conversación
+
+**Fecha:** 2026-10-26
+**Feature:** `014-chat-reinicio-conversacion`
+**Relación:** incremento de `FR-008` en `006-chatbot-langchain`; no duplica ni reemplaza el requisito original.
+
+### Estado recuperado y cambios
+
+El commit existente `752ec9f` ya incluía la acción inicial del widget, los tests de historial y los artefactos de especificación 014. La revisión del código identificó que el error del API podía mostrarse directamente en el chat y que una restauración pendiente podía competir con el borrado. Los cambios posteriores:
+
+- hacen genéricos los errores del reinicio salvo el mensaje fijo de `401`;
+- bloquean eventos concurrentes antes del siguiente render y el envío durante el reinicio;
+- consideran el identificador de `localStorage` del usuario actual mientras el historial se está restaurando;
+- invalidan la restauración pendiente solo después de confirmar el éxito `{ ok: true }`;
+- actualizan la relación explícita con FR-008, los estados y las tareas sin marcar como terminada la verificación manual.
+
+No se modificaron el contrato API, dependencias, modelos, servicios de turnos, Google Calendar, RAG ni tools del agente.
+
+### Verificación ejecutada
+
+| Comando | Resultado |
+|---|---|
+| `npm test` desde `backend/` | Aprobado: 14 tests, 14 pass, 0 fail; incluye lectura/borrado propio, 403 de lectura/borrado ajeno con archivo conservado e historial ausente. El directorio temporal se elimina con `test.after`. |
+| `npm run lint` desde `frontend/` | Código de salida 0: 0 errores y 3 advertencias ya existentes en `mis-turnos/page.tsx` y `TurnoCard.tsx`. |
+| `npx tsc --noEmit` desde `frontend/` | Aprobado: sin errores. |
+| `git diff --check` | Aprobado sin errores de whitespace. |
+
+### Limitaciones
+
+- No se probó la interacción en navegador real; no se afirma que hidratación o UX se hayan verificado manualmente.
+- No se ejecutó `npm run build`: se identificaron procesos activos en `:3000` (Node y Docker) y `:3001` (Node/Next dev). No se detuvieron porque el servidor de desarrollo debía estar detenido y no correspondía interferir con procesos activos.
+- `006-chatbot-langchain` continúa `Partial` por pruebas de agente/tools y verificaciones end-to-end pendientes. `014` también queda `Partial` hasta la verificación manual del widget.
+
+### Archivos del ciclo 014
+
+- `frontend/src/components/chat/ChatWidget.tsx`
+- `backend/src/tests/asistente.historial.test.js` (incluido en el commit existente)
+- `specs/006-chatbot-langchain/{spec,plan,tasks}.md`
+- `specs/014-chat-reinicio-conversacion/{spec,plan,tasks}.md`
+- `specs/index.md`, `ESTADO.md`, `README.md`
+- `docs/sdd/ESTADO_DOCUMENTACION_SDD.md`, `PLAN_MEJORAS_FUNCIONALES.md`, `REGISTRO_MEJORAS_SDD.md`

@@ -4,7 +4,7 @@
 
 ## Summary
 
-Agregar al `ChatWidget` una acción de reinicio que confirme la intención, invoque el endpoint existente `DELETE /api/asistente/historial`, limpie el estado local y elimine el identificador persistido. Cubrir con tests el borrado y la propiedad del historial en el backend, sin modificar el contrato ni los servicios de negocio.
+Completar el requisito FR-008 de `006-chatbot-langchain` con una acción de reinicio en `ChatWidget`: confirmar la intención, invocar el endpoint existente `DELETE /api/asistente/historial`, limpiar el estado local y eliminar el identificador persistido. Cubrir con tests el borrado y la propiedad del historial en el backend, sin duplicar el requisito ni modificar el contrato o los servicios de negocio.
 
 ## Componentes afectados
 
@@ -19,13 +19,13 @@ No se modifica `asistente.service.js`, `conversations.js`, el controlador ni las
 
 ## Enfoque técnico
 
-1. Agregar estado `reiniciando` para bloquear dobles ejecuciones.
+1. Agregar estado `reiniciando` y guards con refs para bloquear dobles ejecuciones incluso antes del siguiente render.
 2. Agregar un botón en el encabezado del widget, visible solo con sesión autenticada, con `aria-label` y estado `disabled` durante el envío o el reinicio.
 3. Al activarlo, pedir confirmación con `window.confirm`. Si el cliente cancela, no hacer nada.
-4. Si existe una sesión del usuario actual, ejecutar `DELETE /api/asistente/historial?sesionId=...`.
-5. Si la petición falla, conservar los mensajes y agregar un mensaje de error controlado. Si es `401`, usar el mensaje de sesión expirada.
-6. Si la petición se completa, eliminar la clave de `localStorage`, limpiar `sesion`, restaurar `[BIENVENIDA]` y reiniciar `siguienteId`.
-7. Si no hay sesión activa, solo limpiar el estado local y la clave de almacenamiento.
+4. Usar el identificador autenticado del estado o, durante la restauración del historial, el valor guardado bajo la clave del usuario actual; ejecutar `DELETE /api/asistente/historial?sesionId=...`.
+5. Si la respuesta no confirma `{ ok: true }` o falla, conservar los mensajes y agregar un error genérico. Solo `401` muestra el mensaje controlado de sesión expirada; no se muestra el cuerpo arbitrario del servidor.
+6. Al confirmar el éxito del backend, invalidar cualquier restauración de historial pendiente, eliminar la clave de `localStorage`, limpiar `sesion`, restaurar `[BIENVENIDA]` y reiniciar `siguienteId`.
+7. Si no hay conversación persistida, limpiar el estado local y la clave de almacenamiento. Los accesos a `localStorage` están protegidos para permitir continuar si el navegador lo bloquea.
 
 ## Dependencias
 
@@ -38,6 +38,8 @@ No se modifica `asistente.service.js`, `conversations.js`, el controlador ni las
 - **Sin nuevo contrato:** se reutiliza el endpoint y la respuesta `{ ok: true }`.
 - **Confirmación en el cliente:** el borrado es irreversible para el historial; la confirmación evita pérdidas accidentales.
 - **Fallo conservador:** ante un error no se limpia la UI, para no simular un borrado que no ocurrió.
+- **Errores no sensibles:** los fallos del endpoint no se reflejan directamente en la UI; solo se diferencia el `401` con un mensaje fijo.
+- **Restauración en curso:** la versión de carga se invalida después de confirmar el borrado, evitando que una respuesta GET tardía repueble el historial.
 - **Sin tests de UI:** el proyecto no tiene runner de componentes; se agregan tests de backend y se valida el frontend con lint/TypeScript más revisión manual.
 - **Sin cambios de modelo:** no se toca PostgreSQL ni el almacenamiento de turnos.
 

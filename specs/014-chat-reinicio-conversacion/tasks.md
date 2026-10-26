@@ -12,31 +12,31 @@
 
 ## Fase 2 — Implementación
 
-- [ ] **T004** Agregar estado `reiniciando` y la acción de reinicio en `ChatWidget.tsx` (FR-014-001, FR-014-006).
-- [ ] **T005** Pedir confirmación explícita antes de borrar (FR-014-002).
-- [ ] **T006** Invocar `DELETE /api/asistente/historial` con el `sesionId` de la conversación actual (FR-014-003).
-- [ ] **T007** Limpiar mensajes, contador y `localStorage` al completar (FR-014-004).
-- [ ] **T008** Conservar los mensajes y mostrar error controlado ante fallo o `401` (FR-014-005).
-- [ ] **T009** Asegurar accesibilidad por teclado y nombre accesible del botón (FR-014-006).
-- [ ] **T010** Evitar cambios de contrato, dependencias, modelos o servicios (FR-014-008).
+- [x] **T004** Agregar estado `reiniciando`, bloquear acciones concurrentes y mostrar la acción solo con sesión en `ChatWidget.tsx` (FR-014-001, FR-014-006).
+- [x] **T005** Pedir confirmación explícita antes de borrar (FR-014-002).
+- [x] **T006** Invocar `DELETE /api/asistente/historial` con el `sesionId` de la sesión autenticada, incluso mientras se restaura el historial (FR-014-003).
+- [x] **T007** Limpiar mensajes, contador y `localStorage` solo después de confirmar el borrado del backend (FR-014-004).
+- [x] **T008** Conservar el historial visible y mostrar un error genérico ante fallo o el mensaje controlado de sesión expirada ante `401` (FR-014-005).
+- [x] **T009** Asegurar accesibilidad por teclado y nombre accesible del botón (FR-014-006).
+- [x] **T010** No modificar contratos, dependencias, modelos, servicios de turnos, Calendar, RAG ni tools (FR-014-008).
 
 ## Fase 3 — Pruebas
 
-- [ ] **T011** Crear `backend/src/tests/asistente.historial.test.js` con directorio temporal (SC-014-005).
-- [ ] **T012** Cubrir lectura y borrado del historial propio (SC-014-001).
-- [ ] **T013** Cubrir `403` al leer o borrar una conversación ajena (SC-014-002, FR-014-007).
-- [ ] **T014** Cubrir historial inexistente o sin `sesionId`.
-- [ ] **T015** Ejecutar `npm test` en `backend/` y registrar el resultado real.
-- [ ] **T016** Ejecutar `npm run lint` en `frontend/` y registrar el resultado real.
-- [ ] **T017** Ejecutar `npx tsc --noEmit` en `frontend/` y registrar el resultado real.
-- [ ] **T018** Verificar manualmente la acción de reinicio o documentar la limitación si no es posible.
+- [x] **T011** Crear `backend/src/tests/asistente.historial.test.js` con directorio temporal y limpieza mediante `test.after`.
+- [x] **T012** Cubrir lectura y borrado del historial propio (SC-014-001).
+- [x] **T013** Cubrir `403` al leer o borrar una conversación ajena y verificar que el archivo persiste (SC-014-002, FR-014-007).
+- [x] **T014** Cubrir historial inexistente o sin `sesionId`.
+- [x] **T015** Ejecutar `npm test` en `backend/`: 14/14 tests aprobados.
+- [x] **T016** Ejecutar `npm run lint` en `frontend/`: 0 errores y 3 advertencias preexistentes en archivos ajenos al cambio.
+- [x] **T017** Ejecutar `npx tsc --noEmit` en `frontend/`: sin errores.
+- [x] **T018** Registrar que la interacción no se verificó en navegador real; la limitación quedó documentada en el índice y en `docs/sdd/REGISTRO_MEJORAS_SDD.md`.
 
 ## Fase 4 — Cierre documental
 
-- [ ] **T019** Actualizar `specs/index.md` con la feature 014 y su estado.
-- [ ] **T020** Actualizar `docs/sdd/ESTADO_DOCUMENTACION_SDD.md` y `docs/sdd/PLAN_MEJORAS_FUNCIONALES.md`.
-- [ ] **T021** Actualizar `docs/sdd/REGISTRO_MEJORAS_SDD.md`, `ESTADO.md` y `README.md` solo en lo que cambió.
-- [ ] **T022** Marcar este `tasks.md` con evidencia y pendientes reales.
+- [x] **T019** Actualizar `specs/index.md` con la feature 014, estado y relación con FR-008.
+- [x] **T020** Actualizar `docs/sdd/ESTADO_DOCUMENTACION_SDD.md` y `docs/sdd/PLAN_MEJORAS_FUNCIONALES.md`.
+- [x] **T021** Actualizar `docs/sdd/REGISTRO_MEJORAS_SDD.md`, `ESTADO.md` y `README.md` únicamente donde la información estaba desactualizada.
+- [x] **T022** Registrar evidencia de implementación y pruebas; mantener pendiente la verificación manual en navegador.
 
 ## Dependencias
 
@@ -51,5 +51,5 @@
 2. Un fallo no borra la vista ni se presenta como éxito.
 3. El acceso a conversaciones ajenas sigue devolviendo `403`.
 4. Los tests nuevos y los existentes pasan.
-5. Lint y TypeScript no agregan errores.
+5. Lint termina sin errores nuevos y TypeScript termina sin errores.
 6. La documentación refleja el estado real y las limitaciones de verificación.

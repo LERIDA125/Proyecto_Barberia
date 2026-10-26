@@ -99,7 +99,7 @@ Requerimientos → Specs → Código → Testing
 ```
 
 1. **Requerimientos:** la especificación se escribe y aprueba **antes** de codificar.
-2. **Specs:** cada feature tiene tres artefactos en [`specs/NNN-<feature>/`](./specs/) — `spec.md` (el "qué": historias, requisitos, criterios de aceptación), `plan.md` (el "cómo": endpoints, componentes, decisiones técnicas) y `tasks.md` (tareas atómicas y evidencia). Son 14 entradas de especificación: 13 de negocio/proyecto (arquitectura + CU-01 a CU-10 + métricas y vista de clientes) y la mejora transversal 013 del pie de página.
+2. **Specs:** cada feature tiene tres artefactos en [`specs/NNN-<feature>/`](./specs/) — `spec.md` (el "qué": historias, requisitos, criterios de aceptación), `plan.md` (el "cómo": endpoints, componentes, decisiones técnicas) y `tasks.md` (tareas atómicas y evidencia). Son 15 entradas de especificación: 13 de negocio/proyecto (arquitectura + CU-01 a CU-10 + métricas y vista de clientes), la mejora transversal 013 del pie de página y el incremento 014 de reinicio de chat vinculado a FR-008 de 006.
 3. **Código:** la implementación respeta el contrato de la spec sin campos ni endpoints inventados.
 4. **Testing / auditoría:** verificación contra los criterios de aceptación; el estado real se audita en [`ESTADO.md`](./ESTADO.md).
 
@@ -126,7 +126,7 @@ Los prompts del asistente están centralizados en:
 
 ### Iteración y evidencia
 
-- Historial de tareas por feature: `specs/NNN-<feature>/tasks.md` (backfill 26-oct-2026 para 000-012; ciclo completo en 013; las verificaciones pendientes quedan en `[ ]`).
+- Historial de tareas por feature: `specs/NNN-<feature>/tasks.md` (backfill 26-oct-2026 para 000-012; ciclos SDD 013 y 014; las verificaciones pendientes quedan en `[ ]`).
 - Commits convencionales (`feat:`, `fix:`, `chore:`) trazables en el historial de git.
 - Auditorías de estado fechadas en `ESTADO.md`.
 
@@ -449,4 +449,3 @@ PostgreSQL vía Prisma (`backend/prisma/schema.prisma`):
 ## Licencia
 
 Proyecto académico — Materia "Desarrollo de Software y Arquitectura de Agentes con IA".
-

@@ -9,12 +9,13 @@
 
 ## 1. Estado recuperado del repositorio
 
-- Rama de trabajo con cambios sin commit del ciclo `013-footer-anio` y del backfill documental. Se preservan; este plan no los revierte.
-- `specs/` contiene 14 entradas con `spec.md`, `plan.md` y `tasks.md`.
+- Rama de trabajo `feature/clientes`; el commit `752ec9f` incluye el ciclo 013, el backfill y los artefactos iniciales de 014. El cierre actual deja cambios posteriores sin commit.
+- `specs/` contiene 15 entradas con `spec.md`, `plan.md` y `tasks.md`.
 - `006-chatbot-langchain` y `007-sync-calendario-mcp` están en `Partial`: hay implementación, pero no evidencia de ejecución end-to-end.
 - `008`, `009` y `010` están en `Partial`: el código cubre un subconjunto de sus planes.
 - `011`, `012` y `013` están implementadas. En `013` queda pendiente el build dentro del repositorio con el servidor de desarrollo detenido.
-- La suite backend existente tiene 8 tests (`auth` y `turnos`); no hay tests del agente, de las tools, de MCP Calendar ni del frontend.
+- La suite backend tiene 14 tests, incluidos 6 de historial; siguen sin existir tests del agente, de las tools, de MCP Calendar ni del frontend.
+- El incremento 014 implementa la acción de reinicio que completa la parte de UI de FR-008; lint, TypeScript y backend test suite se ejecutaron. La interacción manual en navegador real sigue pendiente.
 - `datos_barberia.md` sigue contradiciendo el comportamiento real del chatbot (dice que no reserva ni cancela).
 
 ---
@@ -23,7 +24,6 @@
 
 | Funcionalidad | Requisito pendiente | Evidencia | Tipo de pendiente | Dependencias | Prioridad |
 |---|---|---|---|---|---|
-| Reinicio de conversación en el chat | FR-008: preservar el historial y permitir reiniciarlo (T031, T040) | `DELETE /api/asistente/historial` existe en `backend/src/routes/asistente.routes.js`; `ChatWidget.tsx` no expone ninguna acción de reinicio | implementación pendiente | Sesión autenticada; endpoint de historial | Alta |
 | Rate limit del asistente | `429` previsto en `plan.md` (T030) | No se encontró limitador en `asistente.controller.js` ni en `asistente.routes.js` | implementación pendiente | Middleware o servicio de límites; decisión de cuota | Media |
 | Diagnóstico de tools del asistente | `GET /api/asistente/tools` previsto en `plan.md` | La ruta no está registrada en `asistente.routes.js` | implementación pendiente | Autorización admin; contrato de respuesta | Baja |
 | Router de disponibilidad | Contratos de `008-gestion-disponibilidad` | `backend/src/routes/disponibilidad.routes.js` está montado pero no define rutas; responde 404 | implementación pendiente | Decisión: implementar o retirar el router | Media |
@@ -42,7 +42,7 @@
 | RAG del asistente | FR-001 y SC-001 | Existe ingesta y recuperación; no hay evidencia de una respuesta real basada en la base de conocimiento | prueba pendiente | Vector store de prueba; proveedor LLM o mock | Alta |
 | Confirmación antes de escribir | FR-003, FR-004 y SC-003 | La exigencia está en `PROMPT_AGENTE`; no hay evidencia de que el servidor impida una escritura sin confirmación | sin evidencia suficiente | Decisión de diseño; estado de confirmación | Alta |
 | Sincronización con Google Calendar | Requisitos de `007-sync-calendario-mcp` | Cliente MCP, adapter y llamadas de sincronización existen; no hay prueba de ejecución real ni con mocks | prueba pendiente | Servidor MCP; credenciales; entorno aislado | Alta |
-| Historial del chatbot | FR-008 y SC-007 | `GET/DELETE /api/asistente/historial` y persistencia JSON existen; no hay tests de propiedad ni de borrado | prueba pendiente | Endpoint y almacenamiento temporal | Alta |
+| Verificación integral del historial del chatbot | FR-008 y SC-007 | 014 cubre borrado/propiedad con tests sobre almacenamiento temporal y la UI consume el endpoint; falta verificación manual/E2E de la UI | prueba pendiente | Navegador; pruebas end-to-end | Media |
 | Build e hidratación del footer | Criterios de `013-footer-anio` | Build aislado y HTTP verificados; build en repositorio e hidratación en navegador pendientes | prueba pendiente | Servidor de desarrollo detenido; navegador | Baja |
 
 ---
@@ -84,8 +84,7 @@
 
 ## 7. Orden recomendado
 
-1. **`014-chat-reinicio-conversacion`** — completar FR-008 en la UI, con tests de historial en backend. Alcance acotado, sin datos reales y verificable.
-2. **`015-chatbot-tests-tools`** — cubrir tools, identidad, errores y fallback con mocks (CA-06.9). Es la mayor deuda de verificación del chatbot.
+1. **`015-chatbot-tests-tools`** — cubrir tools, identidad, errores y fallback con mocks (CA-06.9). Es la mayor deuda de verificación del chatbot.
 3. **Decisión RAG** — resolver la contradicción de `datos_barberia.md` antes de afirmar que el RAG responde correctamente.
 4. **Calendar MCP con mocks** — probar cliente, timeout y errores sin escribir eventos reales.
 5. **`008` disponibilidad** — decidir el router vacío y luego horarios/feriados con migración aprobada.
@@ -94,11 +93,13 @@
 
 ---
 
-## 8. Primer incremento seleccionado
+## 8. Primer incremento seleccionado y ejecutado
 
 **Feature:** `014-chat-reinicio-conversacion`.
 
-**Por qué:**
+**Resultado:** la implementación y las verificaciones automatizadas están registradas en `specs/014-chat-reinicio-conversacion/tasks.md`. Quedó pendiente probar la interacción en navegador real, por lo que el estado permanece Partial.
+
+**Por qué se seleccionó:**
 
 - Tiene un requisito explícito y verificable: FR-008 de `006-chatbot-langchain`.
 - La ausencia es visible: el backend ya permite borrar el historial, pero el usuario no tiene forma de reiniciar la conversación desde el widget.

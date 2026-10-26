@@ -200,6 +200,9 @@ export function ChatWidget() {
   const [reiniciando, setReiniciando] = useState(false);
   const [sesion, setSesion] = useState<{ id: string; usuarioId: string } | null>(null);
 
+  const cargandoRef = useRef(false);
+  const reiniciandoRef = useRef(false);
+  const cargaHistorialVersionRef = useRef(0);
   const siguienteId = useRef(1);
   const historialRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -226,13 +229,14 @@ export function ChatWidget() {
     }
     if (!guardado) return;
     const sesionGuardada = guardado;
+    const versionCarga = cargaHistorialVersionRef.current;
 
     void (async () => {
       try {
         const data = await apiFetch<HistorialChat>(
           `/api/asistente/historial?sesionId=${encodeURIComponent(sesionGuardada)}`,
         );
-        if (!activo) return;
+        if (!activo || versionCarga !== cargaHistorialVersionRef.current) return;
         const restaurados: Mensaje[] = (data.mensajes ?? []).map((mensaje, indice) => ({
           id: indice + 1,
           rol: mensaje.role === "user" ? "usuario" : "asistente",
@@ -242,7 +246,7 @@ export function ChatWidget() {
         setSesion({ id: data.conversacionId ?? sesionGuardada, usuarioId: usuario.id });
         setMensajes(restaurados.length > 0 ? [BIENVENIDA, ...restaurados] : [BIENVENIDA]);
       } catch {
-        if (!activo) return;
+        if (!activo || versionCarga !== cargaHistorialVersionRef.current) return;
         try {
           window.localStorage.removeItem(clave);
         } catch {
@@ -259,12 +263,20 @@ export function ChatWidget() {
   async function enviar(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const pregunta = texto.trim();
-    if (!pregunta || cargando || !usuario) return;
+    if (
+      !pregunta ||
+      cargando ||
+      reiniciando ||
+      cargandoRef.current ||
+      reiniciandoRef.current ||
+      !usuario
+    ) return;
 
     const cambiaDeUsuario = Boolean(sesion && sesion.usuarioId !== usuario.id);
     const sesionActual = sesion && sesion.usuarioId === usuario.id ? sesion.id : null;
     if (cambiaDeUsuario) siguienteId.current = 1;
 
+    cargandoRef.current = true;
     setMensajes((prev) => [
       ...(cambiaDeUsuario ? [BIENVENIDA] : prev),
       { id: siguienteId.current++, rol: "usuario", texto: pregunta },
@@ -316,33 +328,52 @@ export function ChatWidget() {
         { id: siguienteId.current++, rol: "asistente", texto: mensaje },
       ]);
     } finally {
+      cargandoRef.current = false;
       setCargando(false);
     }
   }
 
   async function reiniciarConversacion() {
-    if (reiniciando || cargando || !usuario) return;
+    if (
+      reiniciando ||
+      cargando ||
+      cargandoRef.current ||
+      reiniciandoRef.current ||
+      !usuario
+    ) return;
 
     const confirmado = window.confirm(
       "¿Iniciar una nueva conversación? Se borrará el historial de este chat.",
     );
     if (!confirmado) return;
 
-    const sesionActual =
+    let sesionActual =
       sesion && sesion.usuarioId === usuario.id ? sesion.id : null;
-
+    const clave = `${CLAVE_SESION_CHAT}:${usuario.id}`;
+    if (!sesionActual) {
+      try {
+        sesionActual = window.localStorage.getItem(clave);
+      } catch {
+        sesionActual = null;
+      }
+    }
+    reiniciandoRef.current = true;
     setReiniciando(true);
 
     try {
       if (sesionActual) {
-        await apiFetch<{ ok: boolean }>(
+        const resultado = await apiFetch<{ ok: boolean }>(
           `/api/asistente/historial?sesionId=${encodeURIComponent(sesionActual)}`,
           { method: "DELETE" },
         );
+        if (resultado.ok !== true) {
+          throw new Error("El servidor no confirmó el reinicio");
+        }
       }
 
+      cargaHistorialVersionRef.current += 1;
       try {
-        window.localStorage.removeItem(`${CLAVE_SESION_CHAT}:${usuario.id}`);
+        window.localStorage.removeItem(clave);
       } catch {
         // almacenamiento no disponible
       }
@@ -355,14 +386,13 @@ export function ChatWidget() {
       const mensaje =
         err instanceof ApiError && err.status === 401
           ? MENSAJE_SESION_EXPIRADA
-          : err instanceof ApiError && err.message
-            ? err.message
-            : MENSAJE_ERROR_REINICIO;
+          : MENSAJE_ERROR_REINICIO;
       setMensajes((prev) => [
         ...prev,
         { id: siguienteId.current++, rol: "asistente", texto: mensaje },
       ]);
     } finally {
+      reiniciandoRef.current = false;
       setReiniciando(false);
     }
   }
@@ -502,12 +532,12 @@ export function ChatWidget() {
                   onChange={(e) => setTexto(e.target.value)}
                   onKeyDown={manejarTeclas}
                   placeholder="Escribí tu mensaje…"
-                  disabled={cargando}
+                  disabled={cargando || reiniciando}
                   className="max-h-28 min-h-10 flex-1 resize-none rounded-2xl border border-border bg-surface px-4 py-2.5 text-sm text-foreground placeholder:text-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 disabled:opacity-60 "
                 />
                 <button
                   type="submit"
-                  disabled={cargando || !texto.trim()}
+                  disabled={cargando || reiniciando || !texto.trim()}
                   aria-label="Enviar mensaje"
                   className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-foreground text-background transition-colors hover:bg-foreground/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-40 "
                 >

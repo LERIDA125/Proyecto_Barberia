@@ -17,13 +17,14 @@
 | **003-reserva-turnos** | ✅ Implementada | `POST /api/turnos` valida solapes, bloqueos y jornada laboral; `GET /api/barberos/:id/disponibilidad`; wizard `/reservar` completo. |
 | **004-gestion-turnos-cliente** | ✅ Implementada | `PATCH /api/turnos/:id/cancelar` y `/reprogramar` + `/mis-turnos` con próximos/historial filtrados por estado y fecha. |
 | **005-panel-barberos** | ✅ Implementada | `/api/barberos/me/*` + `/panel`; agenda excluye cancelados, cálculo en `America/Argentina/Buenos_Aires`, transiciones validadas (incl. `ausente`). Admin: agenda 30 días, filtro por barbero y bloqueos globales. |
-| **006-chatbot-langchain** | ⚠️ Parcial | RAG + 4 tools + tool loop (máx. 5 iteraciones) + `ChatWidget` con persistencia por usuario. **Faltan tests (CA-06.9)** y `datos_barberia.md` contradice el comportamiento real (ver Deuda #5). |
+| **006-chatbot-langchain** | ⚠️ Parcial | RAG + 4 tools + tool loop (máx. 5 iteraciones) + `ChatWidget` con persistencia por usuario. El reinicio de UI y tests del historial se trazan en el incremento 014; siguen faltando tests del agente (CA-06.9), verificaciones E2E y resolver la contradicción de `datos_barberia.md` (Deuda #5). |
 | **007-sync-calendario-mcp** | ⚠️ Parcial | Cliente MCP (`mcp/client.js`), adapter, `integraciones` y servidor MCP autónomo; sync en crear/cancelar/reprogramar con resiliencia; UI en `/panel/configuracion`. Opt-in vía `MCP_CALENDAR_URL`. Del plan falta el endpoint de diagnóstico `/api/asistente/tools`. |
 | **008-gestion-disponibilidad** | ⚠️ Parcial | **Implementado:** modelo `Bloqueo`, CRUD `/api/barberos/me/bloqueos`, descuento en disponibilidad, `BloqueosManager`, estado `ausente`. **No implementado del plan:** `/api/barberos/me/horarios`, `/api/admin/feriados` (ni modelo `Feriado`) y el router `/api/disponibilidad` está vacío (404). |
 | **009-historial-visitas** | ⚠️ Parcial | **Implementado:** `/api/clientes/buscar`, `/api/clientes/:id/historial`, edición de notas vía `PATCH /api/turnos/:id/notas`. **No implementado del plan:** `/api/clientes/me/ficha` y `/api/clientes/:id/ficha` (campos preferencias/observaciones). |
 | **010-notificaciones-estado** | ⚠️ Parcial | **Implementado:** modelo `Notificacion`, listar/leer/leer-todas, disparo ante cambios de estado, `NotificationBell`. **No implementado del plan:** preferencias, recordatorios y proveedor de email. |
 | **011-metricas-dashboard** | ✅ Implementada | `GET /api/metricas` y `/api/barberos/me/metricas` (rangos opcionales) + `/panel/metricas`. |
 | **012-vista-clientes** | ✅ Implementada | `GET /api/clientes` con `_count.turnos` + resumen (tráfico/gasto) en historial; `/panel/clientes` con listado, filtro y ficha. |
+| **014-chat-reinicio-conversacion** | ⚠️ Parcial | Acción autenticada con confirmación, borrado antes de limpiar UI, control de concurrencia y errores no sensibles; 6 tests de historial aprobados. Lint y TypeScript pasan; queda pendiente la interacción manual en navegador real. Incrementa FR-008 de 006. |
 
 ---
 
@@ -42,6 +43,14 @@
 - **Verificación:** lint con 0 errores (3 advertencias preexistentes), typecheck sin errores, build de producción completado en copia aislada con Turbopack y HTML verificado por HTTP (año 2026 y tres enlaces).
 - **Limitación:** el build dentro del repositorio no completó en el intento (timeout); el servidor de desarrollo activo comparte `.next`. Se validó en una copia aislada.
 - **Trazabilidad:** `specs/013-footer-anio/` y `docs/sdd/REGISTRO_MEJORAS_SDD.md`.
+
+## Incremento SDD 014 — Reinicio de conversación (26-oct-2026)
+
+- **Frontend:** `ChatWidget.tsx` ofrece reinicio solo con sesión autenticada, confirma antes de borrar y bloquea envíos/reinicios concurrentes. Usa el `sesionId` propio (incluida la restauración pendiente), limpia la vista solo tras `{ ok: true }`, tolera `localStorage` no disponible y presenta mensajes genéricos de error salvo el caso controlado `401`.
+- **Backend:** se conserva el contrato existente y la verificación de propiedad; no se modificaron turnos, Google Calendar, RAG ni tools.
+- **Verificación:** `npm test` en `backend/`: 14/14; `npm run lint` en `frontend/`: 0 errores y 3 advertencias preexistentes; `npx tsc --noEmit`: sin errores.
+- **Limitación:** no se verificó la interacción en navegador real. No se ejecutó build porque los servidores activos en `:3000` y `:3001` usan el repositorio; no se detuvieron procesos.
+- **Trazabilidad:** 014 amplía/completa la acción de UI de FR-008 de 006; ambas permanecen `Partial` por verificaciones E2E y deuda de tests del agente.
 
 ---
 
@@ -65,8 +74,8 @@
 - **MCPs:** `postgres-local` (stdio, solo lectura) y `google-calendar` (HTTP, paquete autónomo) implementados, con script npm y declarados en `opencode.json`.
 - **Scripts npm:** backend y frontend verificados, sin targets rotos.
 - **Rutas backend:** 12 módulos registrados en `routes/index.js`, sin imports rotos.
-- **Especificaciones:** 14 entradas con `spec.md` + `plan.md` + `tasks.md`: 13 features preexistentes (000-012, backfill 26-oct-2026) y la mejora transversal `013-footer-anio` (ciclo completo). 008/009/010 siguen marcadas Partial por contratos del plan aún no implementados.
+- **Especificaciones:** 15 entradas con `spec.md` + `plan.md` + `tasks.md`: 13 features preexistentes (000-012, backfill 26-oct-2026) y los incrementos 013 (footer) y 014 (reinicio de chat). 006/014 permanecen Partial por verificaciones pendientes; 008/009/010 siguen Partial por contratos del plan aún no implementados.
 
 ---
 
-**Resumen:** 8 specs completas de negocio (000-005, 011, 012), 1 mejora transversal implementada (013) y 5 parciales (006-010). Sin specs sin implementar. Última auditoría: 21-oct-2026 sobre `ba699d4` + fixes de auth/contrato y limpieza de repo en working tree (sin commitear). Backfill de `tasks.md`, normalización documental y mejora 013: 26-oct-2026.
+**Resumen:** 8 specs completas de negocio (000-005, 011, 012), 1 mejora transversal implementada (013) y 6 parciales (006-010 y 014). Sin specs sin implementar. Última auditoría: 26-oct-2026 sobre `752ec9f`; el incremento 014 deja cambios posteriores sin commit.

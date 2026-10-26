@@ -25,12 +25,13 @@
 | `011-metricas-dashboard` | Dashboard de Métricas de Negocio | Sí | Sí | Sí | Implemented |
 | `012-vista-clientes` | Vista de Clientes | Sí | Sí | Sí | Implemented |
 | `013-footer-anio` | Año del pie de página sin actualización diferida | Sí | Sí | Sí | Implemented |
+| `014-chat-reinicio-conversacion` | Reinicio de conversación del asistente (incremento de FR-008) | Sí | Sí | Sí | Partial |
 
 **Totales verificados:**
 
-- 14 `spec.md`.
-- 14 `plan.md`.
-- **14 `tasks.md`**: 13 reconstruidos en el backfill documental del 2026-10-26 y 1 creado antes de la implementación (`013-footer-anio`).
+- 15 `spec.md`.
+- 15 `plan.md`.
+- **15 `tasks.md`**: 13 reconstruidos en el backfill documental del 2026-10-26 y 2 creados para incrementos SDD (`013-footer-anio`, `014-chat-reinicio-conversacion`).
 
 ---
 
@@ -46,6 +47,7 @@
 | `specs/000-arquitectura/spec.md` + `plan.md` + `tasks.md` | Arquitectura maestra, modelo de datos y tareas | Completos |
 | `specs/001..012/spec.md` + `plan.md` + `tasks.md` | Especificaciones, planes y tareas por feature | Completos (backfill 26-oct-2026) |
 | `specs/013-footer-anio/spec.md` + `plan.md` + `tasks.md` | Ciclo SDD de la mejora del pie de página | Completo; implementación y validación registradas |
+| `specs/014-chat-reinicio-conversacion/spec.md` + `plan.md` + `tasks.md` | Incremento de FR-008 de 006 | Implementación, tests de backend, lint y TypeScript registrados; verificación manual del navegador pendiente |
 | `docs/sdd/PROPUESTAS_MEJORA.md` | Propuesta respaldada por evidencia de lint | Vigente |
 | `docs/sdd/REGISTRO_MEJORAS_SDD.md` | Evidencia, resultados y limitaciones de la mejora 013 | Vigente |
 | `README.md` | Presentación, stack, CU, AI Engineering, MCP, instalación | Extenso |
@@ -195,14 +197,16 @@ Reglas:
 | Implementación de 013 | Completada (2026-10-26) |
 | Validación de 013 | Completada con limitación de build en el repo (2026-10-26) |
 | Registro de mejoras 013 | Completado (2026-10-26) |
+| Incremento SDD 014 y relación con FR-008 de 006 | Implementación y evidencia automatizada registradas; verificación manual pendiente (2026-10-26) |
 
 ### Pendientes fuera de este backfill
 
 - Evidencia E2E de los casos de uso (`smoke-results.json` no existe; `smoke.js` no se ejecutó).
+- Verificación manual de la interacción de reinicio de 014 en navegador real.
 - Decisión sobre `datos_barberia.md` vs. las tools del chatbot.
 - Documento de definición del TP y transcripciones de prompts.
 - Ejecutar el build de producción del frontend dentro del repositorio con `next dev` detenido; la mejora 013 se validó en una copia aislada y el intento en el repositorio no completó mientras ambos procesos usaban `.next`.
 
 ---
 
-**Fin del inventario.** Los 13 `tasks.md` del backfill están creados y la documentación de estado quedó normalizada. Los supuestos editoriales de 006 y 007 se corrigieron el 2026-10-26 para distinguir código presente de evidencia de ejecución. La feature `013-footer-anio` completó el ciclo SDD completo, se implementó y se validó con lint, typecheck, build en copia aislada y verificación HTTP. Queda pendiente la verificación E2E de los casos de uso y ejecutar el build dentro del repositorio con el servidor de desarrollo detenido.
+**Fin del inventario.** Los 13 `tasks.md` del backfill están creados y la documentación de estado quedó normalizada. Los supuestos editoriales de 006 y 007 se corrigieron el 2026-10-26 para distinguir código presente de evidencia de ejecución. `013-footer-anio` y el incremento `014-chat-reinicio-conversacion` tienen sus ciclos documentados; 014 amplía FR-008 sin duplicarlo. Quedan pendientes la interacción manual de 014, la verificación E2E de los casos de uso y ejecutar el build dentro del repositorio con el servidor de desarrollo detenido.

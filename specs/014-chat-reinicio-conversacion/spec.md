@@ -4,9 +4,9 @@
 
 **Created**: 2026-10-26
 
-**Status**: Planned
+**Status**: Partial
 
-**Input**: Requisito FR-008 de `specs/006-chatbot-langchain/spec.md`: preservar el historial durante la sesión y permitir reiniciarlo. El backend ya expone `DELETE /api/asistente/historial`; la interfaz no ofrece la acción.
+**Input**: Incremento de FR-008 de `specs/006-chatbot-langchain/spec.md`: preservar el historial durante la sesión y permitir reiniciarlo. Al definir este incremento, el backend ya exponía `DELETE /api/asistente/historial`, pero la interfaz aún no ofrecía la acción.
 
 ## User Scenarios & Testing
 
