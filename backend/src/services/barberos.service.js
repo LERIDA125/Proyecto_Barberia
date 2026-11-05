@@ -62,19 +62,38 @@ function validarHorario(barbero, inicio, fin) {
   }
 }
 
-function rangoFechas(desde, hasta) {
-  const hoy = new Date();
-  const inicio = desde
-    ? parseFechaTexto(desde)
-    : new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate(), 0, 0, 0, 0);
+const ZONA_HORARIA = 'America/Argentina/Buenos_Aires';
+const OFFSET_ZONA = '-03:00';
 
+function diaActualEnZona(fecha = new Date()) {
+  const partes = new Intl.DateTimeFormat('en-CA', {
+    timeZone: ZONA_HORARIA,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(fecha);
+  const valor = (tipo) => partes.find((parte) => parte.type === tipo)?.value ?? '';
+  return `${valor('year')}-${valor('month')}-${valor('day')}`;
+}
+
+function rangoFechas(desde, hasta) {
+  let inicio;
   let fin;
-  if (hasta) {
-    fin = parseFechaTexto(hasta);
+
+  if (desde) {
+    inicio = parseFechaTexto(desde);
+    fin = hasta ? parseFechaTexto(hasta) : new Date(inicio);
     fin.setHours(23, 59, 59, 999);
   } else {
-    fin = new Date(inicio);
-    fin.setHours(23, 59, 59, 999);
+    const dia = diaActualEnZona();
+    inicio = new Date(`${dia}T00:00:00.000${OFFSET_ZONA}`);
+    if (hasta) {
+      fin = parseFechaTexto(hasta);
+      fin.setHours(23, 59, 59, 999);
+    } else {
+      fin = new Date(`${dia}T23:59:59.999${OFFSET_ZONA}`);
+      fin.setUTCDate(fin.getUTCDate() + 30);
+    }
   }
 
   if (inicio > fin) throw new AppError(400, 'Rango de fechas inválido');
@@ -177,11 +196,17 @@ async function disponibilidad({ barberoId, fecha, servicioId }) {
 
 async function agendaBarbero(barberoId, desde, hasta) {
   const { inicio, fin } = rangoFechas(desde, hasta);
+  const where = {
+    fechaInicio: { gte: inicio, lte: fin },
+    estado: { not: 'cancelado' },
+  };
+  if (barberoId) where.barberoId = barberoId;
   const turnos = await prisma.turno.findMany({
-    where: { barberoId, fechaInicio: { gte: inicio, lte: fin } },
+    where,
     include: {
       servicio: true,
       cliente: { select: { id: true, nombre: true, email: true, telefono: true } },
+      barbero: { include: { usuario: { select: { nombre: true } } } },
     },
     orderBy: { fechaInicio: 'asc' },
   });
@@ -189,6 +214,9 @@ async function agendaBarbero(barberoId, desde, hasta) {
 }
 
 async function miAgenda({ usuario, desde, hasta }) {
+  if (usuario.rol === 'admin') {
+    return agendaBarbero(null, desde, hasta);
+  }
   const barbero = await resolverBarberoDeUsuario(usuario.id);
   return agendaBarbero(barbero.id, desde, hasta);
 }
@@ -290,16 +318,20 @@ function serializarBloqueo(bloqueo) {
   };
 }
 
-async function listarBloqueos(usuarioId) {
-  const barbero = await resolverBarberoDeUsuario(usuarioId);
+async function listarBloqueos(usuario) {
+  const where = {};
+  if (usuario.rol !== 'admin') {
+    const barbero = await resolverBarberoDeUsuario(usuario.id);
+    where.barberoId = barbero.id;
+  }
   const bloqueos = await prisma.bloqueo.findMany({
-    where: { barberoId: barbero.id },
+    where,
     orderBy: { inicio: 'asc' },
   });
   return bloqueos.map(serializarBloqueo);
 }
 
-async function crearBloqueo(usuarioId, datos) {
+async function crearBloqueo(usuario, datos) {
   requerirCampos(datos, ['inicio', 'fin']);
 
   const inicio = validarFecha(datos.inicio, 'inicio');
@@ -309,11 +341,20 @@ async function crearBloqueo(usuarioId, datos) {
     throw new AppError(400, 'La fecha de fin debe ser posterior a la fecha de inicio');
   }
 
-  const barbero = await resolverBarberoDeUsuario(usuarioId);
+  let barberoId;
+  if (usuario.rol === 'admin') {
+    validarUUID(datos.barberoId, 'barberoId');
+    const barbero = await prisma.barbero.findUnique({ where: { id: datos.barberoId } });
+    if (!barbero) throw new AppError(404, 'Barbero no encontrado');
+    barberoId = barbero.id;
+  } else {
+    const barbero = await resolverBarberoDeUsuario(usuario.id);
+    barberoId = barbero.id;
+  }
 
   const bloqueo = await prisma.bloqueo.create({
     data: {
-      barberoId: barbero.id,
+      barberoId,
       inicio,
       fin,
       motivo: datos.motivo != null ? String(datos.motivo).trim() || null : null,
@@ -323,15 +364,17 @@ async function crearBloqueo(usuarioId, datos) {
   return serializarBloqueo(bloqueo);
 }
 
-async function eliminarBloqueo(usuarioId, id) {
+async function eliminarBloqueo(usuario, id) {
   validarUUID(id, 'id');
-
-  const barbero = await resolverBarberoDeUsuario(usuarioId);
 
   const bloqueo = await prisma.bloqueo.findUnique({ where: { id } });
   if (!bloqueo) throw new AppError(404, 'Bloqueo no encontrado');
-  if (bloqueo.barberoId !== barbero.id) {
-    throw new AppError(403, 'No autorizado para eliminar este bloqueo');
+
+  if (usuario.rol !== 'admin') {
+    const barbero = await resolverBarberoDeUsuario(usuario.id);
+    if (bloqueo.barberoId !== barbero.id) {
+      throw new AppError(403, 'No autorizado para eliminar este bloqueo');
+    }
   }
 
   await prisma.bloqueo.delete({ where: { id } });

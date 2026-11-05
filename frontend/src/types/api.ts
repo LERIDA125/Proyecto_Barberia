@@ -67,6 +67,7 @@ export interface BloqueoInput {
   inicio: string;
   fin: string;
   motivo?: string;
+  barberoId?: string;
 }
 
 export interface Turno {
@@ -91,11 +92,20 @@ export interface Cliente {
   email: string;
   telefono: string | null;
   activo: boolean;
+  totalTurnos?: number;
+}
+
+export interface ResumenCliente {
+  totalTurnos: number;
+  completados: number;
+  totalGastado: number;
+  ultimaVisita: string | null;
 }
 
 export interface HistorialCliente {
   cliente: Cliente;
   turnos: Turno[];
+  resumen: ResumenCliente | null;
 }
 
 export interface Notificacion {
@@ -129,4 +139,47 @@ export interface RespuestaChat {
   respuesta: string;
   conversacionId?: string;
   toolInvocadas?: string[];
+}
+
+export interface MensajeChat {
+  role: "user" | "assistant";
+  content: string;
+}
+
+export interface HistorialChat {
+  conversacionId?: string;
+  mensajes: MensajeChat[];
+}
+
+export interface MetricasTurnos {
+  total: number;
+  porEstado: Record<EstadoTurno, number>;
+}
+
+export interface MetricasIngresos {
+  completados: number;
+  monto: number;
+}
+
+export interface MetricasOcupacion {
+  turnos: number;
+  horasOcupadas: number;
+  horasDisponibles: number;
+  porcentaje: number;
+}
+
+export interface MetricasServicio {
+  servicioId: string;
+  nombre: string;
+  cantidad: number;
+  ingresos: number;
+}
+
+export interface Metricas {
+  desde: string;
+  hasta: string;
+  turnos: MetricasTurnos;
+  ingresos: MetricasIngresos;
+  ocupacion: MetricasOcupacion;
+  serviciosMasPedidos: MetricasServicio[];
 }

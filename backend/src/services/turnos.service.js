@@ -44,12 +44,19 @@ function notificacionPorEstado(estado, turno, fecha) {
   }
 }
 
-function verificarPropietario(turno, usuario) {
-  const esDueno = turno.clienteId === usuario.id;
+async function verificarPropietario(turno, usuario) {
   const esAdmin = usuario.rol === 'admin';
-  if (!esDueno && !esAdmin) {
-    throw new AppError(403, 'No autorizado para gestionar este turno');
+  if (esAdmin) return;
+
+  const esCliente = turno.clienteId === usuario.id;
+  if (esCliente) return;
+
+  if (usuario.rol === 'barbero') {
+    const barbero = await prisma.barbero.findUnique({ where: { usuarioId: usuario.id } });
+    if (barbero && barbero.id === turno.barberoId) return;
   }
+
+  throw new AppError(403, 'No autorizado para gestionar este turno');
 }
 
 function validarVentanaCancelacion(fechaInicio) {
@@ -230,7 +237,7 @@ async function cancelar({ id, usuario, motivo }) {
   const turno = await prisma.turno.findUnique({ where: { id }, include: INCLUDE_DETALLE });
   if (!turno) throw new AppError(404, 'Turno no encontrado');
 
-  verificarPropietario(turno, usuario);
+  await verificarPropietario(turno, usuario);
 
   if (turno.estado === 'cancelado') throw new AppError(409, 'El turno ya está cancelado');
   if (turno.estado === 'completado') throw new AppError(409, 'No se puede cancelar un turno completado');
@@ -298,7 +305,7 @@ async function reprogramar({ id, usuario, nuevaFechaInicio }) {
   const turno = await prisma.turno.findUnique({ where: { id }, include: INCLUDE_DETALLE });
   if (!turno) throw new AppError(404, 'Turno no encontrado');
 
-  verificarPropietario(turno, usuario);
+  await verificarPropietario(turno, usuario);
 
   if (turno.estado === 'cancelado') throw new AppError(409, 'No se puede reprogramar un turno cancelado');
   if (turno.estado === 'completado') throw new AppError(409, 'No se puede reprogramar un turno completado');

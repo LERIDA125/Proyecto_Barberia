@@ -1,5 +1,6 @@
 "use client";
 
+import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { EstadoBadge } from "@/components/ui/EstadoBadge";
 import { SyncTurnoButton } from "@/components/integraciones/SyncTurnoButton";
@@ -12,6 +13,23 @@ interface AccionEstado {
   estado: EstadoTurno;
   etiqueta: string;
   variante: VarianteAccion;
+}
+
+const FORMATEADOR_FECHA_TURNO = new Intl.DateTimeFormat("es-AR", {
+  timeZone: "America/Argentina/Buenos_Aires",
+  weekday: "short",
+  day: "numeric",
+  month: "short",
+});
+
+function formatearFechaTurno(iso: string): string {
+  const partes = FORMATEADOR_FECHA_TURNO.formatToParts(new Date(iso));
+  const valor = (tipo: Intl.DateTimeFormatPartTypes) =>
+    partes.find((parte) => parte.type === tipo)?.value ?? "";
+  const capitalizar = (texto: string) =>
+    texto.charAt(0).toLocaleUpperCase("es-AR") + texto.slice(1);
+
+  return `${capitalizar(valor("weekday"))} ${valor("day")} ${capitalizar(valor("month"))}`;
 }
 
 function accionesDisponibles(estado: EstadoTurno): AccionEstado[] {
@@ -37,6 +55,7 @@ interface TurnoPanelCardProps {
   turno: Turno;
   actualizando?: boolean;
   puedeSincronizar?: boolean;
+  barberoNombre?: string;
   onCambiarEstado: (turno: Turno, estado: EstadoTurno) => void;
   onSincronizado?: (resultado: SincronizacionTurno) => void;
 }
@@ -45,6 +64,7 @@ export function TurnoPanelCard({
   turno,
   actualizando = false,
   puedeSincronizar = false,
+  barberoNombre,
   onCambiarEstado,
   onSincronizado,
 }: TurnoPanelCardProps) {
@@ -53,10 +73,10 @@ export function TurnoPanelCard({
     puedeSincronizar && (turno.estado === "pendiente" || turno.estado === "confirmado");
 
   return (
-    <article className="grid grid-cols-1 items-center gap-4 border-b border-neutral-900 py-5 md:grid-cols-[7rem_minmax(0,1fr)_auto]">
+    <article className="grid grid-cols-1 items-center gap-4 border-b border-neutral-900 py-5 md:grid-cols-[14rem_minmax(0,1fr)_auto]">
       <div className="flex flex-col">
         <p className="font-mono text-xl font-bold leading-none tabular-nums text-white">
-          {formatearHora(turno.fechaInicio)}
+          {formatearFechaTurno(turno.fechaInicio)} · {formatearHora(turno.fechaInicio)}
         </p>
         <p className="mt-1 font-mono text-xs tabular-nums text-neutral-500">
           hasta {formatearHora(turno.fechaFin)}
@@ -64,9 +84,12 @@ export function TurnoPanelCard({
       </div>
 
       <div className="min-w-0 space-y-0.5">
-        <p className="truncate text-base font-semibold text-white">
-          {turno.cliente?.nombre ?? "Cliente sin nombre"}
-        </p>
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="truncate text-base font-semibold text-white">
+            {turno.cliente?.nombre ?? "Cliente sin nombre"}
+          </p>
+          {barberoNombre && <Badge tone="neutral">Barbero · {barberoNombre}</Badge>}
+        </div>
         <p className="truncate text-sm text-neutral-400">
           {turno.servicio?.nombre ?? "Servicio"}
           {turno.servicio

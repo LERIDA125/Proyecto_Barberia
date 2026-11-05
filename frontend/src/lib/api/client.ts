@@ -22,8 +22,10 @@ function parsearCuerpo(texto: string): unknown {
 function mensajeDeError(data: unknown, status: number): string {
   if (data && typeof data === "object") {
     const obj = data as Record<string, unknown>;
-    const mensaje = obj.error ?? obj.message;
-    if (typeof mensaje === "string" && mensaje.trim()) return mensaje;
+    const candidato =
+      (typeof obj.message === "string" && obj.message.trim() && obj.message) ||
+      (typeof obj.error === "string" && obj.error.trim() && obj.error);
+    if (candidato) return candidato;
   }
   if (typeof data === "string" && data.trim()) return data;
   return `Error ${status}`;

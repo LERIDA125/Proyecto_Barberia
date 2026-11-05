@@ -28,8 +28,8 @@ async function opcionesRegistro(body) {
   const email = validarEmail(body.email);
   const nombre = String(body.nombre).trim();
 
-  const existente = await prisma.usuario.findUnique({ where: { email } });
-  if (existente) throw new AppError(409, 'El email ya está registrado');
+  const existente = await prisma.usuario.findUnique({ where: { email }, include: { credenciales: true } });
+  if (existente && existente.credenciales.length > 0) throw new AppError(409, 'El email ya est\u00e0 registrado');
 
   const opciones = await generateRegistrationOptions({
     rpName: env.webauthnRpName,
@@ -67,27 +67,46 @@ async function verificarRegistro(body) {
 
   if (!verificacion.verified) throw new AppError(400, 'Verificación de passkey fallida');
 
-  const existente = await prisma.usuario.findUnique({ where: { email } });
-  if (existente) throw new AppError(409, 'El email ya está registrado');
+  const existente = await prisma.usuario.findUnique({ where: { email }, include: { credenciales: true } });
+  if (existente && existente.credenciales.length > 0) throw new AppError(409, 'El email ya est\u00e0 registrado');
 
   const credencial = verificacion.registrationInfo.credential;
 
-  const usuario = await prisma.usuario.create({
-    data: {
-      nombre,
-      email,
-      telefono,
-      rol: 'cliente',
-      credenciales: {
-        create: {
-          credentialId: credencial.id,
-          publicKey: isoBase64URL.fromBuffer(credencial.publicKey),
-          counter: credencial.counter,
-          transports: credencial.transports || [],
+  let usuario;
+  if (existente && existente.credenciales.length === 0) {
+    usuario = await prisma.usuario.update({
+      where: { id: existente.id },
+      data: {
+        nombre: nombre || existente.nombre,
+        telefono: telefono ?? existente.telefono,
+        credenciales: {
+          create: {
+            credentialId: credencial.id,
+            publicKey: isoBase64URL.fromBuffer(credencial.publicKey),
+            counter: credencial.counter,
+            transports: credencial.transports || [],
+          },
         },
       },
-    },
-  });
+    });
+  } else {
+    usuario = await prisma.usuario.create({
+      data: {
+        nombre,
+        email,
+        telefono,
+        rol: 'cliente',
+        credenciales: {
+          create: {
+            credentialId: credencial.id,
+            publicKey: isoBase64URL.fromBuffer(credencial.publicKey),
+            counter: credencial.counter,
+            transports: credencial.transports || [],
+          },
+        },
+      },
+    });
+  }
 
   return serializarUsuario(usuario);
 }
@@ -174,3 +193,5 @@ module.exports = {
   usuarioActual,
   serializarUsuario,
 };
+
+

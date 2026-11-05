@@ -1,0 +1,27 @@
+FROM node:20-bookworm-slim
+
+ENV NODE_ENV=development
+ENV NEXT_TELEMETRY_DISABLED=1
+
+WORKDIR /app
+
+# Dependencias del sistema requeridas por Prisma y binarios nativos.
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends openssl \
+  && rm -rf /var/lib/apt/lists/*
+
+COPY package.json package-lock.json ./
+COPY prisma ./prisma
+COPY prisma.config.mjs ./
+
+# Prisma exige DATABASE_URL incluso para generar el cliente.
+# Es un valor descartable de build; en runtime el compose lo sobreescribe.
+ENV DATABASE_URL="postgresql://build:build@localhost:5432/build"
+
+RUN npm ci --legacy-peer-deps && npx prisma generate
+
+COPY . .
+
+EXPOSE 3000
+
+CMD ["npm", "run", "dev"]

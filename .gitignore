@@ -54,3 +54,8 @@ backend/data/conversaciones/
 Thumbs.db
 dist/
 coverage/
+
+# =========================
+# Tooling
+# =========================
+.atl/

@@ -5,7 +5,7 @@ import type { FormEvent, KeyboardEvent } from "react";
 import Link from "next/link";
 import { apiFetch, ApiError } from "@/lib/api/client";
 import { useSesion } from "@/lib/hooks/useSesion";
-import type { RespuestaChat } from "@/types/api";
+import type { HistorialChat, RespuestaChat } from "@/types/api";
 
 type Rol = "usuario" | "asistente";
 
@@ -28,6 +28,11 @@ const MENSAJE_ERROR =
 
 const MENSAJE_SESION_EXPIRADA =
   "Tu sesión expiró. Iniciá sesión nuevamente para seguir chateando.";
+
+const MENSAJE_ERROR_REINICIO =
+  "No se pudo iniciar una nueva conversación. Intentá nuevamente en unos segundos.";
+
+const CLAVE_SESION_CHAT = "barberia:chat:sesionId";
 
 const ETIQUETA_HERRAMIENTA: Record<string, string> = {
   consultar_disponibilidad: "Consultó la agenda",
@@ -87,6 +92,24 @@ function IconoEnviar() {
     >
       <path d="m22 2-7 20-4-9-9-4 20-7z" />
       <path d="M22 2 11 13" />
+    </svg>
+  );
+}
+
+function IconoReiniciar() {
+  return (
+    <svg
+      aria-hidden
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-4 w-4"
+    >
+      <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
+      <path d="M3 3v5h5" />
     </svg>
   );
 }
@@ -174,8 +197,12 @@ export function ChatWidget() {
   const [mensajes, setMensajes] = useState<Mensaje[]>([BIENVENIDA]);
   const [texto, setTexto] = useState("");
   const [cargando, setCargando] = useState(false);
-  const [sesionId, setSesionId] = useState<string | null>(null);
+  const [reiniciando, setReiniciando] = useState(false);
+  const [sesion, setSesion] = useState<{ id: string; usuarioId: string } | null>(null);
 
+  const cargandoRef = useRef(false);
+  const reiniciandoRef = useRef(false);
+  const cargaHistorialVersionRef = useRef(0);
   const siguienteId = useRef(1);
   const historialRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -189,13 +216,69 @@ export function ChatWidget() {
     if (abierto && usuario) inputRef.current?.focus();
   }, [abierto, usuario]);
 
+  useEffect(() => {
+    if (sesionCargando || !usuario) return;
+    let activo = true;
+
+    const clave = `${CLAVE_SESION_CHAT}:${usuario.id}`;
+    let guardado: string | null = null;
+    try {
+      guardado = window.localStorage.getItem(clave);
+    } catch {
+      guardado = null;
+    }
+    if (!guardado) return;
+    const sesionGuardada = guardado;
+    const versionCarga = cargaHistorialVersionRef.current;
+
+    void (async () => {
+      try {
+        const data = await apiFetch<HistorialChat>(
+          `/api/asistente/historial?sesionId=${encodeURIComponent(sesionGuardada)}`,
+        );
+        if (!activo || versionCarga !== cargaHistorialVersionRef.current) return;
+        const restaurados: Mensaje[] = (data.mensajes ?? []).map((mensaje, indice) => ({
+          id: indice + 1,
+          rol: mensaje.role === "user" ? "usuario" : "asistente",
+          texto: mensaje.content,
+        }));
+        siguienteId.current = restaurados.length + 1;
+        setSesion({ id: data.conversacionId ?? sesionGuardada, usuarioId: usuario.id });
+        setMensajes(restaurados.length > 0 ? [BIENVENIDA, ...restaurados] : [BIENVENIDA]);
+      } catch {
+        if (!activo || versionCarga !== cargaHistorialVersionRef.current) return;
+        try {
+          window.localStorage.removeItem(clave);
+        } catch {
+          // almacenamiento no disponible
+        }
+      }
+    })();
+
+    return () => {
+      activo = false;
+    };
+  }, [usuario, sesionCargando]);
+
   async function enviar(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const pregunta = texto.trim();
-    if (!pregunta || cargando) return;
+    if (
+      !pregunta ||
+      cargando ||
+      reiniciando ||
+      cargandoRef.current ||
+      reiniciandoRef.current ||
+      !usuario
+    ) return;
 
+    const cambiaDeUsuario = Boolean(sesion && sesion.usuarioId !== usuario.id);
+    const sesionActual = sesion && sesion.usuarioId === usuario.id ? sesion.id : null;
+    if (cambiaDeUsuario) siguienteId.current = 1;
+
+    cargandoRef.current = true;
     setMensajes((prev) => [
-      ...prev,
+      ...(cambiaDeUsuario ? [BIENVENIDA] : prev),
       { id: siguienteId.current++, rol: "usuario", texto: pregunta },
     ]);
     setTexto("");
@@ -206,11 +289,21 @@ export function ChatWidget() {
         method: "POST",
         body: JSON.stringify({
           pregunta,
-          ...(sesionId ? { sesionId } : {}),
+          ...(sesionActual ? { sesionId: sesionActual } : {}),
         }),
       });
 
-      if (data.conversacionId) setSesionId(data.conversacionId);
+      if (data.conversacionId) {
+        setSesion({ id: data.conversacionId, usuarioId: usuario.id });
+        try {
+          window.localStorage.setItem(
+            `${CLAVE_SESION_CHAT}:${usuario.id}`,
+            data.conversacionId,
+          );
+        } catch {
+          // almacenamiento no disponible
+        }
+      }
 
       const herramientas = data.toolInvocadas?.filter(Boolean);
 
@@ -235,7 +328,72 @@ export function ChatWidget() {
         { id: siguienteId.current++, rol: "asistente", texto: mensaje },
       ]);
     } finally {
+      cargandoRef.current = false;
       setCargando(false);
+    }
+  }
+
+  async function reiniciarConversacion() {
+    if (
+      reiniciando ||
+      cargando ||
+      cargandoRef.current ||
+      reiniciandoRef.current ||
+      !usuario
+    ) return;
+
+    const confirmado = window.confirm(
+      "¿Iniciar una nueva conversación? Se borrará el historial de este chat.",
+    );
+    if (!confirmado) return;
+
+    let sesionActual =
+      sesion && sesion.usuarioId === usuario.id ? sesion.id : null;
+    const clave = `${CLAVE_SESION_CHAT}:${usuario.id}`;
+    if (!sesionActual) {
+      try {
+        sesionActual = window.localStorage.getItem(clave);
+      } catch {
+        sesionActual = null;
+      }
+    }
+    reiniciandoRef.current = true;
+    setReiniciando(true);
+
+    try {
+      if (sesionActual) {
+        const resultado = await apiFetch<{ ok: boolean }>(
+          `/api/asistente/historial?sesionId=${encodeURIComponent(sesionActual)}`,
+          { method: "DELETE" },
+        );
+        if (resultado.ok !== true) {
+          throw new Error("El servidor no confirmó el reinicio");
+        }
+      }
+
+      cargaHistorialVersionRef.current += 1;
+      try {
+        window.localStorage.removeItem(clave);
+      } catch {
+        // almacenamiento no disponible
+      }
+
+      setSesion(null);
+      setMensajes([BIENVENIDA]);
+      siguienteId.current = 1;
+      setTexto("");
+    } catch (err) {
+      const mensaje =
+        err instanceof ApiError && err.status === 401
+          ? MENSAJE_SESION_EXPIRADA
+          : MENSAJE_ERROR_REINICIO;
+      setMensajes((prev) => [
+        ...prev,
+        { id: siguienteId.current++, rol: "asistente", texto: mensaje },
+      ]);
+    } finally {
+      reiniciandoRef.current = false;
+      setReiniciando(false);
     }
   }
 
@@ -245,6 +403,9 @@ export function ChatWidget() {
       event.currentTarget.form?.requestSubmit();
     }
   }
+
+  const mensajesVisibles =
+    sesion && usuario && sesion.usuarioId !== usuario.id ? [BIENVENIDA] : mensajes;
 
   return (
     <>
@@ -286,6 +447,23 @@ export function ChatWidget() {
                 {usuario ? "En línea" : "Sin sesión"}
               </p>
             </div>
+            {usuario && (
+              <button
+                type="button"
+                onClick={() => void reiniciarConversacion()}
+                disabled={cargando || reiniciando}
+                aria-label={
+                  reiniciando
+                    ? "Reiniciando conversación"
+                    : "Iniciar nueva conversación"
+                }
+                aria-busy={reiniciando}
+                title="Iniciar nueva conversación"
+                className="rounded-full p-1.5 text-muted transition-colors hover:bg-foreground/10 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <IconoReiniciar />
+              </button>
+            )}
             <button
               type="button"
               onClick={() => setAbierto(false)}
@@ -309,7 +487,7 @@ export function ChatWidget() {
                 aria-relevant="additions"
                 className="flex flex-1 flex-col gap-3 overflow-y-auto px-4 py-4"
               >
-                {mensajes.map((m) => (
+                {mensajesVisibles.map((m) => (
                   <div
                     key={m.id}
                     className={`flex flex-col gap-1.5 ${
@@ -354,12 +532,12 @@ export function ChatWidget() {
                   onChange={(e) => setTexto(e.target.value)}
                   onKeyDown={manejarTeclas}
                   placeholder="Escribí tu mensaje…"
-                  disabled={cargando}
+                  disabled={cargando || reiniciando}
                   className="max-h-28 min-h-10 flex-1 resize-none rounded-2xl border border-border bg-surface px-4 py-2.5 text-sm text-foreground placeholder:text-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 disabled:opacity-60 "
                 />
                 <button
                   type="submit"
-                  disabled={cargando || !texto.trim()}
+                  disabled={cargando || reiniciando || !texto.trim()}
                   aria-label="Enviar mensaje"
                   className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-foreground text-background transition-colors hover:bg-foreground/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-40 "
                 >

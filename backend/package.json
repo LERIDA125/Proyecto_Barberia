@@ -6,11 +6,15 @@
   "scripts": {
     "dev": "nodemon server.js",
     "start": "node server.js",
+    "mcp:postgres": "node src/mcp/postgres/server.js",
+    "mcp:calendar": "npm start --prefix src/mcp/google-calendar",
+    "mcp:calendar:install": "npm install --prefix src/mcp/google-calendar",
     "ingest": "node scripts/ingest.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
-    "seed": "node prisma/seed.js"
+    "seed": "node prisma/seed.js",
+    "test": "node --test"
   },
   "prisma": {
     "seed": "node prisma/seed.js"
@@ -30,6 +34,7 @@
     "@langchain/groq": "^0.2.4",
     "@langchain/ollama": "^0.1.6",
     "@langchain/textsplitters": "^0.1.0",
+    "@modelcontextprotocol/sdk": "^1.32.1",
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",
     "@simplewebauthn/server": "^14.0.3",
@@ -39,7 +44,8 @@
     "dotenv": "^18.0.7",
     "express": "^5.3.0",
     "langchain": "^0.3.19",
-    "pg": "^8.23.1"
+    "pg": "^8.23.1",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "nodemon": "^3.1.14",

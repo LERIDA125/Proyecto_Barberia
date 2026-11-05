@@ -83,7 +83,7 @@ async function misMetricas(req, res, next) {
 
 async function misBloqueos(req, res, next) {
   try {
-    const bloqueos = await barberosService.listarBloqueos(req.usuario.id);
+    const bloqueos = await barberosService.listarBloqueos(req.usuario);
     res.json(bloqueos);
   } catch (err) {
     next(err);
@@ -92,7 +92,7 @@ async function misBloqueos(req, res, next) {
 
 async function crearBloqueo(req, res, next) {
   try {
-    const bloqueo = await barberosService.crearBloqueo(req.usuario.id, req.body);
+    const bloqueo = await barberosService.crearBloqueo(req.usuario, req.body);
     res.status(201).json(bloqueo);
   } catch (err) {
     next(err);
@@ -101,7 +101,7 @@ async function crearBloqueo(req, res, next) {
 
 async function eliminarBloqueo(req, res, next) {
   try {
-    const resultado = await barberosService.eliminarBloqueo(req.usuario.id, req.params.id);
+    const resultado = await barberosService.eliminarBloqueo(req.usuario, req.params.id);
     res.json(resultado);
   } catch (err) {
     next(err);

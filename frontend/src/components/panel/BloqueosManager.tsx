@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { ConfirmDialog, Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -8,16 +8,18 @@ import { StatusMessage } from "@/components/ui/StatusMessage";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ApiError } from "@/lib/api/client";
-import { crearBloqueo, eliminarBloqueo } from "@/lib/api/barberos";
+import { crearBloqueo, eliminarBloqueo, getBarberos } from "@/lib/api/barberos";
 import { useMisBloqueos } from "@/lib/hooks/useMisBloqueos";
+import { useSesion } from "@/lib/hooks/useSesion";
 import { formatearFechaHora } from "@/lib/utils/format";
-import type { Bloqueo } from "@/types/api";
+import type { Barbero, Bloqueo } from "@/types/api";
 
-const FORM_INICIAL = { inicio: "", fin: "", motivo: "" };
+const FORM_INICIAL = { inicio: "", fin: "", motivo: "", barberoId: "" };
 
 interface ErroresForm {
   inicio?: string;
   fin?: string;
+  barberoId?: string;
 }
 
 function aIso(valor: string): string | null {
@@ -45,8 +47,14 @@ function IconoBasura() {
   );
 }
 
-export function BloqueosManager() {
+export function BloqueosManager({ filtroBarberoId = "" }: { filtroBarberoId?: string }) {
   const { bloqueos, referencia, loading, error, recargar, agregar, quitar } = useMisBloqueos();
+  const { usuario } = useSesion();
+  const esAdmin = usuario?.rol === "admin";
+  const [barberos, setBarberos] = useState<Barbero[]>([]);
+  const [barberosCargados, setBarberosCargados] = useState(false);
+  const [errorBarberos, setErrorBarberos] = useState<string | null>(null);
+  const cargandoBarberos = esAdmin && !barberosCargados;
   const [modalAbierto, setModalAbierto] = useState(false);
   const [form, setForm] = useState(FORM_INICIAL);
   const [errores, setErrores] = useState<ErroresForm>({});
@@ -56,8 +64,33 @@ export function BloqueosManager() {
   const [eliminando, setEliminando] = useState(false);
   const [errorAccion, setErrorAccion] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (!esAdmin) return;
+    let activo = true;
+    getBarberos()
+      .then((data) => {
+        if (!activo) return;
+        setBarberos(data);
+        setErrorBarberos(null);
+      })
+      .catch((err) => {
+        if (!activo) return;
+        setErrorBarberos(
+          err instanceof ApiError ? err.message : "No se pudieron cargar los barberos",
+        );
+      })
+      .finally(() => {
+        if (activo) setBarberosCargados(true);
+      });
+    return () => {
+      activo = false;
+    };
+  }, [esAdmin]);
+
   const proximos = bloqueos.filter(
-    (bloqueo) => new Date(bloqueo.fin).getTime() >= referencia,
+    (bloqueo) =>
+      new Date(bloqueo.fin).getTime() >= referencia &&
+      (!filtroBarberoId || bloqueo.barberoId === filtroBarberoId),
   );
 
   function abrirModal() {
@@ -83,6 +116,10 @@ export function BloqueosManager() {
       nuevos.fin = "La fecha de fin debe ser posterior a la de inicio";
     }
 
+    if (esAdmin && !form.barberoId) {
+      nuevos.barberoId = "Seleccioná el barbero al que aplicar el bloqueo";
+    }
+
     setErrores(nuevos);
     if (Object.keys(nuevos).length > 0 || !inicioIso || !finIso) return;
 
@@ -93,6 +130,7 @@ export function BloqueosManager() {
         inicio: inicioIso,
         fin: finIso,
         motivo: form.motivo.trim() || undefined,
+        ...(esAdmin ? { barberoId: form.barberoId } : {}),
       });
       agregar(creado);
       setModalAbierto(false);
@@ -154,7 +192,7 @@ export function BloqueosManager() {
           </div>
         ) : proximos.length === 0 ? (
           <EmptyState
-            titulo="Sin bloqueos activos"
+            titulo={filtroBarberoId ? "Sin bloqueos para este barbero" : "Sin bloqueos activos"}
             descripcion="No tenés ausencias ni descansos programados para los próximos días."
           />
         ) : (
@@ -197,6 +235,43 @@ export function BloqueosManager() {
 
       <Modal abierto={modalAbierto} titulo="Bloquear horario" onCerrar={() => setModalAbierto(false)}>
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
+          {esAdmin && (
+            <div className="flex flex-col gap-1">
+              <label
+                htmlFor="barberoId"
+                className="text-xs font-medium uppercase tracking-widest text-neutral-500 "
+              >
+                Barbero
+              </label>
+              <select
+                id="barberoId"
+                name="barberoId"
+                value={form.barberoId}
+                disabled={cargandoBarberos}
+                onChange={(e) => setForm({ ...form, barberoId: e.target.value })}
+                className={`rounded-none border border-neutral-800 bg-neutral-900 px-4 py-4 text-sm text-white outline-none transition focus:border-neutral-500 focus:ring-0 ${
+                  errores.barberoId ? "border-red-500" : ""
+                }`}
+              >
+                <option value="" disabled>
+                  Seleccioná un barbero
+                </option>
+                {barberos.map((barbero) => (
+                  <option key={barbero.id} value={barbero.id}>
+                    {barbero.nombre ?? "Barbero"}
+                  </option>
+                ))}
+              </select>
+              {errores.barberoId && (
+                <span className="text-xs text-red-400 ">{errores.barberoId}</span>
+              )}
+            </div>
+          )}
+
+          {esAdmin && errorBarberos && (
+            <StatusMessage tipo="error" mensaje={errorBarberos} />
+          )}
+
           <Input
             label="Inicio"
             name="inicio"
@@ -232,7 +307,7 @@ export function BloqueosManager() {
             >
               Cancelar
             </Button>
-            <Button type="submit" cargando={guardando}>
+            <Button type="submit" cargando={guardando} disabled={guardando || (esAdmin && cargandoBarberos)}>
               Crear bloqueo
             </Button>
           </div>

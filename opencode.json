@@ -1,0 +1,27 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": [
+    "AGENTS.md",
+    ".instructions.md",
+    ".specify/memory/constitution.md"
+  ],
+  "mcp": {
+    "servers": {
+      "postgres-local": {
+        "type": "local",
+        "command": [
+          "node",
+          "src/mcp/postgres/server.js"
+        ],
+        "cwd": "backend",
+        "disabled": false
+      },
+      "google-calendar": {
+        "type": "remote",
+        "url": "http://localhost:8000/mcp",
+        "disabled": false,
+        "timeout": 10000
+      }
+    }
+  }
+}

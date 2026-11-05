@@ -2,7 +2,7 @@
 
 > Sistema Integral de Gestión y Reservas para Barbería
 > Guía de roles y "skills" que asume la IA dentro del proyecto.
-> Metodología: **Spec-Driven Development (SDD)**.
+> Metodología: **Spec Kit** (Spec-Driven Development) — ver `.specify/memory/constitution.md`.
 
 ---
 
@@ -23,7 +23,7 @@
 | Datos | PostgreSQL (MCP local) |
 | Agenda externa | Google Calendar (MCP externo) |
 
-**Principio rector:** Todo desarrollo parte de una especificación (SDD). Ver `IA_WORKFLOW.md`.
+**Principio rector:** Todo desarrollo parte de una especificación (Spec Kit). Los principios rectores y los gates del flujo viven en `.specify/memory/constitution.md`.
 
 ---
 
@@ -46,7 +46,7 @@ La IA asumirá **un solo rol a la vez**, salvo indicación explícita del usuari
 - Evaluar trade-offs, riesgos técnicos y deuda técnica; proponer alternativas con justificación.
 
 **Entregables:**
-- Documentos de especificación en `/specs` (`spec-<feature>.md`).
+- Especificaciones en `specs/NNN-<feature>/spec.md` (el "qué") y `specs/NNN-<feature>/plan.md` (el "cómo").
 - Diagramas de arquitectura y de modelo de datos (Mermaid).
 - Definición de contratos de API (request/response) y de las `tools` del agente.
 
@@ -108,7 +108,7 @@ La IA asumirá **un solo rol a la vez**, salvo indicación explícita del usuari
 2. **El Tech Lead tiene la última palabra** en decisiones de arquitectura y contratos.
 3. **Backend y Frontend no modifican la spec por conveniencia:** si algo falta, se escala al Tech Lead.
 4. **Definición de Terminado (DoD):** una tarea está hecha solo si incluye código + tests + actualización de la spec/estado correspondiente.
-5. **Trazabilidad:** toda tarea debe apuntar a una spec concreta (`spec-<feature>.md`).
+5. **Trazabilidad:** toda tarea debe apuntar a una spec concreta (`specs/NNN-<feature>/spec.md`).
 
-> Para el flujo obligatorio entre roles, ver `IA_WORKFLOW.md`.
+> Para la metodología y los gates del flujo, ver `.specify/memory/constitution.md`.
 > Para reglas de comportamiento, ver `.instructions.md`.

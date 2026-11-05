@@ -29,11 +29,13 @@ export default function MisTurnosPage() {
   }
 
   const { proximos, historial } = useMemo(() => {
+    const vaAlHistorial = (turno: Turno) =>
+      turno.estado === "completado" || !esFuturo(turno.fechaInicio);
     const proximos = turnos
-      .filter((t) => esFuturo(t.fechaInicio))
+      .filter((turno) => !vaAlHistorial(turno))
       .sort((a, b) => a.fechaInicio.localeCompare(b.fechaInicio));
     const historial = turnos
-      .filter((t) => !esFuturo(t.fechaInicio))
+      .filter(vaAlHistorial)
       .sort((a, b) => b.fechaInicio.localeCompare(a.fechaInicio));
     return { proximos, historial };
   }, [turnos]);

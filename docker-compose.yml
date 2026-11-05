@@ -1,0 +1,66 @@
+name: barberia-dev
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: barberia-backend-dev
+    working_dir: /app
+    command: sh -c "npm install --no-package-lock --legacy-peer-deps --prefer-offline && npx prisma generate && npm run dev"
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backend:/app
+      - ./datos_barberia.md:/datos_barberia.md:ro
+      - backend_node_modules:/app/node_modules
+    env_file:
+      - path: ./backend/.env
+        required: false
+    environment:
+      NODE_ENV: development
+      PORT: "3000"
+      CHOKIDAR_USEPOLLING: "true"
+      DATABASE_URL: "${DATABASE_URL_DOCKER:-postgresql://usuario:password@host.docker.internal:5432/barberia?schema=public}"
+      MCP_CALENDAR_URL: "${MCP_CALENDAR_URL_DOCKER-http://host.docker.internal:8000/sse}"
+      OLLAMA_BASE_URL: "${OLLAMA_BASE_URL_DOCKER-http://host.docker.internal:11434}"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - barberia-net
+    init: true
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: barberia-frontend-dev
+    working_dir: /app
+    command: sh -c "npm install --no-package-lock --prefer-offline && npm run dev"
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./frontend:/app
+      - frontend_node_modules:/app/node_modules
+      - frontend_next:/app/.next
+    environment:
+      NODE_ENV: development
+      NEXT_TELEMETRY_DISABLED: "1"
+      NEXT_PUBLIC_API_URL: "${NEXT_PUBLIC_API_URL:-http://localhost:3000}"
+      NEXT_WATCH_POLL: "true"
+      WATCHPACK_POLLING: "true"
+      CHOKIDAR_USEPOLLING: "true"
+    depends_on:
+      - backend
+    networks:
+      - barberia-net
+    init: true
+
+networks:
+  barberia-net:
+    driver: bridge
+
+volumes:
+  backend_node_modules:
+  frontend_node_modules:
+  frontend_next:
