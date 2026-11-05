@@ -39,15 +39,15 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-neutral-900 bg-neutral-950">
-      <nav className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-6 px-6">
-        <div className="flex items-center gap-8">
+      <nav className="mx-auto flex min-h-20 max-w-7xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-2 sm:h-20 sm:flex-nowrap sm:px-6 sm:py-0">
+        <div className="flex min-w-0 items-center gap-4 sm:gap-8">
           <Link
             href="/"
-            className="text-2xl font-black uppercase tracking-widest text-white"
+            className="shrink-0 text-2xl font-black uppercase tracking-widest text-white"
           >
             Barbería
           </Link>
-          <ul className="flex items-center gap-2">
+          <ul className="flex flex-wrap items-center gap-2">
             {links.map((link) => {
               const activo = pathname === link.href;
               return (
@@ -68,20 +68,20 @@ export function Navbar() {
           </ul>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-4 sm:gap-6">
           {loading ? null : usuario ? (
             <>
               <NotificationBell />
-              <span className="hidden text-sm text-neutral-400 sm:inline">
-                {usuario.nombre}
-                <span className="ml-2 rounded-none border border-neutral-800 px-2 py-0.5 text-xs capitalize text-neutral-500">
+              <span className="hidden min-w-0 items-center gap-2 text-sm text-neutral-400 sm:flex">
+                <span className="truncate">{usuario.nombre}</span>
+                <span className="shrink-0 rounded-none border border-neutral-800 px-2 py-0.5 text-xs capitalize text-neutral-500">
                   {usuario.rol}
                 </span>
               </span>
               <Button
                 variante="secondary"
                 onClick={() => void cerrarSesion()}
-                className="rounded-none border-neutral-800 px-3 py-1 text-neutral-300 hover:bg-neutral-900 hover:text-white"
+                className="shrink-0 rounded-none border-neutral-800 px-3 py-1 text-neutral-300 hover:bg-neutral-900 hover:text-white"
               >
                 Cerrar sesión
               </Button>
