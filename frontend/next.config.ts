@@ -2,6 +2,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
+  experimental: {
+    // Politica por defecto para `next upgrade --agent` y recordatorios de advisories.
+    agentUpgrade: "security",
+  },
   cacheComponents: true,
   partialPrefetching: true,
   // En contenedores con bind mounts de Windows, Turbopack no recibe eventos
