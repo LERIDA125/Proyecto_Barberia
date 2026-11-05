@@ -25,7 +25,7 @@
 | **011-metricas-dashboard** | ✅ Implementada | `GET /api/metricas` y `/api/barberos/me/metricas` (rangos opcionales) + `/panel/metricas`. |
 | **012-vista-clientes** | ✅ Implementada | `GET /api/clientes` con `_count.turnos` + resumen (tráfico/gasto) en historial; `/panel/clientes` con listado, filtro y ficha. |
 | **014-chat-reinicio-conversacion** | ⚠️ Parcial | Acción autenticada con confirmación, borrado antes de limpiar UI, control de concurrencia y errores no sensibles; 6 tests de historial aprobados. Lint y TypeScript pasan; queda pendiente la interacción manual en navegador real. Incrementa FR-008 de 006. |
-| **015-entorno-docker-compose** | ✅ Implementada | `docker-compose.yml` con frontend (:3001) y backend (:3000), hot-reload verificado y volúmenes para `node_modules`/`.next`. PostgreSQL y MCP Calendar siguen fuera del compose. |
+| **015-entorno-docker-compose** | ✅ Implementada | `docker-compose.yml` con PostgreSQL (:5432), backend (:3000) y frontend (:3001), healthcheck `pg_isready`, `depends_on: service_healthy` y volumen `postgres_data`. Errores Prisma de infraestructura desenmascarados y health con ping real a la base. MCP Calendar sigue fuera del compose. |
 
 ---
 
@@ -63,6 +63,18 @@
 - **Verificación:** `docker compose config` OK; `docker compose up -d --build` OK; `:3001` respondió 200 y `:3000/api/health` respondió `{ status: "ok" }`; hot-reload de frontend y reinicio de `nodemon` verificados con cambios reales desde el host; contextos de build de 5.27 kB (frontend) y 4.10 kB (backend); lint 0 errores (3 advertencias preexistentes) y TypeScript sin errores.
 - **Limitación:** no se verificaron flujos que dependen de PostgreSQL porque el contenedor de base de datos no estaba corriendo; el MCP de Calendar sigue fuera del compose.
 - **Trazabilidad:** `specs/015-entorno-docker-compose/` y `README.md`.
+
+---
+
+## Incremento SDD 015-A — PostgreSQL en Compose y observabilidad (05-nov-2026)
+
+- **Infraestructura:** se agregó el servicio `postgres` (`postgres:16-alpine`) al compose con credenciales `usuario`/`password`/`barberia`, puerto `5432`, volumen `postgres_data` y healthcheck `pg_isready -U usuario -d barberia`. El backend depende de `postgres` con `condition: service_healthy`.
+- **Backend:** `DATABASE_URL` del contenedor ahora es `postgresql://usuario:password@postgres:5432/barberia?schema=public`; se eliminó el default a `host.docker.internal`.
+- **Errores:** `error.middleware.js` mapea `P1001/P1002/P1017` a `503 Base de datos no disponible`, `P2021` a `500` con indicación de migraciones faltantes y `PrismaClientInitializationError` a `503`.
+- **Health:** `/api/health` ejecuta `SELECT 1`; responde `200` con `db: "ok"` o `503` con `db: "down"`.
+- **Verificación:** `docker compose config` OK; migraciones y seed aplicados dentro del contenedor; `GET /api/health` → 200 `db: "ok"`; `GET /api/servicios` → 200 con 4 servicios; con Postgres detenido, ambos endpoints → 503 con mensajes explícitos; al reiniciar Postgres, recuperación a 200.
+- **Limitación:** migraciones y seed se ejecutan a mano (`docker compose exec backend ...`); el MCP de Calendar sigue fuera del compose y no existe Dockerfile para él.
+- **Trazabilidad:** `specs/015-entorno-docker-compose/spec.md` (Amendment 05-nov-2026) y `README.md`.
 
 ---
 

@@ -139,3 +139,25 @@ Un desarrollador alterna entre ejecutar la app en el host y en contenedores sin 
 - El servidor MCP de Google Calendar no forma parte de esta feature; si no está corriendo, la integración queda deshabilitada sin bloquear el arranque.
 - No se requiere una imagen de producción en esta feature.
 - El hot-reload del frontend en Windows requiere polling porque Turbopack no recibe eventos del bind mount; se habilita solo con `NEXT_WATCH_POLL=true` y no afecta el `npm run dev` del host.
+
+## Amendment — 2026-11-05: PostgreSQL en Compose y observabilidad
+
+**Motivo:** el alcance original dejaba PostgreSQL fuera del compose y, al no haber una base corriendo, todas las rutas dependientes de persistencia devolvían `500 Error interno del servidor` sin causa visible.
+
+**Cambios de alcance (supersede los "Out of Scope" originales):**
+
+- El compose incorpora el servicio `postgres` (`postgres:16-alpine`) con credenciales `usuario`/`password`/`barberia`, puerto `5432`, volumen `postgres_data` y healthcheck `pg_isready`.
+- El backend depende de `postgres` con `condition: service_healthy` y usa `postgresql://usuario:password@postgres:5432/barberia?schema=public`.
+- `error.middleware.js` desenmascara errores de infraestructura de Prisma: `P1001/P1002/P1017` → `503 Base de datos no disponible`; `P2021` → `500` con mensaje de migraciones faltantes.
+- `/api/health` ejecuta `SELECT 1` y responde `503` cuando la base no está disponible.
+
+**Criterios de aceptación agregados:**
+
+- **AC-015-A1:** `docker compose up -d` deja `postgres` saludable antes de arrancar el backend.
+- **AC-015-A2:** `GET /api/health` responde `200` con `db: "ok"` cuando la base está arriba.
+- **AC-015-A3:** con la base caída, `/api/health` y las rutas de datos responden `503` con mensaje explícito (nunca el genérico `Error interno del servidor`).
+- **AC-015-A4:** con las tablas ausentes, la API responde `500` indicando que faltan migraciones.
+
+**Verificación:** `docker compose config` OK; `migrate deploy` y `seed` aplicados dentro del contenedor; `/api/health` → `200 {"db":"ok"}`; `/api/servicios` → `200` con 4 servicios; con `postgres` detenido, `/api/health` → `503 {"db":"down"}` y `/api/servicios` → `503 {"message":"Base de datos no disponible"}`; al reiniciar `postgres`, ambos vuelven a `200`.
+
+**Limitación:** migraciones y seed se corren a mano; el MCP de Google Calendar sigue fuera del compose (no tiene Dockerfile).

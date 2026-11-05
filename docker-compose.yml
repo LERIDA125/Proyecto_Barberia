@@ -1,6 +1,25 @@
 name: barberia-dev
 
 services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: barberia-postgres
+    environment:
+      POSTGRES_USER: usuario
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: barberia
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U usuario -d barberia"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - barberia-net
+
   backend:
     build:
       context: ./backend
@@ -21,11 +40,14 @@ services:
       NODE_ENV: development
       PORT: "3000"
       CHOKIDAR_USEPOLLING: "true"
-      DATABASE_URL: "${DATABASE_URL_DOCKER:-postgresql://usuario:password@host.docker.internal:5432/barberia?schema=public}"
+      DATABASE_URL: "postgresql://usuario:password@postgres:5432/barberia?schema=public"
       MCP_CALENDAR_URL: "${MCP_CALENDAR_URL_DOCKER-http://host.docker.internal:8000/sse}"
       OLLAMA_BASE_URL: "${OLLAMA_BASE_URL_DOCKER-http://host.docker.internal:11434}"
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    depends_on:
+      postgres:
+        condition: service_healthy
     networks:
       - barberia-net
     init: true
@@ -61,6 +83,7 @@ networks:
     driver: bridge
 
 volumes:
+  postgres_data:
   backend_node_modules:
   frontend_node_modules:
   frontend_next:

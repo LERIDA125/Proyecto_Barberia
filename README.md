@@ -198,20 +198,13 @@ TIMEZONE=America/Argentina/Buenos_Aires
 
 ### Paso 1 — Base de datos (PostgreSQL en Docker)
 
-```bash
-docker run --name barberia-postgres \
-  -e POSTGRES_USER=usuario \
-  -e POSTGRES_PASSWORD=password \
-  -e POSTGRES_DB=barberia \
-  -p 5432:5432 \
-  -d postgres:16
-```
-
-El contenedor se llama **`barberia-postgres`**. Si ya lo creaste antes (por ejemplo con la imagen `postgres:16-alpine`), no hace falta recrearlo: basta con levantarlo.
+La base de datos está incluida en `docker-compose.yml` como el servicio `postgres` (imagen `postgres:16-alpine`, puerto `5432`, volumen `postgres_data`). Para el flujo nativo (backend/frontend con `npm run dev`) alcanza con levantar solo ese servicio:
 
 ```bash
-docker start barberia-postgres
+docker compose up -d postgres
 ```
+
+Credenciales por defecto: usuario `usuario`, contraseña `password`, base `barberia`. Si ya tenías un contenedor `barberia-postgres` creado con `docker run`, eliminalo antes para evitar conflictos de puerto y de nombre.
 
 ### Paso 2 — Backend
 
@@ -250,34 +243,37 @@ Abrí **http://localhost:3001**, registrá un usuario con Passkey y ya podés re
 
 ### Alternativa — Entorno de desarrollo con Docker Compose
 
-Si preferís no ejecutar `npm run dev` en dos terminales, el repositorio incluye un `docker-compose.yml` con frontend y backend en contenedores y recarga en vivo. PostgreSQL sigue corriendo en el host (Paso 1) y **no** forma parte del compose.
+Si preferís no ejecutar `npm run dev` en dos terminales, el repositorio incluye un `docker-compose.yml` con PostgreSQL, frontend y backend en contenedores y recarga en vivo.
 
 ```bash
-# Desde la raíz del proyecto, con Docker Desktop iniciado y PostgreSQL levantado
+# Desde la raíz del proyecto, con Docker Desktop iniciado
 docker compose up -d --build
 ```
+
+El backend espera a que PostgreSQL esté saludable (`healthcheck` con `pg_isready`) antes de arrancar.
 
 | Servicio | URL | Puerto |
 |:---------|:----|:-------|
 | Frontend (Next.js) | http://localhost:3001 | `3001:3001` |
 | Backend (Express) | http://localhost:3000/api/health | `3000:3000` |
+| PostgreSQL | `localhost:5432` | `5432:5432` |
 
 - El código se monta desde `./frontend` y `./backend`, por lo que los cambios se reflejan sin reconstruir la imagen.
 - `node_modules` y `.next` viven en volúmenes propios para no mezclar binarios de Windows con los de Linux.
-- El backend lee `backend/.env` si existe (es opcional para arrancar) y alcanza PostgreSQL en `host.docker.internal:5432`.
-- Si tus credenciales de PostgreSQL no son las del README, sobreescribí la URL sin editar el compose:
+- El backend recibe `DATABASE_URL=postgresql://usuario:password@postgres:5432/barberia?schema=public` desde el compose y resuelve la base por el nombre del servicio (`postgres`). `backend/.env` sigue usándose para el flujo nativo, donde la base se alcanza en `localhost:5432`.
+- Si cambiás las credenciales de PostgreSQL, actualizá a la vez el servicio `postgres` y el `DATABASE_URL` del backend en `docker-compose.yml`.
+- En el primer arranque, aplicá las migraciones y cargá los datos iniciales:
 
 ```bash
-# En PowerShell
-$env:DATABASE_URL_DOCKER="postgresql://usuario:password@host.docker.internal:5432/barberia?schema=public"
-docker compose up -d
+docker compose exec backend npx prisma migrate deploy
+docker compose exec backend npm run seed
 ```
 
-Variables opcionales: `DATABASE_URL_DOCKER`, `NEXT_PUBLIC_API_URL`, `MCP_CALENDAR_URL_DOCKER` y `OLLAMA_BASE_URL_DOCKER` (por defecto apuntan a `host.docker.internal` para servicios que corren en el host).
+Variables opcionales: `NEXT_PUBLIC_API_URL`, `MCP_CALENDAR_URL_DOCKER` y `OLLAMA_BASE_URL_DOCKER` (por defecto apuntan a `host.docker.internal` para servicios que corren en el host).
 
 ```bash
 # Ver logs
-docker compose logs -f frontend backend
+docker compose logs -f postgres backend frontend
 
 # Detener el entorno (conserva los volúmenes de dependencias)
 docker compose down
