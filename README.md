@@ -248,6 +248,46 @@ npm run dev
 
 Abrí **http://localhost:3001**, registrá un usuario con Passkey y ya podés reservar.
 
+### Alternativa — Entorno de desarrollo con Docker Compose
+
+Si preferís no ejecutar `npm run dev` en dos terminales, el repositorio incluye un `docker-compose.yml` con frontend y backend en contenedores y recarga en vivo. PostgreSQL sigue corriendo en el host (Paso 1) y **no** forma parte del compose.
+
+```bash
+# Desde la raíz del proyecto, con Docker Desktop iniciado y PostgreSQL levantado
+docker compose up -d --build
+```
+
+| Servicio | URL | Puerto |
+|:---------|:----|:-------|
+| Frontend (Next.js) | http://localhost:3001 | `3001:3001` |
+| Backend (Express) | http://localhost:3000/api/health | `3000:3000` |
+
+- El código se monta desde `./frontend` y `./backend`, por lo que los cambios se reflejan sin reconstruir la imagen.
+- `node_modules` y `.next` viven en volúmenes propios para no mezclar binarios de Windows con los de Linux.
+- El backend lee `backend/.env` si existe (es opcional para arrancar) y alcanza PostgreSQL en `host.docker.internal:5432`.
+- Si tus credenciales de PostgreSQL no son las del README, sobreescribí la URL sin editar el compose:
+
+```bash
+# En PowerShell
+$env:DATABASE_URL_DOCKER="postgresql://usuario:password@host.docker.internal:5432/barberia?schema=public"
+docker compose up -d
+```
+
+Variables opcionales: `DATABASE_URL_DOCKER`, `NEXT_PUBLIC_API_URL`, `MCP_CALENDAR_URL_DOCKER` y `OLLAMA_BASE_URL_DOCKER` (por defecto apuntan a `host.docker.internal` para servicios que corren en el host).
+
+```bash
+# Ver logs
+docker compose logs -f frontend backend
+
+# Detener el entorno (conserva los volúmenes de dependencias)
+docker compose down
+
+# Detener y borrar los volúmenes (fuerza reinstalar dependencias la próxima vez)
+docker compose down -v
+```
+
+> Si el hot-reload no dispara en Windows, los watchers ya usan polling (`WATCHPACK_POLLING` y `CHOKIDAR_USEPOLLING`). Verificá que el proyecto esté en una ruta compartida con Docker Desktop y que los puertos `3000`/`3001` no estén ocupados por procesos locales.
+
 ### Paso 4 (opcional) — Servidor MCP de Google Calendar
 
 Ver [Model Context Protocol (MCP)](#levantar-el-servidor-mcp-de-google-calendar).

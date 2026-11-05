@@ -1,6 +1,6 @@
 # Auditoría de Implementación — Sistema Barbería
 
-**Fecha de actualización:** 26 de octubre de 2026
+**Fecha de actualización:** 05 de noviembre de 2026
 **Metodología:** GitHub Spec Kit — features en `specs/NNN-nombre/` (spec.md + plan.md + tasks.md).
 **Backfill documental:** el 26-oct-2026 se reconstruyeron los `tasks.md` de las 13 features a partir de spec, plan, código y esta auditoría. Ese backfill **no** demuestra uso histórico de Spec Kit: los primeros commits de código precedieron a los specs. A partir de ahora el pipeline completo es obligatorio.
 **Numeración antigua:** el código "CU-01…CU-10" corresponde a las specs `001…010` (misma numeración).
@@ -25,6 +25,7 @@
 | **011-metricas-dashboard** | ✅ Implementada | `GET /api/metricas` y `/api/barberos/me/metricas` (rangos opcionales) + `/panel/metricas`. |
 | **012-vista-clientes** | ✅ Implementada | `GET /api/clientes` con `_count.turnos` + resumen (tráfico/gasto) en historial; `/panel/clientes` con listado, filtro y ficha. |
 | **014-chat-reinicio-conversacion** | ⚠️ Parcial | Acción autenticada con confirmación, borrado antes de limpiar UI, control de concurrencia y errores no sensibles; 6 tests de historial aprobados. Lint y TypeScript pasan; queda pendiente la interacción manual en navegador real. Incrementa FR-008 de 006. |
+| **015-entorno-docker-compose** | ✅ Implementada | `docker-compose.yml` con frontend (:3001) y backend (:3000), hot-reload verificado y volúmenes para `node_modules`/`.next`. PostgreSQL y MCP Calendar siguen fuera del compose. |
 
 ---
 
@@ -51,6 +52,17 @@
 - **Verificación:** `npm test` en `backend/`: 14/14; `npm run lint` en `frontend/`: 0 errores y 3 advertencias preexistentes; `npx tsc --noEmit`: sin errores.
 - **Limitación:** no se verificó la interacción en navegador real. No se ejecutó build porque los servidores activos en `:3000` y `:3001` usan el repositorio; no se detuvieron procesos.
 - **Trazabilidad:** 014 amplía/completa la acción de UI de FR-008 de 006; ambas permanecen `Partial` por verificaciones E2E y deuda de tests del agente.
+
+---
+
+## Incremento SDD 015 — Entorno Docker Compose (05-nov-2026)
+
+- **Infraestructura:** `docker-compose.yml` en la raíz con servicios `frontend` y `backend`, red `barberia-net` y volúmenes nombrados para `node_modules` y `.next`.
+- **Frontend:** `frontend/Dockerfile.dev` (Node 20 bookworm-slim), `.dockerignore` y `watchOptions.pollIntervalMs` condicionado a `NEXT_WATCH_POLL=true` para el hot-reload con Turbopack sobre bind mounts de Windows.
+- **Backend:** `backend/Dockerfile.dev` con `openssl` y generación de Prisma, `.dockerignore`; conecta al PostgreSQL del host vía `host.docker.internal`.
+- **Verificación:** `docker compose config` OK; `docker compose up -d --build` OK; `:3001` respondió 200 y `:3000/api/health` respondió `{ status: "ok" }`; hot-reload de frontend y reinicio de `nodemon` verificados con cambios reales desde el host; contextos de build de 5.27 kB (frontend) y 4.10 kB (backend); lint 0 errores (3 advertencias preexistentes) y TypeScript sin errores.
+- **Limitación:** no se verificaron flujos que dependen de PostgreSQL porque el contenedor de base de datos no estaba corriendo; el MCP de Calendar sigue fuera del compose.
+- **Trazabilidad:** `specs/015-entorno-docker-compose/` y `README.md`.
 
 ---
 
