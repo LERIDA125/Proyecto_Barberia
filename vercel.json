@@ -1,0 +1,42 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "frontend": {
+      "root": "frontend",
+      "framework": "nextjs"
+    },
+    "backend": {
+      "root": "backend",
+      "framework": "express",
+      "entrypoint": "server.js",
+      "buildCommand": "npm run prisma:generate",
+      "bindings": [
+        {
+          "type": "service",
+          "service": "calendar-mcp",
+          "format": "url",
+          "env": "CALENDAR_MCP_URL"
+        }
+      ]
+    },
+    "calendar-mcp": {
+      "root": "backend/src/mcp/google-calendar",
+      "framework": "express",
+      "entrypoint": "server.js"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/(.*)",
+      "destination": {
+        "service": "frontend"
+      }
+    }
+  ]
+}

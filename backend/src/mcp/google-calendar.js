@@ -4,20 +4,31 @@ const { McpHttpClient, McpError } = require('./client');
 let cliente = null;
 let urlActual = null;
 
+function resolverUrl() {
+  if (env.mcpCalendarUrl) return env.mcpCalendarUrl;
+  if (!env.calendarMcpUrl) return '';
+
+  const base = env.calendarMcpUrl.endsWith('/')
+    ? env.calendarMcpUrl
+    : `${env.calendarMcpUrl}/`;
+  return new URL('sse', base).toString();
+}
+
 function configurado() {
-  return Boolean(env.mcpCalendarUrl);
+  return Boolean(env.mcpCalendarUrl || env.calendarMcpUrl);
 }
 
 function obtenerCliente() {
   if (!configurado()) {
     throw new McpError('La integración con Google Calendar no está configurada', 503);
   }
-  if (!cliente || urlActual !== env.mcpCalendarUrl) {
-    cliente = new McpHttpClient(env.mcpCalendarUrl, {
+  const url = resolverUrl();
+  if (!cliente || urlActual !== url) {
+    cliente = new McpHttpClient(url, {
       token: env.mcpCalendarToken,
       timeoutMs: env.mcpCalendarTimeoutMs,
     });
-    urlActual = env.mcpCalendarUrl;
+    urlActual = url;
   }
   return cliente;
 }

@@ -348,6 +348,24 @@ Archivo `backend/.env` (ver `backend/.env.example`):
 | `MCP_CALENDAR_URL` / `MCP_CALENDAR_TOKEN` / `MCP_CALENDAR_ID` / `MCP_CALENDAR_TIMEOUT_MS` | Conexión al servidor MCP de Calendar (ver sección MCP) |
 | `TIMEZONE` | Zona horaria de los eventos (default `America/Argentina/Buenos_Aires`) |
 
+## Despliegue en Vercel
+
+La configuración raíz [`vercel.json`](./vercel.json) define tres servicios:
+
+| Servicio | Acceso | Función |
+|----------|--------|---------|
+| `frontend` | Público en `/` | Aplicación Next.js |
+| `backend` | Público bajo `/api/*` | API REST Express; Prisma Client se genera durante el build |
+| `calendar-mcp` | Interno | Servidor MCP invocado por el backend mediante el binding `CALENDAR_MCP_URL` |
+
+El cliente web usa `/api` en producción para que Vercel enrute las solicitudes al backend en el mismo dominio. En desarrollo sigue usando `http://localhost:3000`, salvo que se configure `NEXT_PUBLIC_API_URL`. No definas `NEXT_PUBLIC_API_URL` en Vercel: anularía el enrutamiento same-origin.
+
+`chatbot-rag/` no se despliega como servicio: es un prototipo Python de consola. El asistente productivo forma parte del backend. PostgreSQL también debe ser provisto externamente; no se agrega como servicio Vercel.
+
+Configurar en Vercel las variables de entorno requeridas para el backend: `DATABASE_URL`, `SESSION_SECRET`, `WEBAUTHN_RP_ID` y `WEBAUTHN_ORIGIN` para el dominio final. Para las funciones opcionales, agregar `GROQ_API_KEY` y `GOOGLE_CREDENTIALS_JSON` (JSON de credenciales de Calendar), además de `CALENDAR_ID` y `TIMEZONE` cuando corresponda. `CALENDAR_MCP_URL` es inyectada por el binding y no debe configurarse manualmente; localmente puede seguir usándose `MCP_CALENDAR_URL`.
+
+**Limitación antes de producción:** el historial del chatbot se guarda hoy en archivos locales. El filesystem de una función Vercel no debe usarse como almacenamiento persistente o compartido entre invocaciones; se necesita migrar ese historial a almacenamiento persistente antes de depender de él en producción. Las migraciones de Prisma también deben aplicarse al PostgreSQL de producción antes de habilitar tráfico.
+
 ---
 
 ## Estructura del proyecto
