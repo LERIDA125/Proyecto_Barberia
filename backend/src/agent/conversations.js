@@ -1,50 +1,62 @@
-const fs = require('fs');
-const path = require('path');
-const crypto = require('crypto');
-const env = require('../config/env');
+const prisma = require('../config/prisma');
 
-const DIR = () => path.join(env.asistenteDataDir, 'conversaciones');
-const RUTA = (conversationId) => path.join(DIR(), `${conversationId}.json`);
-
-// Los ids de conversación son UUID v4 (crypto.randomUUID). Validar el formato
-// antes de armar la ruta impide que un sesionId manipulado (ej. "../algo")
-// escape del directorio de conversaciones.
 const RE_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function idValido(conversationId) {
   return typeof conversationId === 'string' && RE_UUID.test(conversationId);
 }
 
-function crearConversacion(usuarioId = null) {
-  const conv = {
-    conversation_id: crypto.randomUUID(),
-    usuarioId: usuarioId ?? null,
-    messages: [],
+function mapearConversacion(registro) {
+  if (!Array.isArray(registro.mensajes)) {
+    throw new Error(`El historial de la conversación ${registro.id} no tiene un formato válido`);
+  }
+
+  return {
+    conversation_id: registro.id,
+    usuarioId: registro.usuarioId,
+    messages: registro.mensajes,
   };
-  guardar(conv);
-  return conv;
 }
 
-function cargar(conversationId) {
+async function crearConversacion(usuarioId) {
+  if (typeof usuarioId !== 'string' || !usuarioId) {
+    throw new TypeError('usuarioId es obligatorio para crear una conversación');
+  }
+
+  const registro = await prisma.conversacion.create({
+    data: { usuarioId, mensajes: [] },
+  });
+  return mapearConversacion(registro);
+}
+
+async function cargar(conversationId) {
   if (!idValido(conversationId)) return null;
-  if (!fs.existsSync(RUTA(conversationId))) return null;
-  return JSON.parse(fs.readFileSync(RUTA(conversationId), 'utf8'));
+
+  const registro = await prisma.conversacion.findUnique({
+    where: { id: conversationId },
+  });
+  return registro ? mapearConversacion(registro) : null;
 }
 
-function guardar(conv) {
-  fs.mkdirSync(DIR(), { recursive: true });
-  fs.writeFileSync(RUTA(conv.conversation_id), JSON.stringify(conv, null, 2), 'utf8');
+async function guardar(conv) {
+  if (!idValido(conv?.conversation_id) || !Array.isArray(conv.messages)) {
+    throw new TypeError('La conversación no tiene un identificador o historial válido');
+  }
+
+  await prisma.conversacion.update({
+    where: { id: conv.conversation_id },
+    data: { mensajes: conv.messages },
+  });
 }
 
-function eliminar(conversationId) {
-  if (!idValido(conversationId)) return;
-  const ruta = RUTA(conversationId);
-  if (fs.existsSync(ruta)) fs.unlinkSync(ruta);
+async function eliminar(conversationId, usuarioId) {
+  if (!idValido(conversationId) || typeof usuarioId !== 'string' || !usuarioId) return;
+
+  await prisma.conversacion.deleteMany({
+    where: { id: conversationId, usuarioId },
+  });
 }
 
-// Una conversación pertenece a un usuario solo si fue creada con su id.
-// Las conversaciones previas al control de propiedad (sin usuarioId) no
-// se consideran de nadie: nadie puede leerlas ni borrarlas.
 function perteneceA(conv, usuarioId) {
   return Boolean(conv) && Boolean(usuarioId) && conv.usuarioId === usuarioId;
 }
@@ -55,4 +67,11 @@ function formatearHistorial(mensajes) {
     .join('\n');
 }
 
-module.exports = { crearConversacion, cargar, guardar, eliminar, perteneceA, formatearHistorial };
+module.exports = {
+  crearConversacion,
+  cargar,
+  guardar,
+  eliminar,
+  perteneceA,
+  formatearHistorial,
+};

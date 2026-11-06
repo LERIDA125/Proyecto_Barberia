@@ -56,6 +56,19 @@ flowchart LR
 
 **Errores esperados:** `400` mensaje vacío, `401` no autenticado, `429` límite de uso, `500` fallo del proveedor LLM (fallback a mensaje de disculpa).
 
+## Persistencia del historial de conversación
+
+Las conversaciones se almacenan en PostgreSQL a través de Prisma, no en el filesystem local. El modelo `Conversacion` conserva `id`, `usuarioId`, el arreglo JSON de mensajes y marcas de tiempo; la relación con `Usuario` usa borrado en cascada. El identificador de conversación sigue siendo el `sesionId` del contrato existente.
+
+- Crear una conversación la asocia al usuario autenticado antes de guardar mensajes.
+- Cargar una conversación conserva la verificación de propiedad; una sesión ajena responde `403`.
+- Guardar actualiza los mensajes de esa conversación sin cambiar su propietario.
+- Reiniciar elimina solo la conversación del usuario propietario; una sesión inexistente sigue siendo una operación idempotente.
+- Las operaciones del repositorio son asíncronas porque usan Prisma.
+- Los historiales JSON locales anteriores no se importan automáticamente; la persistencia nueva usa `DATABASE_URL`.
+
+El historial no depende del filesystem efímero de Vercel y queda disponible desde cualquier instancia conectada a la misma base.
+
 ## Componentes de UI (Next.js + Tailwind)
 
 | Componente | Ruta propuesta | Descripción |
@@ -79,7 +92,7 @@ flowchart LR
 | `src/agent/vectorStore.js` | Chunking (500/50), embedding y persistencia `data/vector_db.json` (MemoryVectorStore + JSON). |
 | `src/agent/llm.js` | `ChatGroq` / `ChatOllama` según `LLM_PROVIDER`. |
 | `src/agent/prompts.js` | Prompt de recepcionista (español, solo contexto). |
-| `src/agent/conversations.js` | Historial por conversación en `data/conversaciones/` (JSON). |
+| `src/agent/conversations.js` | CRUD asíncrono de conversaciones en PostgreSQL mediante Prisma. |
 | `src/services/asistente.service.js` | Orquestación retriever → prompt → LLM → memoria. |
 | `scripts/ingest.js` | Ingesta CLI: `npm run ingest -- data/conocimiento-barberia.md`. |
 
@@ -88,8 +101,9 @@ flowchart LR
 **Fuente de conocimiento:** `datos_barberia.md` (raíz del repo, definido por `ASISTENTE_DOC`) → `backend/data/vector_db.json`.
 
 **Decisiones de arquitectura (justificadas):**
-- **Persistencia JSON + MemoryVectorStore** en vez de un servidor ChromaDB: mismo resultado RAG, cero infraestructura extra; replicable con `chroma_db` si se quiere.
-- **Endpoint público** en esta fase (solo responde información pública del local); al agregar tools de reserva (Fase 2) se exigirá sesión autenticada (CA-06.4).
+- **Índice vectorial JSON + MemoryVectorStore** en vez de un servidor ChromaDB: mismo resultado RAG, sin infraestructura extra para vectores.
+- **Historial conversacional en PostgreSQL vía Prisma**: almacenamiento compartido y durable entre invocaciones, requerido para despliegues serverless.
+- **Endpoints autenticados**: la fase inicial de consulta también requiere sesión en la implementación actual; las tools usan la identidad autenticada.
 - **Versionado de paquetes:** rama estable LangChain.js `0.3.x` (peers coherentes con `dotenv@18`); la rama `1.x` queda como migración futura.
 
 ## Fase 2 implementada (AI Engineer / Backend)
@@ -127,7 +141,7 @@ flowchart LR
 
 **Primary Dependencies**: LangChain.js `0.3.x`, `@langchain/groq` / `@langchain/ollama`, `@huggingface/transformers` (embeddings locales), `dotenv@18`
 
-**Storage**: PostgreSQL vía MCP; vector store persistido en `backend/data/vector_db.json`; conversaciones en `backend/data/conversaciones/`
+**Storage**: PostgreSQL vía Prisma para datos de negocio e historial; vector store en `backend/data/vector_db.json`
 
 **Testing**: suite automatizada pendiente (CA-06.9, con LLM/tools mockeados); `node --check` (backend)
 
@@ -171,7 +185,7 @@ backend/
 │   ├── controllers/         # asistente.controller.js
 │   └── routes/              # chat.routes.js, asistente.routes.js
 ├── scripts/                 # ingest.js
-└── data/                    # vector_db.json, conversaciones/
+└── data/                    # vector_db.json
 
 frontend/
 └── src/

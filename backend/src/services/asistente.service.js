@@ -51,11 +51,11 @@ async function responder(pregunta, sesionId, usuario) {
   const store = await obtenerStore();
   const llm = getLlm().bindTools(TOOLS);
 
-  let conv = sesionId ? cargar(sesionId) : null;
+  let conv = sesionId ? await cargar(sesionId) : null;
   // Una conversación ajena (o previa al control de propiedad) nunca se reutiliza:
   // se arranca una nueva para no filtrar ni inyectar contexto de otro usuario.
   if (conv && !perteneceA(conv, usuario?.id)) conv = null;
-  if (!conv) conv = crearConversacion(usuario?.id);
+  if (!conv) conv = await crearConversacion(usuario?.id);
 
   const [recuperados, catalogo] = await Promise.all([
     store.similaritySearch(pregunta, env.asistenteTopK),
@@ -114,7 +114,7 @@ async function responder(pregunta, sesionId, usuario) {
 
   conv.messages.push({ role: 'user', content: pregunta });
   conv.messages.push({ role: 'assistant', content: respuesta });
-  guardar(conv);
+  await guardar(conv);
 
   const resultado = {
     respuesta,
@@ -125,8 +125,8 @@ async function responder(pregunta, sesionId, usuario) {
   return resultado;
 }
 
-function historial(sesionId, usuarioId) {
-  const conv = sesionId ? cargar(sesionId) : null;
+async function historial(sesionId, usuarioId) {
+  const conv = sesionId ? await cargar(sesionId) : null;
   if (!conv) return [];
   if (!perteneceA(conv, usuarioId)) {
     throw new AppError(403, 'No tenés acceso a esta conversación');
@@ -134,14 +134,14 @@ function historial(sesionId, usuarioId) {
   return conv.messages;
 }
 
-function limpiarHistorial(sesionId, usuarioId) {
+async function limpiarHistorial(sesionId, usuarioId) {
   if (!sesionId) return;
-  const conv = cargar(sesionId);
+  const conv = await cargar(sesionId);
   if (!conv) return;
   if (!perteneceA(conv, usuarioId)) {
     throw new AppError(403, 'No tenés acceso a esta conversación');
   }
-  eliminar(sesionId);
+  await eliminar(sesionId, usuarioId);
 }
 
 module.exports = { responder, historial, limpiarHistorial };

@@ -364,7 +364,7 @@ El cliente web usa `/api` en producción para que Vercel enrute las solicitudes 
 
 Configurar en Vercel las variables de entorno requeridas para el backend: `DATABASE_URL`, `SESSION_SECRET`, `WEBAUTHN_RP_ID` y `WEBAUTHN_ORIGIN` para el dominio final. Para las funciones opcionales, agregar `GROQ_API_KEY` y `GOOGLE_CREDENTIALS_JSON` (JSON de credenciales de Calendar), además de `CALENDAR_ID` y `TIMEZONE` cuando corresponda. `CALENDAR_MCP_URL` es inyectada por el binding y no debe configurarse manualmente; localmente puede seguir usándose `MCP_CALENDAR_URL`.
 
-**Limitación antes de producción:** el historial del chatbot se guarda hoy en archivos locales. El filesystem de una función Vercel no debe usarse como almacenamiento persistente o compartido entre invocaciones; se necesita migrar ese historial a almacenamiento persistente antes de depender de él en producción. Las migraciones de Prisma también deben aplicarse al PostgreSQL de producción antes de habilitar tráfico.
+El historial nuevo del chatbot se guarda en PostgreSQL mediante Prisma y `DATABASE_URL`, por lo que no depende del filesystem efímero de Vercel. Aplicá las migraciones (`npx prisma migrate deploy`) a la base configurada antes de habilitar tráfico; el build solo genera Prisma Client y no modifica la base. Los archivos JSON locales de conversaciones anteriores no se importan automáticamente.
 
 ---
 
@@ -494,7 +494,7 @@ PostgreSQL vía Prisma (`backend/prisma/schema.prisma`):
 - **RBAC:** `requiereAuth` y `requiereRol('admin')` en rutas sensibles (métricas, integraciones, CRUD de servicios). El cliente solo ve y cancela **sus propios turnos** (ownership verificado en service).
 - **Convención de autorización sobre turnos (prevención de IDOR horizontal):** la autorización se centraliza en `verificarPropietario()` (`backend/src/services/turnos.service.js`) y se aplica a cancelar/reprogramar. La política es: **admin** gestiona cualquier turno; el **cliente** solo los propios (`turno.clienteId === usuario.id`); el **barbero** solo los asignados a él. Importante: `turno.barberoId` es FK a `barbero.id`, **no** a `usuario.id`, por lo que la pertenencia del barbero se resuelve con `prisma.barbero.findUnique({ where: { usuarioId } })` y se compara `barbero.id === turno.barberoId`. Cualquier acceso fuera de la política devuelve **403 Forbidden**.
 - **El rol se resuelve desde la base de datos** en cada request; un rol alterado en el cookie no tiene efecto.
-- **Aislamiento de conversaciones:** el historial del chat valida propiedad por usuario (403 si la conversación es ajena); los ids se validan como UUID antes de tocar el filesystem.
+- **Aislamiento de conversaciones:** el historial del chat valida propiedad por usuario (403 si la conversación es ajena); los ids se validan como UUID antes de consultar PostgreSQL y el borrado se restringe por id y propietario.
 - **CORS:** lista blanca explícita de orígenes (`CORS_ORIGIN`); nunca se refleja cualquier origen con credenciales.
 - **`SESSION_SECRET` en producción:** obligatoria. Con `NODE_ENV=production` y sin secreto, la aplicación **no arranca** (evita sesiones forjables). En desarrollo se usa un fallback con advertencia.
 
