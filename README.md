@@ -350,19 +350,23 @@ Archivo `backend/.env` (ver `backend/.env.example`):
 
 ## Despliegue en Vercel
 
-La configuración raíz [`vercel.json`](./vercel.json) define tres servicios:
+La configuración raíz [`vercel.json`](./vercel.json) define tres servicios. En los ajustes del proyecto de Vercel, el **Root Directory debe ser la raíz del repositorio (`.`)**, donde está este archivo; no lo cambies a `frontend` ni `backend`. Cada servicio fija su propio `root` y ejecuta `npm ci` contra su lockfile:
 
 | Servicio | Acceso | Función |
 |----------|--------|---------|
-| `frontend` | Público en `/` | Aplicación Next.js |
-| `backend` | Público bajo `/api/*` | API REST Express; Prisma Client se genera durante el build |
-| `calendar-mcp` | Interno | Servidor MCP invocado por el backend mediante el binding `CALENDAR_MCP_URL` |
+| `frontend` (`frontend/`) | Público en `/` | Aplicación Next.js; `npm ci` usa `frontend/package-lock.json` |
+| `backend` (`backend/`) | Público bajo `/api/*` | API REST Express; `npm ci` usa `backend/package-lock.json` y Prisma Client se genera durante el build |
+| `calendar-mcp` (`backend/src/mcp/google-calendar/`) | Interno | Servidor MCP; `npm ci` usa su lockfile independiente y el backend lo invoca mediante `CALENDAR_MCP_URL` |
 
 El cliente web usa `/api` en producción para que Vercel enrute las solicitudes al backend en el mismo dominio. En desarrollo sigue usando `http://localhost:3000`, salvo que se configure `NEXT_PUBLIC_API_URL`. No definas `NEXT_PUBLIC_API_URL` en Vercel: anularía el enrutamiento same-origin.
+
+Los tres servicios fijan Node.js `24.x` mediante sus respectivos `package.json`. No hay un paquete npm en la raíz: frontend, backend y Calendar MCP son instalaciones independientes; `chatbot-rag/` es un prototipo Python y no se despliega como servicio Node.
 
 `chatbot-rag/` no se despliega como servicio: es un prototipo Python de consola. El asistente productivo forma parte del backend. PostgreSQL también debe ser provisto externamente; no se agrega como servicio Vercel.
 
 Configurar en Vercel las variables de entorno requeridas para el backend: `DATABASE_URL`, `SESSION_SECRET`, `WEBAUTHN_RP_ID` y `WEBAUTHN_ORIGIN` para el dominio final. Para las funciones opcionales, agregar `GROQ_API_KEY` y `GOOGLE_CREDENTIALS_JSON` (JSON de credenciales de Calendar), además de `CALENDAR_ID` y `TIMEZONE` cuando corresponda. `CALENDAR_MCP_URL` es inyectada por el binding y no debe configurarse manualmente; localmente puede seguir usándose `MCP_CALENDAR_URL`.
+
+El backend mantiene LangChain.js `0.3.x` y `zod@3.25.76`; `dotenv@16.6.1` satisface el peer de Stagehand requerido por `@langchain/community@0.3.59`. Stagehand no se usa directamente, pero npm lo instala como peer obligatorio de esa versión de Community. No se usa `legacy-peer-deps`: las dependencias deben resolver con las restricciones declaradas.
 
 El historial nuevo del chatbot se guarda en PostgreSQL mediante Prisma y `DATABASE_URL`, por lo que no depende del filesystem efímero de Vercel. Aplicá las migraciones (`npx prisma migrate deploy`) a la base configurada antes de habilitar tráfico; el build solo genera Prisma Client y no modifica la base. Los archivos JSON locales de conversaciones anteriores no se importan automáticamente.
 

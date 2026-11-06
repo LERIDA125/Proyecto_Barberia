@@ -3,12 +3,14 @@
   "services": {
     "frontend": {
       "root": "frontend",
-      "framework": "nextjs"
+      "framework": "nextjs",
+      "installCommand": "npm ci"
     },
     "backend": {
       "root": "backend",
       "framework": "express",
       "entrypoint": "server.js",
+      "installCommand": "npm ci",
       "buildCommand": "npm run prisma:generate",
       "bindings": [
         {
@@ -22,7 +24,8 @@
     "calendar-mcp": {
       "root": "backend/src/mcp/google-calendar",
       "framework": "express",
-      "entrypoint": "server.js"
+      "entrypoint": "server.js",
+      "installCommand": "npm ci"
     }
   },
   "rewrites": [
