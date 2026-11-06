@@ -41,19 +41,19 @@ async function enviar(req, res, next) {
   }
 }
 
-function historial(req, res, next) {
+async function historial(req, res, next) {
   try {
     const sesionId = req.query.sesionId;
-    const mensajes = asistenteService.historial(sesionId, req.usuario.id);
+    const mensajes = await asistenteService.historial(sesionId, req.usuario.id);
     return res.status(200).json({ conversacionId: sesionId, mensajes });
   } catch (err) {
     return next(err);
   }
 }
 
-function limpiar(req, res, next) {
+async function limpiar(req, res, next) {
   try {
-    asistenteService.limpiarHistorial(req.query.sesionId, req.usuario.id);
+    await asistenteService.limpiarHistorial(req.query.sesionId, req.usuario.id);
     return res.status(200).json({ ok: true });
   } catch (err) {
     return next(err);

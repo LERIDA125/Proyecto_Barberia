@@ -158,6 +158,17 @@ Credencial WebAuthn (passkey) asociada a un `Usuario` (ver `specs/001-registro-p
 | `transports` | string[] | Transportes soportados |
 | `created_at` | timestamp | Fecha de alta |
 
+#### Conversacion
+Historial durable de mensajes del asistente, propiedad de un usuario autenticado (ver `specs/006-chatbot-langchain`).
+
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| `id` | UUID / PK | Identificador de sesión/conversación |
+| `usuario_id` | FK → Usuario | Propietario de la conversación |
+| `mensajes` | JSONB | Mensajes ordenados de usuario y asistente |
+| `created_at` | timestamp | Fecha de creación |
+| `updated_at` | timestamp | Última modificación |
+
 #### Entidades de disponibilidad y notificaciones (escaladas por CU-08 y CU-10)
 
 - **HorarioLaboral**: bloques por día de la semana (día 0–6, hora de inicio, hora de fin) de un barbero (ver 008).
@@ -173,6 +184,7 @@ Credencial WebAuthn (passkey) asociada a un `Usuario` (ver `specs/001-registro-p
 erDiagram
     USUARIO ||--o| BARBERO : "puede ser"
     USUARIO ||--o{ TURNO : "reserva como cliente"
+    USUARIO ||--o{ CONVERSACION : "posee"
     BARBERO ||--o{ TURNO : "atiende"
     SERVICIO ||--o{ TURNO : "es reservado en"
 
@@ -211,6 +223,13 @@ erDiagram
         enum estado
         string google_event_id
     }
+    CONVERSACION {
+        uuid id PK
+        uuid usuario_id FK
+        json mensajes
+        timestamp created_at
+        timestamp updated_at
+    }
 ```
 
 **Cardinalidades:**
@@ -219,6 +238,7 @@ erDiagram
 - `Barbero 1 : N Turno` — un barbero atiende muchos turnos.
 - `Servicio 1 : N Turno` — un servicio puede estar en muchos turnos.
 - `Usuario 1 : N CredencialPasskey` — un usuario puede tener varias passkeys.
+- `Usuario 1 : N Conversacion` — cada conversación pertenece a un usuario y se persiste en PostgreSQL.
 
 ### 2.3 Reglas de Integridad (alto nivel)
 

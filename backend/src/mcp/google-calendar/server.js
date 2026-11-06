@@ -32,6 +32,16 @@ let credencialesError = null;
 // ---------------------------------------------------------------------------
 
 function cargarCredenciales() {
+  const credencialesEnv = process.env.GOOGLE_CREDENTIALS_JSON;
+  if (credencialesEnv) {
+    try {
+      return JSON.parse(credencialesEnv);
+    } catch {
+      credencialesError = 'La variable GOOGLE_CREDENTIALS_JSON debe contener JSON válido';
+      return null;
+    }
+  }
+
   try {
     const raw = fs.readFileSync(CREDENCIALES_PATH, 'utf8');
     return JSON.parse(raw);

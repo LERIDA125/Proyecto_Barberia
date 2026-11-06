@@ -54,6 +54,7 @@ Un cliente lista, cancela sus turnos por chat y conserva/reinicia el historial d
 1. **Given** un cliente con turnos, **When** pide ver sus turnos por chat, **Then** el asistente los lista usando la identidad de la sesión.
 2. **Given** una solicitud de cancelación con confirmación previa, **When** el asistente la ejecuta, **Then** cancela únicamente un turno del usuario autenticado.
 3. **Given** una conversación en curso, **When** el cliente la reinicia, **Then** el historial se limpia.
+4. **Given** una conversación persistida, **When** una invocación se atiende en otra instancia o tras reiniciar el backend, **Then** el usuario autenticado recupera el mismo historial.
 
 ---
 
@@ -80,12 +81,13 @@ Un cliente lista, cancela sus turnos por chat y conserva/reinicia el historial d
 - **FR-009**: El asistente MUST mostrar un mensaje de disculpa si el proveedor de lenguaje falla, sin romper la UI.
 - **FR-010**: El sistema MUST exigir autenticación para las capacidades de reserva y gestión de turnos.
 - **FR-011**: Las tools del asistente MUST reutilizar los services del backend, sin reimplementar validaciones.
+- **FR-012**: El historial MUST persistirse en PostgreSQL, asociado al usuario autenticado, para sobrevivir al reemplazo o reinicio de instancias del backend. La lectura y el borrado MUST conservar la verificación de propiedad.
 
 > **Trazabilidad de FR-008:** el incremento `014-chat-reinicio-conversacion` completa la acción de reinicio desde la UI reutilizando el contrato existente de historial. No duplica ni reemplaza FR-008; `006` permanece `Partial` mientras sigan pendientes sus pruebas del agente y verificaciones end-to-end.
 
 ### Key Entities
 
-- **Conversación**: historial de mensajes entre el cliente y el asistente, acotado a una sesión.
+- **Conversación**: historial de mensajes entre el cliente y el asistente, acotado a una sesión y persistido en PostgreSQL junto con el usuario propietario.
 - **Turno**: resultado de una acción de reserva/cancelación ejecutada por el asistente.
 - **Usuario**: identidad de la sesión que autoriza y contextualiza las tools.
 - **Base de conocimiento**: documento fuente con la información pública del local usada para responder consultas.
@@ -102,6 +104,7 @@ Un cliente lista, cancela sus turnos por chat y conserva/reinicia el historial d
 - **SC-006**: Ante fallo del proveedor de lenguaje, el chat muestra un mensaje de disculpa sin errores de render.
 - **SC-007**: El historial se conserva durante la sesión y se puede reiniciar.
 - **SC-008**: Cada endpoint tiene al menos un test del caso feliz y un caso de error (con el proveedor de lenguaje y las tools mockeadas).
+- **SC-009**: Una conversación propia permanece disponible tras una nueva conexión/instancia del backend y puede borrarse; 0 conversaciones ajenas se leen o eliminan.
 
 ## Assumptions
 
@@ -110,3 +113,4 @@ Un cliente lista, cancela sus turnos por chat y conserva/reinicia el historial d
 - Estado actual: el backend de la fase 1 (RAG de consulta) y de la fase 2 (tools de reserva y tool loop) está presente en código; la interfaz de chat está integrada en la aplicación y exige sesión autenticada. No existen tests de CA-06.9 ni evidencia de ejecución end-to-end que demuestre que el RAG responde correctamente o que las tools se ejecutan con el proveedor real.
 - El cliente está autenticado (ver 001-registro-passkeys) y existen los services de reservas/servicios/turnos (CU-02, CU-03, CU-04).
 - Se dispone de un proveedor de lenguaje configurable (definido por el Tech Lead) y de la base de conocimiento del local.
+- Las conversaciones nuevas se almacenan en la base PostgreSQL configurada por `DATABASE_URL`; los archivos JSON locales preexistentes no se importan automáticamente.

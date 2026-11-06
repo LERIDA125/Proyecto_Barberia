@@ -3,7 +3,7 @@
 > **Feature:** Asistente Conversacional (LangChain + RAG) (CU-06)
 > **Fuentes:** `spec.md`, `plan.md`, `backend/src/agent/`, `backend/src/services/asistente.service.js`, `backend/src/controllers/asistente.controller.js`, `backend/src/routes/{chat,asistente}.routes.js`, `backend/data/`, `datos_barberia.md`, `frontend/src/components/chat/ChatWidget.tsx`, `frontend/src/components/layout/Navbar.tsx`, `ESTADO.md`.
 > **Convención:** `[x]` = respaldado por evidencia; `[ ]` = pendiente o no verificado.
-> **Nota:** backfill documental posterior al desarrollo. La spec dice que la UI está pendiente, pero `ChatWidget` existe y está montado en el layout; esa contradicción debe corregirse.
+> **Nota:** backfill documental posterior al desarrollo. `ChatWidget` existe y está montado en el layout. El incremento de persistencia durable se especifica como parte de esta feature.
 
 ## Fase 1 — Preparación y configuración
 
@@ -20,7 +20,7 @@
 - [x] **T008** Implementar el retriever RAG y la orquestación en `backend/src/services/asistente.service.js` (FR-001).
 - [x] **T009** Implementar `POST /api/chat` y `POST /api/asistente/mensaje` con `requiereAuth` (FR-010).
 - [x] **T010** Implementar `GET /api/asistente/historial` y `DELETE /api/asistente/historial` (FR-008).
-- [x] **T011** Implementar historial por conversación en `backend/src/agent/conversations.js` con persistencia JSON en `backend/data/conversaciones/`.
+- [x] **T011** Migrar el historial por conversación de archivos JSON a PostgreSQL, conservando el contrato, propiedad y borrado (FR-008, FR-012).
 - [x] **T012** Implementar la tool `consultar_disponibilidad` delegando en `barberos.service.disponibilidad` (FR-002, FR-011).
 - [x] **T013** Implementar la tool `reservar_turno` delegando en `turnos.service.crear` (FR-003, FR-011).
 - [x] **T014** Implementar la tool `consultar_mis_turnos` delegando en `turnos.service.listar` (FR-004, FR-011).
@@ -81,6 +81,15 @@
 - T022-T031 dependen de T008-T021.
 - T032-T040 dependen de T022-T031.
 - T041-T047 dependen de T032-T040.
+
+## Incremento — Persistencia durable para despliegue serverless
+
+- [x] **T054** Actualizar FR/SC de persistencia y acordar PostgreSQL mediante `DATABASE_URL`; excluir la importación automática de archivos JSON legacy.
+- [x] **T055** Agregar `Conversacion` al modelo Prisma, relación con `Usuario` y migración SQL.
+- [x] **T056** Reemplazar el repositorio JSON por CRUD asíncrono en PostgreSQL, sin cambiar el contrato de sesión.
+- [x] **T057** Adaptar servicio y controller del asistente para esperar las operaciones persistentes.
+- [x] **T058** Cubrir lectura tras nueva instancia, guardado, borrado y control de propiedad (403) con tests.
+- [x] **T059** Validar el esquema y la migración sin aplicar cambios a una base de producción.
 
 ## Criterios de finalización
 

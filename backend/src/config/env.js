@@ -46,6 +46,7 @@ module.exports = {
   asistenteTopK: Number(process.env.ASISTENTE_TOP_K || 4),
   // --- Integración Google Calendar vía MCP externo (CU-07) ---
   mcpCalendarUrl: process.env.MCP_CALENDAR_URL || '',
+  calendarMcpUrl: process.env.CALENDAR_MCP_URL || '',
   mcpCalendarToken: process.env.MCP_CALENDAR_TOKEN || '',
   mcpCalendarId: process.env.MCP_CALENDAR_ID || process.env.CALENDAR_ID || 'primary',
   mcpCalendarTimeoutMs: Number(process.env.MCP_CALENDAR_TIMEOUT_MS || 5000),
