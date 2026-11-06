@@ -4,6 +4,9 @@
   "description": "Servidor MCP externo que expone Google Calendar como tools (crear/actualizar/eliminar/consultar eventos).",
   "private": true,
   "main": "server.js",
+  "engines": {
+    "node": "24.x"
+  },
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js"
