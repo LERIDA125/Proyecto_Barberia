@@ -35,6 +35,15 @@ async function loginOpciones(req, res, next) {
 
 async function loginVerificar(req, res, next) {
   try {
+    const esBypassDev =
+      authService.bypassDesarrolloHabilitado() && !req.body?.response;
+
+    if (esBypassDev) {
+      const usuario = await authService.verificarLoginDev(req.body);
+      setSessionCookie(res, usuario);
+      return res.json({ usuario });
+    }
+
     validar(schemas.loginVerificar, req.body);
     const usuario = await authService.verificarLogin(req.body);
     setSessionCookie(res, usuario);

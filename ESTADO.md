@@ -26,6 +26,7 @@
 | **012-vista-clientes** | ✅ Implementada | `GET /api/clientes` con `_count.turnos` + resumen (tráfico/gasto) en historial; `/panel/clientes` con listado, filtro y ficha. |
 | **014-chat-reinicio-conversacion** | ⚠️ Parcial | Acción autenticada con confirmación, borrado antes de limpiar UI, control de concurrencia y errores no sensibles; 6 tests de historial aprobados. Lint y TypeScript pasan; queda pendiente la interacción manual en navegador real. Incrementa FR-008 de 006. |
 | **015-entorno-docker-compose** | ✅ Implementada | `docker-compose.yml` con PostgreSQL (:5432), backend (:3000) y frontend (:3001), healthcheck `pg_isready`, `depends_on: service_healthy` y volumen `postgres_data`. Errores Prisma de infraestructura desenmascarados y health con ping real a la base. MCP Calendar sigue fuera del compose. |
+| **016-seed-dev-login-bypass** | ✅ Implementada | Seed destructivo con datos completos (1 admin, 2 barberos, 2 clientes, 4 servicios, 4 turnos) + bypass de WebAuthn solo con `NODE_ENV=development` y UI opt-in por `NEXT_PUBLIC_DEV_LOGIN`. |
 
 ---
 
@@ -78,6 +79,17 @@
 
 ---
 
+## Incremento SDD 016 — Seed de datos y bypass de login de desarrollo (05-nov-2026)
+
+- **Seed:** `backend/prisma/seed.js` limpia en orden de claves foráneas (`notificacion` → `credencialPasskey` → `turno` → `bloqueo` → `barbero` → `servicio` → `usuario`) y recrea en una transacción: 1 admin, 2 barberos con registro y horario 10:00–20:00, 2 clientes, 4 servicios y 4 turnos (2 pasados `completado`, 2 futuros `pendiente`). Aborta fuera de `development` salvo `SEED_FORCE=true`.
+- **Bypass backend:** `verificarLoginDev` en `auth.service.js` autentica solo con email cuando `env.nodeEnv === 'development'`; `auth.controller.js` lo invoca solo si falta `response`. Emite la misma cookie `sesion` y registra `Bypass de WebAuthn activado por entorno de desarrollo para el email: ...`. Fuera de desarrollo exige la aserción WebAuthn.
+- **UI dev:** `LoginForm` usa `NEXT_PUBLIC_DEV_LOGIN=true` para enviar solo el email y omitir `startAuthentication`; con la variable ausente conserva el flujo de passkey.
+- **Verificación:** `npm test` en `backend/` → 18/18; seed ejecutado dos veces con conteos idénticos (1 admin, 2 barberos, 2 clientes, 4 servicios, 4 turnos); seed con `NODE_ENV=production` → aborta antes de limpiar; bypass en desarrollo → HTTP 200 con cookie `sesion`, aviso en terminal y sesión consultable en `/api/auth/sesion`; request equivalente en producción → HTTP 400 sin sesión y sin aviso; lint del frontend → 0 errores (3 advertencias preexistentes); TypeScript sin errores.
+- **Limitación:** el camino de login de desarrollo de la UI no se verificó manualmente en un navegador real; el seed se probó contra la base local de `backend/.env`, no contra el PostgreSQL del compose.
+- **Trazabilidad:** `specs/016-seed-dev-login-bypass/` (`spec.md`, `plan.md`, `tasks.md`).
+
+---
+
 ## Deuda técnica conocida
 
 1. **`tasks.md` reconstruidos (backfill documental, 26-oct-2026)** — se ejecutaron `/speckit.specify` y `/speckit.plan` antes de los `tasks.md`; los 13 archivos se reconstruyeron retrospectivamente desde spec, plan, código y esta auditoría. El backfill no sustituye el uso histórico de `/speckit.tasks`; el pipeline completo se aplicó en `013-footer-anio` y es obligatorio en adelante. Además, muchas tareas de prueba siguen `[ ]` porque no hay evidencia de ejecución.
@@ -98,8 +110,8 @@
 - **MCPs:** `postgres-local` (stdio, solo lectura) y `google-calendar` (HTTP, paquete autónomo) implementados, con script npm y declarados en `opencode.json`.
 - **Scripts npm:** backend y frontend verificados, sin targets rotos.
 - **Rutas backend:** 12 módulos registrados en `routes/index.js`, sin imports rotos.
-- **Especificaciones:** 15 entradas con `spec.md` + `plan.md` + `tasks.md`: 13 features preexistentes (000-012, backfill 26-oct-2026) y los incrementos 013 (footer) y 014 (reinicio de chat). 006/014 permanecen Partial por verificaciones pendientes; 008/009/010 siguen Partial por contratos del plan aún no implementados.
+- **Especificaciones:** 16 entradas con `spec.md` + `plan.md` + `tasks.md` (000-016). 006/014 permanecen Partial por verificaciones pendientes; 008/009/010 siguen Partial por contratos del plan aún no implementados.
 
 ---
 
-**Resumen:** 8 specs completas de negocio (000-005, 011, 012), 1 mejora transversal implementada (013) y 6 parciales (006-010 y 014). Sin specs sin implementar. Última auditoría: 26-oct-2026 sobre `752ec9f`; el incremento 014 deja cambios posteriores sin commit.
+**Resumen:** 8 specs completas de negocio (000-005, 011, 012), 3 incrementos implementados (013, 015, 016) y 6 parciales (006-010 y 014). Sin specs sin implementar. Última revisión documental: 05-nov-2026 (incrementos 015 y 016).

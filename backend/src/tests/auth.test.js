@@ -59,6 +59,11 @@ function cuerpoLogin(email, responseId) {
   return { email, response: { id: responseId, rawId: responseId, type: 'public-key' } };
 }
 
+function restaurarEntorno(valor) {
+  if (valor === undefined) delete process.env.NODE_ENV;
+  else process.env.NODE_ENV = valor;
+}
+
 test('verificarLogin: happy path verifica contra la credencial de la DB y actualiza el counter', async () => {
   const originalFindUnique = prisma.usuario.findUnique;
   const originalUpdate = prisma.credencialPasskey.update;
@@ -135,6 +140,93 @@ test('verificarLogin: devuelve 400 si la credencial del response no pertenece al
     );
     assert.strictEqual(llamadasVerify.length, verifyAntes);
   } finally {
+    prisma.usuario.findUnique = originalFindUnique;
+  }
+});
+
+test('verificarLoginDev: autentica solo con email y registra el aviso de bypass', async () => {
+  const originalEnv = process.env.NODE_ENV;
+  const originalFindUnique = prisma.usuario.findUnique;
+  const originalWarn = console.warn;
+  const avisos = [];
+  let consulta = null;
+
+  process.env.NODE_ENV = 'development';
+  prisma.usuario.findUnique = async (args) => {
+    consulta = args;
+    return USUARIO;
+  };
+  console.warn = (...args) => avisos.push(args.join(' '));
+
+  try {
+    const usuario = await authService.verificarLoginDev({ email: '  FELIZ@TEST.COM ' });
+
+    assert.strictEqual(usuario.id, 'u1');
+    assert.strictEqual(usuario.email, 'feliz@test.com');
+    assert.strictEqual(usuario.credenciales, undefined);
+    assert.deepStrictEqual(consulta, { where: { email: 'feliz@test.com' } });
+    assert.strictEqual(avisos.length, 1);
+    assert.match(avisos[0], /Bypass de WebAuthn activado por entorno de desarrollo/);
+    assert.match(avisos[0], /feliz@test\.com/);
+  } finally {
+    restaurarEntorno(originalEnv);
+    prisma.usuario.findUnique = originalFindUnique;
+    console.warn = originalWarn;
+  }
+});
+
+test('verificarLoginDev: devuelve 404 si el usuario no existe', async () => {
+  const originalEnv = process.env.NODE_ENV;
+  const originalFindUnique = prisma.usuario.findUnique;
+
+  process.env.NODE_ENV = 'development';
+  prisma.usuario.findUnique = async () => null;
+
+  try {
+    await assert.rejects(
+      () => authService.verificarLoginDev({ email: 'nadie@test.com' }),
+      (err) => err.status === 404
+    );
+  } finally {
+    restaurarEntorno(originalEnv);
+    prisma.usuario.findUnique = originalFindUnique;
+  }
+});
+
+test('verificarLoginDev: devuelve 400 si el email es inválido', async () => {
+  const originalEnv = process.env.NODE_ENV;
+
+  process.env.NODE_ENV = 'development';
+
+  try {
+    await assert.rejects(
+      () => authService.verificarLoginDev({ email: 'no-es-un-email' }),
+      (err) => err.status === 400 && /Email inválido/.test(err.message)
+    );
+  } finally {
+    restaurarEntorno(originalEnv);
+  }
+});
+
+test('verificarLoginDev: rechaza el bypass fuera de desarrollo sin consultar la base', async () => {
+  const originalEnv = process.env.NODE_ENV;
+  const originalFindUnique = prisma.usuario.findUnique;
+  let consulto = false;
+
+  process.env.NODE_ENV = 'production';
+  prisma.usuario.findUnique = async () => {
+    consulto = true;
+    return USUARIO;
+  };
+
+  try {
+    await assert.rejects(
+      () => authService.verificarLoginDev({ email: 'feliz@test.com' }),
+      (err) => err.status === 403
+    );
+    assert.strictEqual(consulto, false);
+  } finally {
+    restaurarEntorno(originalEnv);
     prisma.usuario.findUnique = originalFindUnique;
   }
 });
