@@ -6,9 +6,11 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { StatusMessage } from "@/components/ui/StatusMessage";
 import { ApiError } from "@/lib/api/client";
-import { loginConPasskey } from "@/lib/api/auth";
+import { loginConPasskey, loginDev } from "@/lib/api/auth";
 import { iniciarSesion, refrescarSesion } from "@/lib/hooks/useSesion";
 import { useWebAuthnSoportado } from "@/lib/hooks/useWebAuthnSoportado";
+
+const DEV_LOGIN_HABILITADO = process.env.NEXT_PUBLIC_DEV_LOGIN === "true";
 
 export function LoginForm() {
   const router = useRouter();
@@ -27,7 +29,9 @@ export function LoginForm() {
     setCargando(true);
     setError(null);
     try {
-      const usuario = await loginConPasskey(email.trim());
+      const usuario = DEV_LOGIN_HABILITADO
+        ? await loginDev(email.trim())
+        : await loginConPasskey(email.trim());
       iniciarSesion(usuario);
       void refrescarSesion();
       router.push("/servicios");
@@ -36,7 +40,7 @@ export function LoginForm() {
       else if (err instanceof Error && err.name === "NotAllowedError") {
         setError("Operación cancelada o no permitida por el dispositivo");
       } else {
-        setError("No se pudo iniciar sesión con passkey");
+        setError("No se pudo iniciar sesión");
       }
       setCargando(false);
     }
@@ -44,10 +48,17 @@ export function LoginForm() {
 
   return (
     <form onSubmit={onSubmit} className="flex w-full flex-col gap-8">
-      {!soportado && (
+      {!soportado && !DEV_LOGIN_HABILITADO && (
         <StatusMessage
           tipo="error"
           mensaje="Tu navegador o dispositivo no soporta passkeys (WebAuthn). Probá con un navegador moderno."
+        />
+      )}
+
+      {DEV_LOGIN_HABILITADO && (
+        <StatusMessage
+          tipo="info"
+          mensaje="Modo desarrollo: el login omite la verificación con passkey."
         />
       )}
 
@@ -75,10 +86,10 @@ export function LoginForm() {
       <Button
         type="submit"
         cargando={cargando}
-        disabled={!soportado}
+        disabled={!soportado && !DEV_LOGIN_HABILITADO}
         className="w-full rounded-none bg-white px-6 py-4 text-sm font-bold uppercase tracking-widest text-black transition-colors hover:bg-neutral-300"
       >
-        Entrar con passkey
+        {DEV_LOGIN_HABILITADO ? "Entrar (modo desarrollo)" : "Entrar con passkey"}
       </Button>
 
       <p className="text-center text-sm text-neutral-500">

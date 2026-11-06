@@ -58,3 +58,12 @@ export async function loginConPasskey(email: string): Promise<Usuario> {
 
   return resultado.usuario;
 }
+
+export async function loginDev(email: string): Promise<Usuario> {
+  const resultado = await apiFetch<{ usuario: Usuario }>("/api/auth/login/verificar", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+
+  return resultado.usuario;
+}

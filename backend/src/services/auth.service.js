@@ -11,6 +11,10 @@ const env = require('../config/env');
 const challengeStore = require('../utils/challengeStore');
 const { requerirCampos, validarEmail } = require('../utils/validators');
 
+function bypassDesarrolloHabilitado() {
+  return process.env.NODE_ENV === 'development';
+}
+
 function serializarUsuario(usuario) {
   return {
     id: usuario.id,
@@ -179,6 +183,24 @@ async function verificarLogin(body) {
   return serializarUsuario(usuario);
 }
 
+async function verificarLoginDev(body) {
+  if (!bypassDesarrolloHabilitado()) {
+    throw new AppError(403, 'El bypass de desarrollo no está disponible');
+  }
+
+  requerirCampos(body, ['email']);
+  const email = validarEmail(body.email);
+
+  const usuario = await prisma.usuario.findUnique({ where: { email } });
+  if (!usuario) throw new AppError(404, 'Usuario no encontrado');
+
+  console.warn(
+    `Bypass de WebAuthn activado por entorno de desarrollo para el email: ${email}`
+  );
+
+  return serializarUsuario(usuario);
+}
+
 async function usuarioActual(usuarioId) {
   const usuario = await prisma.usuario.findUnique({ where: { id: usuarioId } });
   if (!usuario) throw new AppError(404, 'Usuario no encontrado');
@@ -190,6 +212,8 @@ module.exports = {
   verificarRegistro,
   opcionesLogin,
   verificarLogin,
+  verificarLoginDev,
+  bypassDesarrolloHabilitado,
   usuarioActual,
   serializarUsuario,
 };
