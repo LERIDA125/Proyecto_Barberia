@@ -9,7 +9,7 @@
     "backend": {
       "root": "backend",
       "framework": "express",
-      "entrypoint": "server.cjs",
+      "entrypoint": "server.js",
       "installCommand": "npm ci",
       "buildCommand": "npm run prisma:generate",
       "bindings": [
