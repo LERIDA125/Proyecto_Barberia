@@ -1,3 +1,4 @@
+const bcrypt = require('bcryptjs');
 const prisma = require('../src/config/prisma');
 
 const ZONA_HORARIA = 'America/Argentina/Buenos_Aires';
@@ -155,6 +156,7 @@ async function crearDatos(tx) {
       email: 'admin@barberia.com',
       telefono: '+5491100000000',
       rol: 'admin',
+      passwordHash: bcrypt.hashSync('admin123', 10),
     },
   });
 

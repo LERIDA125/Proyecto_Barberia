@@ -53,6 +53,17 @@ async function loginVerificar(req, res, next) {
   }
 }
 
+async function loginClasico(req, res, next) {
+  try {
+    validar(schemas.loginClasico, req.body);
+    const usuario = await authService.verificarLoginClasico(req.body);
+    setSessionCookie(res, usuario);
+    res.json({ usuario });
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function sesion(req, res, next) {
   try {
     const usuario = await authService.usuarioActual(req.usuario.id);
@@ -72,4 +83,12 @@ async function logout(req, res, next) {
   }
 }
 
-module.exports = { registroOpciones, registroVerificar, loginOpciones, loginVerificar, sesion, logout };
+module.exports = {
+  registroOpciones,
+  registroVerificar,
+  loginOpciones,
+  loginVerificar,
+  loginClasico,
+  sesion,
+  logout,
+};

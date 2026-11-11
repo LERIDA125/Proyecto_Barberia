@@ -24,6 +24,11 @@ const loginVerificarSchema = z.object({
   response: z.any(),
 });
 
+const loginClasicoSchema = z.object({
+  email: emailSchema,
+  password: z.string().min(1, 'password es obligatoria'),
+});
+
 const crearTurnoSchema = z.object({
   barberoId: z.string().uuid('barberoId inválido'),
   servicioId: z.string().uuid('servicioId inválido'),
@@ -60,6 +65,7 @@ module.exports = {
     registroVerificar: registroVerificarSchema,
     loginOpciones: loginOpcionesSchema,
     loginVerificar: loginVerificarSchema,
+    loginClasico: loginClasicoSchema,
     crearTurno: crearTurnoSchema,
     cancelarTurno: cancelarTurnoSchema,
     reprogramarTurno: reprogramarTurnoSchema,

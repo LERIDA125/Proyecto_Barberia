@@ -41,6 +41,9 @@ require.cache[rutaHelpers] = {
 const authService = require('../services/auth.service');
 const prisma = require('../config/prisma');
 const challengeStore = require('../utils/challengeStore');
+const bcrypt = require('bcryptjs');
+
+const HASH_VALIDO = bcrypt.hashSync('clave-correcta', 4);
 
 const USUARIO = {
   id: 'u1',
@@ -229,4 +232,77 @@ test('verificarLoginDev: rechaza el bypass fuera de desarrollo sin consultar la 
     restaurarEntorno(originalEnv);
     prisma.usuario.findUnique = originalFindUnique;
   }
+});
+
+test('verificarLoginClasico: happy path autentica contra el hash y no lo expone', async () => {
+  const originalFindUnique = prisma.usuario.findUnique;
+  let consulta = null;
+
+  prisma.usuario.findUnique = async (args) => {
+    consulta = args;
+    return { ...USUARIO, passwordHash: HASH_VALIDO };
+  };
+
+  try {
+    const usuario = await authService.verificarLoginClasico({
+      email: ' FELIZ@test.com ',
+      password: 'clave-correcta',
+    });
+
+    assert.strictEqual(usuario.id, 'u1');
+    assert.strictEqual(usuario.email, 'feliz@test.com');
+    assert.strictEqual(usuario.passwordHash, undefined);
+    assert.deepStrictEqual(consulta, { where: { email: 'feliz@test.com' } });
+  } finally {
+    prisma.usuario.findUnique = originalFindUnique;
+  }
+});
+
+test('verificarLoginClasico: devuelve 401 si la contraseña es incorrecta', async () => {
+  const originalFindUnique = prisma.usuario.findUnique;
+  prisma.usuario.findUnique = async () => ({ ...USUARIO, passwordHash: HASH_VALIDO });
+
+  try {
+    await assert.rejects(
+      () => authService.verificarLoginClasico({ email: 'feliz@test.com', password: 'clave-incorrecta' }),
+      (err) => err.status === 401 && /Email o contrase\u00f1a incorrectos/.test(err.message)
+    );
+  } finally {
+    prisma.usuario.findUnique = originalFindUnique;
+  }
+});
+
+test('verificarLoginClasico: devuelve 401 si el usuario no tiene contraseña registrada', async () => {
+  const originalFindUnique = prisma.usuario.findUnique;
+  prisma.usuario.findUnique = async () => ({ ...USUARIO, passwordHash: null });
+
+  try {
+    await assert.rejects(
+      () => authService.verificarLoginClasico({ email: 'feliz@test.com', password: 'cualquiera' }),
+      (err) => err.status === 401 && /Email o contrase\u00f1a incorrectos/.test(err.message)
+    );
+  } finally {
+    prisma.usuario.findUnique = originalFindUnique;
+  }
+});
+
+test('verificarLoginClasico: usuario inexistente recibe el mismo 401 sin revelar existencia', async () => {
+  const originalFindUnique = prisma.usuario.findUnique;
+  prisma.usuario.findUnique = async () => null;
+
+  try {
+    await assert.rejects(
+      () => authService.verificarLoginClasico({ email: 'nadie@test.com', password: 'cualquiera' }),
+      (err) => err.status === 401 && /Email o contrase\u00f1a incorrectos/.test(err.message)
+    );
+  } finally {
+    prisma.usuario.findUnique = originalFindUnique;
+  }
+});
+
+test('verificarLoginClasico: devuelve 400 si falta la contraseña', async () => {
+  await assert.rejects(
+    () => authService.verificarLoginClasico({ email: 'feliz@test.com' }),
+    (err) => err.status === 400 && /Faltan campos obligatorios/.test(err.message)
+  );
 });

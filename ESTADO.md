@@ -1,6 +1,6 @@
 # Auditoría de Implementación — Sistema Barbería
 
-**Fecha de actualización:** 05 de noviembre de 2026
+**Fecha de actualización:** 10 de noviembre de 2026
 **Metodología:** GitHub Spec Kit — features en `specs/NNN-nombre/` (spec.md + plan.md + tasks.md).
 **Backfill documental:** el 26-oct-2026 se reconstruyeron los `tasks.md` de las 13 features a partir de spec, plan, código y esta auditoría. Ese backfill **no** demuestra uso histórico de Spec Kit: los primeros commits de código precedieron a los specs. A partir de ahora el pipeline completo es obligatorio.
 **Numeración antigua:** el código "CU-01…CU-10" corresponde a las specs `001…010` (misma numeración).
@@ -27,6 +27,7 @@
 | **014-chat-reinicio-conversacion** | ⚠️ Parcial | Acción autenticada con confirmación, borrado antes de limpiar UI, control de concurrencia y errores no sensibles; 6 tests de historial aprobados. Lint y TypeScript pasan; queda pendiente la interacción manual en navegador real. Incrementa FR-008 de 006. |
 | **015-entorno-docker-compose** | ✅ Implementada | `docker-compose.yml` con PostgreSQL (:5432), backend (:3000) y frontend (:3001), healthcheck `pg_isready`, `depends_on: service_healthy` y volumen `postgres_data`. Errores Prisma de infraestructura desenmascarados y health con ping real a la base. MCP Calendar sigue fuera del compose. |
 | **016-seed-dev-login-bypass** | ✅ Implementada | Seed destructivo con datos completos (1 admin, 2 barberos, 2 clientes, 4 servicios, 4 turnos) + bypass de WebAuthn solo con `NODE_ENV=development` y UI opt-in por `NEXT_PUBLIC_DEV_LOGIN`. |
+| **017-login-clasico-contingencia** | ✅ Implementada | `POST /api/auth/login` valida email+contraseña contra `password_hash` (bcryptjs) con 401 uniforme y emite la misma cookie que passkey; seed con contraseña del admin; "Ingresar (Clásico)" en la pantalla de login. |
 
 ---
 
@@ -90,6 +91,17 @@
 
 ---
 
+## Incremento SDD 017 — Login clásico de contingencia (10-nov-2026)
+
+- **Backend:** `POST /api/auth/login` (público) recibe `{ email, password }`, valida con zod y `verificarLoginClasico` en `services/auth.service.js` compara contra `password_hash` con `bcryptjs`. Respuesta uniforme `401 Email o contraseña incorrectos` ante contraseña incorrecta, usuario inexistente o usuario sin contraseña (no revela existencia). Éxito → `{ usuario }` + la misma cookie `sesion` firmada que el login con passkey (`utils/session.js`), sin exponer el hash. Los endpoints de passkey y el bypass de 016 quedan intactos.
+- **Seed:** `admin@barberia.com` recibe `passwordHash = bcrypt.hashSync('admin123', 10)`; el resto de los usuarios sembrados no recibe contraseña. Sin cambios de esquema (`password_hash` existía, nullable).
+- **Frontend:** `LoginForm` agrega un segundo formulario (email + contraseña) con el botón "Ingresar (Clásico)" separado por divisor, con estados propios de carga/error y sin dependencia del soporte WebAuthn. El flujo con passkey no cambia. Nueva función `loginClasico` en `lib/api/auth.ts`.
+- **Verificación:** `npm test` en `backend/` → 23/23 (5 tests nuevos de `verificarLoginClasico`: happy path, 401 por contraseña incorrecta, 401 sin hash, 401 usuario inexistente, 400 sin contraseña); seed ejecutado contra la base local; E2E con curl: credenciales correctas → 200 + cookie `sesion` + `GET /api/auth/sesion` autenticado, contraseña incorrecta → 401, body sin contraseña → 400; lint del frontend → 0 errores (3 advertencias preexistentes); build del frontend completado.
+- **Limitación:** el formulario clásico no se verificó manualmente en navegador real; la contraseña del admin en producción requiere ejecutar el seed ahí (operación manual).
+- **Trazabilidad:** `specs/017-login-clasico-contingencia/` (`spec.md`, `plan.md`, `tasks.md`).
+
+---
+
 ## Deuda técnica conocida
 
 1. **`tasks.md` reconstruidos (backfill documental, 26-oct-2026)** — se ejecutaron `/speckit.specify` y `/speckit.plan` antes de los `tasks.md`; los 13 archivos se reconstruyeron retrospectivamente desde spec, plan, código y esta auditoría. El backfill no sustituye el uso histórico de `/speckit.tasks`; el pipeline completo se aplicó en `013-footer-anio` y es obligatorio en adelante. Además, muchas tareas de prueba siguen `[ ]` porque no hay evidencia de ejecución.
@@ -110,7 +122,7 @@
 - **MCPs:** `postgres-local` (stdio, solo lectura) y `google-calendar` (HTTP, paquete autónomo) implementados, con script npm y declarados en `opencode.json`.
 - **Scripts npm:** backend y frontend verificados, sin targets rotos.
 - **Rutas backend:** 12 módulos registrados en `routes/index.js`, sin imports rotos.
-- **Especificaciones:** 16 entradas con `spec.md` + `plan.md` + `tasks.md` (000-016). 006/014 permanecen Partial por verificaciones pendientes; 008/009/010 siguen Partial por contratos del plan aún no implementados.
+- **Especificaciones:** 17 entradas con `spec.md` + `plan.md` + `tasks.md` (000-017). 006/014 permanecen Partial por verificaciones pendientes; 008/009/010 siguen Partial por contratos del plan aún no implementados.
 
 ---
 

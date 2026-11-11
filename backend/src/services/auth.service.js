@@ -5,6 +5,7 @@ const {
   verifyAuthenticationResponse,
 } = require('@simplewebauthn/server');
 const { isoBase64URL } = require('@simplewebauthn/server/helpers');
+const bcrypt = require('bcryptjs');
 const prisma = require('../config/prisma');
 const AppError = require('../utils/AppError');
 const env = require('../config/env');
@@ -201,6 +202,22 @@ async function verificarLoginDev(body) {
   return serializarUsuario(usuario);
 }
 
+async function verificarLoginClasico(body) {
+  requerirCampos(body, ['email', 'password']);
+  const email = validarEmail(body.email);
+  const password = String(body.password);
+
+  const usuario = await prisma.usuario.findUnique({ where: { email } });
+
+  // Respuesta uniforme: no revela si el email existe o si el usuario tiene contraseña.
+  const coincide = usuario?.passwordHash
+    ? await bcrypt.compare(password, usuario.passwordHash)
+    : false;
+  if (!coincide) throw new AppError(401, 'Email o contraseña incorrectos');
+
+  return serializarUsuario(usuario);
+}
+
 async function usuarioActual(usuarioId) {
   const usuario = await prisma.usuario.findUnique({ where: { id: usuarioId } });
   if (!usuario) throw new AppError(404, 'Usuario no encontrado');
@@ -212,6 +229,7 @@ module.exports = {
   verificarRegistro,
   opcionesLogin,
   verificarLogin,
+  verificarLoginClasico,
   verificarLoginDev,
   bypassDesarrolloHabilitado,
   usuarioActual,
