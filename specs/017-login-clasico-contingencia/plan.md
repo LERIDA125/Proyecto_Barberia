@@ -6,7 +6,7 @@
 
 ## Summary
 
-Agregar un login tradicional con email y contraseña como respaldo del flujo con passkeys. La contraseña se guarda solo para el admin del seed, hasheada con `bcryptjs` en el campo existente `password_hash` (sin cambios de esquema). El backend expone `POST /api/auth/login` que valida credenciales contra el hash y emite la misma cookie de sesión firmada (HMAC) que el login con passkey. El frontend agrega un formulario clásico debajo del flujo existente en la pantalla de login.
+Agregar un login tradicional con email y contraseña como respaldo del flujo con passkeys. Las contraseñas se guardan para todos los usuarios del seed (una por rol: `admin123`, `barbero123`, `cliente123`), hasheadas con `bcryptjs` en el campo existente `password_hash` (sin cambios de esquema). El backend expone `POST /api/auth/login` que valida credenciales contra el hash y emite la misma cookie de sesión firmada (HMAC) que el login con passkey. El frontend agrega un formulario clásico debajo del flujo existente en la pantalla de login.
 
 ## Endpoints REST (Node.js)
 
@@ -60,7 +60,7 @@ Agregar un login tradicional con email y contraseña como respaldo del flujo con
 
 ```text
 backend/
-├── prisma/seed.js                      # admin con passwordHash bcrypt
+├── prisma/seed.js                      # usuarios con passwordHash por rol (admin/barbero/cliente)
 └── src/
     ├── routes/auth.routes.js            # POST /login
     ├── controllers/auth.controller.js   # loginClasico

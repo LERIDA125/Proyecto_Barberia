@@ -16,14 +16,14 @@ El único flujo de acceso a la aplicación es el login con passkeys (WebAuthn), 
 
 ### In Scope
 
-- El seed guarda una contraseña de demo para el usuario `admin@barberia.com`, hasheada con bcrypt en el campo ya existente `password_hash`.
+- El seed guarda una contraseña de demo por rol para **todos los usuarios sembrados** (admin, 2 barberos, 2 clientes), hasheada con bcrypt en el campo ya existente `password_hash`.
 - Un endpoint de login tradicional que recibe email y contraseña, los valida contra el hash almacenado y emite la misma cookie de sesión firmada que el login con passkey.
 - Un formulario clásico (email + contraseña) con el botón "Ingresar (Clásico)" en la pantalla de login, debajo del flujo existente con passkey.
 - Pruebas automatizadas del nuevo service y verificación de que el flujo con passkey no cambia.
 
 ### Out of Scope
 
-- Registro de usuarios con contraseña (solo el admin del seed recibe una).
+- Registro de usuarios con contraseña desde la UI (solo los usuarios del seed reciben una; los demás siguen solo con passkey).
 - Recuperación/cambio de contraseña, MFA adicional o rate limiting del login.
 - Modificar el esquema Prisma o las migraciones (`password_hash` ya existe, nullable).
 - Ejecutar el seed contra la base de producción (decisión operativa manual del equipo).
@@ -33,15 +33,15 @@ El único flujo de acceso a la aplicación es el login con passkeys (WebAuthn), 
 
 ### User Story 1 - Ingresar con email y contraseña (Priority: P1)
 
-Quien presenta necesita poder entrar a la aplicación con el email y la contraseña del admin, sin usar WebAuthn, como respaldo ante cualquier problema con passkeys.
+Quien presenta necesita poder entrar a la aplicación con el email y la contraseña de cualquier usuario sembrado (admin, barbero o cliente), sin usar WebAuthn, como respaldo ante cualquier problema con passkeys.
 
 **Why this priority**: sin un camino alternativo, un fallo de passkey en la presentación deja la aplicación completa inaccesible.
 
-**Independent Test**: Enviar email y contraseña válidos al endpoint de login y verificar que responde con el usuario y emite la cookie de sesión; usar esa cookie contra el endpoint de sesión y obtener el usuario admin.
+**Independent Test**: Enviar email y contraseña válidos de cada rol al endpoint de login y verificar que responde con el usuario y emite la cookie de sesión; usar esa cookie contra el endpoint de sesión y obtener el usuario correspondiente.
 
 **Acceptance Scenarios**:
 
-1. **Given** el admin sembrado con contraseña, **When** se envían email y contraseña correctos, **Then** se emite la cookie de sesión firmada y se devuelve el usuario serializado, sin exponer el hash.
+1. **Given** un usuario sembrado con la contraseña de su rol, **When** se envían email y contraseña correctos, **Then** se emite la cookie de sesión firmada y se devuelve el usuario serializado, sin exponer el hash.
 2. **Given** la cookie emitida, **When** se consulta la sesión, **Then** se obtiene el usuario autenticado (misma sesión que el login con passkey).
 3. **Given** una contraseña incorrecta, **When** se envía al endpoint, **Then** se rechaza con 401 y un mensaje uniforme.
 4. **Given** un email inexistente, **When** se envía cualquier contraseña, **Then** se rechaza con el mismo 401 y mensaje del caso anterior (no se revela la existencia del email).
@@ -63,7 +63,7 @@ El equipo necesita que el login clásico sea un agregado, no un reemplazo: el ac
 
 ### Edge Cases
 
-- **Usuario sin `password_hash`** (todos los usuarios sembrados salvo el admin): el login clásico MUST responder con el mismo 401 uniforme, sin revelar que el usuario existe pero no tiene contraseña.
+- **Usuario sin `password_hash`** (usuarios registrados por UI, que solo tienen passkey): el login clásico MUST responder con el mismo 401 uniforme, sin revelar que el usuario existe pero no tiene contraseña.
 - **Contraseña vacía o body incompleto**: rechazo 400 por validación antes de consultar la base.
 - **Email con mayúsculas o espacios**: se normaliza (trim + lowercase) igual que en el resto de los flujos de auth.
 - **Usuario inactivo**: se mantiene el comportamiento actual del login con passkey; esta feature no altera la política de cuentas.
@@ -72,7 +72,7 @@ El equipo necesita que el login clásico sea un agregado, no un reemplazo: el ac
 
 ### Functional Requirements
 
-- **FR-001**: El seed MUST almacenar en `password_hash` del usuario `admin@barberia.com` el hash bcrypt de su contraseña de demo, con costo estándar (10 rounds).
+- **FR-001**: El seed MUST almacenar en `password_hash` de cada usuario sembrado (admin, 2 barberos, 2 clientes) el hash bcrypt de la contraseña de demo de su rol — `admin123`, `barbero123`, `cliente123` — con costo estándar (10 rounds).
 - **FR-002**: El sistema MUST exponer un endpoint de login tradicional que reciba `email` y `password`, valide el formato y verifique la contraseña contra el hash almacenado con bcrypt.
 - **FR-003**: El login clásico exitoso MUST emitir exactamente la misma cookie de sesión firmada que emite el login con passkey (misma utilidad, misma duración).
 - **FR-004**: El login clásico MUST responder con un 401 de mensaje uniforme ante contraseña incorrecta, usuario inexistente o usuario sin contraseña registrada.
@@ -89,17 +89,17 @@ El equipo necesita que el login clásico sea un agregado, no un reemplazo: el ac
 
 ### Measurable Outcomes
 
-- **SC-001**: Tras ejecutar el seed, el usuario `admin@barberia.com` tiene `password_hash` no nulo y verificable con bcrypt.
+- **SC-001**: Tras ejecutar el seed, los 5 usuarios sembrados tienen `password_hash` no nulo y verificable con bcrypt con la contraseña de su rol.
 - **SC-002**: El 100% de los intentos de login clásico con credenciales correctas obtiene cookie de sesión válida y usuario serializado.
 - **SC-003**: El 100% de los intentos con credenciales incorrectas, email inexistente o usuario sin contraseña recibe 401 con mensaje uniforme.
 - **SC-004**: La suite automatizada del backend pasa sin regresiones (tests de passkey y bypass intactos).
 
 ## Assumptions
 
-- Solo el admin del seed recibe contraseña; barberos y clientes de prueba siguen sin acceso clásico.
-- `admin123` es una contraseña de demo elegida explícitamente para la presentación, no un secreto del sistema.
+- Todos los usuarios del seed reciben la contraseña de su rol (`admin123` / `barbero123` / `cliente123`); los usuarios registrados por UI siguen accediendo solo por passkey.
+- Las contraseñas son de demo elegidas explícitamente para la presentación, no secretos del sistema.
 - La elección de bcryptjs (JS puro) sobre bcrypt (nativo) responde a portabilidad: sin binarios nativos en Windows ni en el deploy de Vercel Services.
-- La aplicación de la contraseña en la base de producción requiere ejecutar el seed ahí (decisión operativa manual).
+- La aplicación de las contraseñas en la base de producción requiere ejecutar el seed ahí (decisión operativa manual).
 
 ## Dependencies
 

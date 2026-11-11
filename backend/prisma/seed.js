@@ -161,6 +161,7 @@ async function crearDatos(tx) {
   });
 
   const barberos = [];
+  const hashBarbero = bcrypt.hashSync('barbero123', 10);
   for (const data of BARBEROS) {
     const usuario = await tx.usuario.create({
       data: {
@@ -168,6 +169,7 @@ async function crearDatos(tx) {
         email: data.email,
         telefono: data.telefono,
         rol: 'barbero',
+        passwordHash: hashBarbero,
       },
     });
 
@@ -185,6 +187,7 @@ async function crearDatos(tx) {
   }
 
   const clientes = [];
+  const hashCliente = bcrypt.hashSync('cliente123', 10);
   for (const data of CLIENTES) {
     const usuario = await tx.usuario.create({
       data: {
@@ -192,6 +195,7 @@ async function crearDatos(tx) {
         email: data.email,
         telefono: data.telefono,
         rol: 'cliente',
+        passwordHash: hashCliente,
       },
     });
     clientes.push(usuario);
